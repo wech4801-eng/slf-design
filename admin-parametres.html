@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Paramètres · SLF Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#00843D;--green-dark:#006830;--green-light:#e8f5ee;--red:#CE1126;--red-light:#fdecea;--white:#FFFFFF;--sidebar-bg:#0f2419;--gray-50:#f8f9fa;--gray-100:#f1f3f5;--gray-200:#e9ecef;--gray-400:#adb5bd;--gray-600:#6c757d;--gray-800:#343a40;--gray-900:#212529;--font:'Inter',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,.08);--radius:12px;--sidebar-w:240px}
+    body{font-family:var(--font);background:var(--gray-50);color:var(--gray-900)}a{text-decoration:none;color:inherit}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);color:rgba(255,255,255,.85);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}
+    .sidebar-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}.logo-flag{width:32px;height:20px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column}.logo-flag span{flex:1}.logo-flag .g{background:var(--green)}.logo-flag .w{background:rgba(255,255,255,.6)}.logo-flag .r{background:var(--red)}.sidebar-logo-name{font-size:16px;font-weight:800;color:var(--white)}.sidebar-badge{font-size:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:1px}
+    .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}.nav-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);padding:12px 10px 6px;margin-top:4px}.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:rgba(255,255,255,.65);cursor:pointer;transition:all .15s;margin-bottom:2px}.nav-item:hover{background:rgba(255,255,255,.08);color:var(--white)}.nav-item.active{background:var(--green);color:var(--white)}.nav-item svg{width:18px;height:18px;flex-shrink:0}.nav-badge{margin-left:auto;background:var(--red);color:var(--white);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+    .sidebar-footer{padding:12px 8px;border-top:1px solid rgba(255,255,255,.08)}.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.06)}.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--white);flex-shrink:0}.user-name{font-size:13px;font-weight:600;color:var(--white)}.user-role{font-size:11px;color:rgba(255,255,255,.4)}.logout-btn{margin-left:auto;cursor:pointer;color:rgba(255,255,255,.4)}.logout-btn:hover{color:var(--red)}.logout-btn svg{width:16px;height:16px}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49}.sidebar-overlay.show{display:block}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .topbar{background:var(--white);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:40;gap:12px}.topbar-left{display:flex;align-items:center;gap:12px}.menu-toggle{display:flex;flex-direction:column;gap:4px;cursor:pointer;padding:4px;border:none;background:none}.menu-toggle span{width:20px;height:2px;background:var(--gray-800);border-radius:2px}.page-title{font-size:16px;font-weight:700}.breadcrumb-top{font-size:12px;color:var(--gray-400)}.topbar-right{display:flex;align-items:center;gap:10px}
+    .content{padding:24px 20px;flex:1;max-width:820px}
+    .settings-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:24px}
+    .stab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:var(--white);color:var(--gray-600);transition:all .15s;box-shadow:var(--shadow-sm)}.stab:hover{background:var(--green-light);color:var(--green-dark)}.stab.active{background:var(--green);color:var(--white)}
+    .settings-panel{display:none}.settings-panel.active{display:block}
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--gray-100)}.card-title{font-size:15px;font-weight:700}.card-desc{font-size:13px;color:var(--gray-600);margin-top:4px}
+    .card-body{padding:20px}
+    .form-group{margin-bottom:16px}
+    .field-label{font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+    .field-input,.field-select,.field-textarea{width:100%;padding:9px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:var(--font);outline:none;background:var(--gray-50);transition:border-color .15s}.field-input:focus,.field-select:focus,.field-textarea:focus{border-color:var(--green);background:var(--white)}
+    .field-textarea{resize:vertical;min-height:80px}
+    .field-hint{font-size:11px;color:var(--gray-400);margin-top:4px}
+    .input-prefix{display:flex;border:1px solid var(--gray-200);border-radius:8px;overflow:hidden;background:var(--gray-50)}.prefix-label{padding:9px 12px;font-size:13px;color:var(--gray-500);background:var(--gray-100);border-right:1px solid var(--gray-200);white-space:nowrap}.prefix-input{flex:1;padding:9px 12px;border:none;font-size:13px;font-family:var(--font);outline:none;background:transparent}
+    .btn-new{display:flex;align-items:center;gap:6px;padding:10px 20px;background:var(--green);color:var(--white);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:background .15s}.btn-new:hover{background:var(--green-dark)}
+    .btn-ghost{padding:10px 16px;border:1px solid var(--gray-200);background:var(--white);border-radius:8px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;color:var(--gray-700)}.btn-ghost:hover{background:var(--gray-50)}
+    .btn-danger{padding:10px 16px;background:var(--red-light);color:var(--red);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer}.btn-danger:hover{background:var(--red);color:var(--white)}
+    .save-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .save-msg{font-size:13px;font-weight:500;display:none}
+    .save-msg.ok{color:var(--green)}.save-msg.err{color:var(--red)}
+    /* Toggle switch */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-100)}
+    .toggle-row:last-child{border-bottom:none}
+    .toggle-info{flex:1}
+    .toggle-title{font-size:14px;font-weight:500;margin-bottom:2px}
+    .toggle-desc{font-size:12px;color:var(--gray-400)}
+    .toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;inset:0;background:var(--gray-200);border-radius:24px;cursor:pointer;transition:background .2s}
+    .toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:var(--white);border-radius:50%;transition:transform .2s}
+    .toggle input:checked+.toggle-slider{background:var(--green)}
+    .toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+    /* Password strength */
+    .pwd-strength{height:4px;background:var(--gray-100);border-radius:2px;overflow:hidden;margin-top:6px}
+    .pwd-strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+
+    @media(min-width:768px){.sidebar{transform:translateX(0)}.main{margin-left:var(--sidebar-w)}.menu-toggle{display:none}}
+    @media(min-width:1024px){.content{padding:28px 32px}}
+  </style>
+
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div><span class="sidebar-logo-name">SLF Admin</span></div><div class="sidebar-badge">Panneau de gestion</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="admin-dashboard.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Tableau de bord</a>
+      <a class="nav-item" href="admin-editor.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>Articles<span class="nav-badge" id="navArticles">0</span></a>
+      <a class="nav-item" href="admin-medias.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Médias</a>
+      <a class="nav-item" href="admin-categories.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>Catégories</a>
+      <a class="nav-item" href="admin-membres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Membres</a>
+      <div class="nav-section-label">Paramètres</div>
+      <a class="nav-item active" href="admin-parametres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Paramètres</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-info"><div class="user-avatar">A</div><div><div class="user-name">Admin</div><div class="user-role">Administrateur SLF</div></div><a href="#" class="logout-btn" title="Déconnexion" onclick="event.preventDefault();SLFAuth.logout()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></a></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div><div class="page-title">Paramètres</div><div class="breadcrumb-top">Configuration du site et du compte</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Tabs -->
+      <div class="settings-tabs">
+        <button class="stab active" onclick="showTab('general',this)">🏠 Général</button>
+        <button class="stab" onclick="showTab('social',this)">📡 Réseaux sociaux</button>
+        <button class="stab" onclick="showTab('securite',this)">🔒 Sécurité</button>
+        <button class="stab" onclick="showTab('notifications',this)">🔔 Notifications</button>
+      </div>
+
+      <!-- Général -->
+      <div class="settings-panel active" id="panel-general">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Informations générales du site</div><div class="card-desc">Ces informations apparaissent sur le site public et dans les emails.</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="field-label">Nom du site</label><input type="text" class="field-input" value="SLF — Somaliland France"/><div class="field-hint">Affiché dans l'onglet du navigateur et les résultats Google.</div></div>
+            <div class="form-group"><label class="field-label">Slogan / Description courte</label><input type="text" class="field-input" value="Association de soutien et de liaison entre la France et le Somaliland"/></div>
+            <div class="form-group"><label class="field-label">Email de contact public</label><input type="email" class="field-input" value="aslf.lyon@gmail.com"/></div>
+            <div class="form-group"><label class="field-label">Téléphone</label><input type="tel" class="field-input" value="06 61 64 39 46"/></div>
+            <div class="form-group"><label class="field-label">Adresse</label><textarea class="field-textarea" rows="2">13 Chemin d'Auguste Renoir, 69120 Vaulx-en-Velin</textarea></div>
+            <div class="form-group"><label class="field-label">Langue du site</label><select class="field-select"><option selected>Français</option><option>Anglais</option><option>Somali</option></select></div>
+            <div class="save-bar">
+              <span class="save-msg" id="msgGeneral"></span>
+              <button class="btn-new" onclick="save('msgGeneral')">Enregistrer les modifications</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">SEO — Référencement</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="field-label">Titre SEO (balise title)</label><input type="text" class="field-input" value="SLF · Somaliland France — Association"/><div class="field-hint">Max 60 caractères recommandés.</div></div>
+            <div class="form-group"><label class="field-label">Meta description</label><textarea class="field-textarea" rows="2">Association Somaliland France (SLF) — Actualités, diplomatie, actions humanitaires et solidarité entre la France et le Somaliland.</textarea><div class="field-hint">Max 160 caractères recommandés.</div></div>
+            <div class="save-bar">
+              <span class="save-msg" id="msgSeo"></span>
+              <button class="btn-new" onclick="save('msgSeo')">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Réseaux sociaux -->
+      <div class="settings-panel" id="panel-social">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Liens réseaux sociaux</div><div class="card-desc">Ces liens apparaissent dans le pied de page et la page Contact.</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="field-label">Facebook</label><div class="input-prefix"><span class="prefix-label">facebook.com/</span><input type="text" class="prefix-input" value="somaliland.france"/></div></div>
+            <div class="form-group"><label class="field-label">Twitter / X</label><div class="input-prefix"><span class="prefix-label">twitter.com/</span><input type="text" class="prefix-input" value="slf_asso"/></div></div>
+            <div class="form-group"><label class="field-label">YouTube</label><div class="input-prefix"><span class="prefix-label">youtube.com/@</span><input type="text" class="prefix-input" value="SomalilandFrance"/></div></div>
+            <div class="form-group"><label class="field-label">WhatsApp (numéro)</label><div class="input-prefix"><span class="prefix-label">+33 </span><input type="text" class="prefix-input" value="6 61 64 39 46"/></div></div>
+            <div class="form-group"><label class="field-label">Instagram</label><div class="input-prefix"><span class="prefix-label">instagram.com/</span><input type="text" class="prefix-input" placeholder="votre_compte"/></div></div>
+            <div class="save-bar">
+              <span class="save-msg" id="msgSocial"></span>
+              <button class="btn-new" onclick="save('msgSocial')">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sécurité -->
+      <div class="settings-panel" id="panel-securite">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Changer le mot de passe</div><div class="card-desc">Le mot de passe doit contenir au moins 12 caractères, avec majuscules, chiffres et symboles.</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="field-label">Mot de passe actuel</label><input type="password" class="field-input" id="pwdCurrent" placeholder="••••••••••••"/></div>
+            <div class="form-group"><label class="field-label">Nouveau mot de passe</label><input type="password" class="field-input" id="pwdNew" placeholder="••••••••••••" oninput="checkStrength(this.value)"/><div class="pwd-strength"><div class="pwd-strength-fill" id="pwdFill" style="width:0%;background:var(--red);"></div></div><div class="field-hint" id="pwdHint">Entrez un mot de passe fort.</div></div>
+            <div class="form-group"><label class="field-label">Confirmer le nouveau mot de passe</label><input type="password" class="field-input" id="pwdConfirm" placeholder="••••••••••••"/></div>
+            <div class="save-bar">
+              <span class="save-msg" id="msgPwd"></span>
+              <button class="btn-new" onclick="changePwd()">Mettre à jour le mot de passe</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Sessions actives</div></div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="toggle-title">Cette session (navigateur actuel)</div><div class="toggle-desc">Connecté depuis le 25 mai 2026 à 14h32 · Lyon, France</div></div>
+              <span style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:4px 10px;border-radius:20px;">Active</span>
+            </div>
+            <div style="margin-top:16px;">
+              <button class="btn-danger" onclick="if(confirm('Déconnecter toutes les autres sessions ?'))alert('Sessions terminées.')">Déconnecter toutes les autres sessions</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-panel" id="panel-notifications">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Préférences de notifications</div><div class="card-desc">Choisissez quand vous souhaitez être notifié par email.</div></div>
+          <div class="card-body">
+            <div class="toggle-row"><div class="toggle-info"><div class="toggle-title">Nouveau message de contact</div><div class="toggle-desc">Recevoir les messages envoyés via le formulaire de contact</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+            <div class="toggle-row"><div class="toggle-info"><div class="toggle-title">Nouvelle adhésion</div><div class="toggle-desc">Recevoir un email à chaque nouvelle adhésion</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+            <div class="toggle-row"><div class="toggle-info"><div class="toggle-title">Alertes de sécurité</div><div class="toggle-desc">Notification en cas de connexion depuis un nouvel appareil</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+            <div style="margin-top:20px;" class="save-bar">
+              <span class="save-msg" id="msgNotif"></span>
+              <button class="btn-new" onclick="save('msgNotif')">Enregistrer les préférences</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="admin-auth.js?v=3"></script>
+<script>
+  // ── Vérification d'authentification ──────────────────────────────────────
+  if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
+
+  // Mettre à jour le badge sidebar
+  (function() {
+    let n = 0;
+    try { const a = JSON.parse(localStorage.getItem('slf_articles') || '[]'); n = Array.isArray(a) ? a.length : 0; } catch {}
+    const b = document.getElementById('navArticles');
+    if (b) b.textContent = n;
+  })();
+
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+  function showTab(id,btn){
+    document.querySelectorAll('.settings-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+    document.getElementById('panel-'+id).classList.add('active');
+    btn.classList.add('active');
+  }
+  function save(msgId){
+    const msg=document.getElementById(msgId);
+    msg.className='save-msg ok';msg.textContent='✓ Paramètres enregistrés !';msg.style.display='block';
+    setTimeout(()=>msg.style.display='none',3000);
+  }
+  function checkStrength(pwd){
+    let score=0;
+    if(pwd.length>=8)score++;if(pwd.length>=12)score++;
+    if(/[A-Z]/.test(pwd))score++;if(/[0-9]/.test(pwd))score++;if(/[^A-Za-z0-9]/.test(pwd))score++;
+    const fill=document.getElementById('pwdFill');
+    const hint=document.getElementById('pwdHint');
+    const levels=[{w:'20%',c:'var(--red)',t:'Très faible'},{w:'40%',c:'#f97316',t:'Faible'},{w:'60%',c:'#eab308',t:'Moyen'},{w:'80%',c:'#84cc16',t:'Fort'},{w:'100%',c:'var(--green)',t:'Très fort'}];
+    const l=levels[Math.min(score,4)];
+    fill.style.width=l.w;fill.style.background=l.c;hint.textContent=l.t;hint.style.color=l.c;
+  }
+  function changePwd(){
+    const cur=document.getElementById('pwdCurrent').value;
+    const n=document.getElementById('pwdNew').value;
+    const c=document.getElementById('pwdConfirm').value;
+    const msg=document.getElementById('msgPwd');
+    if(!cur||!n||!c){msg.className='save-msg err';msg.textContent='Remplissez tous les champs.';msg.style.display='block';return}
+    if(n!==c){msg.className='save-msg err';msg.textContent='Les mots de passe ne correspondent pas.';msg.style.display='block';return}
+    if(n.length<12){msg.className='save-msg err';msg.textContent='Le mot de passe doit faire au moins 12 caractères.';msg.style.display='block';return}
+    msg.className='save-msg ok';msg.textContent='✓ Mot de passe mis à jour !';msg.style.display='block';
+    ['pwdCurrent','pwdNew','pwdConfirm'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pwdFill').style.width='0%';
+    setTimeout(()=>msg.style.display='none',3000);
+  }
+</script>
+</body>
+</html>

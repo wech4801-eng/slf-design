@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard · SLF Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:#00843D; --green-dark:#006830; --green-light:#e8f5ee;
+      --red:#CE1126; --red-light:#fdecea;
+      --white:#FFFFFF; --sidebar-bg:#0f2419;
+      --gray-50:#f8f9fa; --gray-100:#f1f3f5; --gray-200:#e9ecef;
+      --gray-300:#dee2e6; --gray-400:#adb5bd; --gray-600:#6c757d;
+      --gray-800:#343a40; --gray-900:#212529;
+      --font:'Inter',sans-serif;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.08); --shadow-md:0 4px 16px rgba(0,0,0,.10);
+      --radius:12px; --sidebar-w:240px;
+    }
+    body { font-family:var(--font); background:var(--gray-50); color:var(--gray-900); }
+    a { text-decoration:none; color:inherit; }
+
+    /* Layout */
+    .app { display:flex; min-height:100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width:var(--sidebar-w); background:var(--sidebar-bg); color:rgba(255,255,255,.85);
+      display:flex; flex-direction:column;
+      position:fixed; top:0; left:0; bottom:0; z-index:50;
+      transform:translateX(-100%); transition:transform .25s;
+    }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-header { padding:20px 16px 16px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .sidebar-logo { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .logo-flag { width:32px; height:20px; border-radius:3px; overflow:hidden; display:flex; flex-direction:column; }
+    .logo-flag span { flex:1; }
+    .logo-flag .g { background:var(--green); }
+    .logo-flag .w { background:rgba(255,255,255,.6); }
+    .logo-flag .r { background:var(--red); }
+    .sidebar-logo-name { font-size:16px; font-weight:800; color:var(--white); }
+    .sidebar-badge { font-size:10px; background:rgba(255,255,255,.1); color:rgba(255,255,255,.6); padding:3px 8px; border-radius:4px; text-transform:uppercase; letter-spacing:1px; }
+
+    .sidebar-nav { flex:1; padding:12px 8px; overflow-y:auto; }
+    .nav-section-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.3); padding:12px 10px 6px; margin-top:4px; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:8px;
+      font-size:14px; font-weight:500;
+      color:rgba(255,255,255,.65);
+      cursor:pointer; transition:all .15s; margin-bottom:2px;
+    }
+    .nav-item:hover { background:rgba(255,255,255,.08); color:var(--white); }
+    .nav-item.active { background:var(--green); color:var(--white); }
+    .nav-item svg { width:18px; height:18px; flex-shrink:0; }
+    .nav-badge { margin-left:auto; background:var(--red); color:var(--white); font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; }
+
+    .sidebar-footer { padding:12px 8px; border-top:1px solid rgba(255,255,255,.08); }
+    .user-info { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; background:rgba(255,255,255,.06); }
+    .user-avatar { width:32px; height:32px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:var(--white); flex-shrink:0; }
+    .user-name  { font-size:13px; font-weight:600; color:var(--white); }
+    .user-role  { font-size:11px; color:rgba(255,255,255,.4); }
+    .logout-btn { margin-left:auto; cursor:pointer; color:rgba(255,255,255,.4); transition:color .15s; }
+    .logout-btn:hover { color:var(--red); }
+    .logout-btn svg { width:16px; height:16px; }
+
+    /* Main */
+    .main { flex:1; display:flex; flex-direction:column; min-width:0; }
+    .topbar {
+      background:var(--white); height:60px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 20px; box-shadow:var(--shadow-sm);
+      position:sticky; top:0; z-index:40; gap:12px;
+    }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .menu-toggle { display:flex; flex-direction:column; gap:4px; cursor:pointer; padding:4px; border:none; background:none; }
+    .menu-toggle span { width:20px; height:2px; background:var(--gray-800); border-radius:2px; }
+    .page-title { font-size:16px; font-weight:700; color:var(--gray-900); }
+    .breadcrumb-top { font-size:12px; color:var(--gray-400); }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+    .topbar-btn { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid var(--gray-200); background:var(--white); cursor:pointer; position:relative; transition:background .15s; }
+    .topbar-btn:hover { background:var(--gray-50); }
+    .topbar-btn svg { width:16px; height:16px; color:var(--gray-600); }
+    .notif-dot { position:absolute; top:4px; right:4px; width:8px; height:8px; border-radius:50%; background:var(--red); border:2px solid var(--white); }
+    .btn-new { display:flex; align-items:center; gap:6px; padding:8px 16px; background:var(--green); color:var(--white); border:none; border-radius:8px; font-size:13px; font-weight:600; font-family:var(--font); cursor:pointer; white-space:nowrap; transition:background .15s,transform .1s; text-decoration:none; }
+    .btn-new:hover { background:var(--green-dark); transform:translateY(-1px); }
+    .btn-new svg { width:14px; height:14px; }
+
+    /* Content */
+    .content { padding:24px 20px; flex:1; }
+
+    /* Stats */
+    .stats-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
+    .stat-card { background:var(--white); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow-sm); }
+    .stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:10px; }
+    .stat-value { font-size:26px; font-weight:800; line-height:1; margin-bottom:4px; }
+    .stat-label { font-size:12px; color:var(--gray-600); }
+    .stat-trend { font-size:11px; margin-top:6px; display:flex; align-items:center; gap:4px; }
+    .stat-trend.up { color:var(--green); } .stat-trend.down { color:var(--red); }
+
+    /* Card */
+    .card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:20px; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--gray-100); }
+    .card-title { font-size:15px; font-weight:700; }
+
+    /* Filter bar */
+    .filter-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 20px; border-bottom:1px solid var(--gray-100); }
+    .search-wrap { position:relative; flex:1; min-width:180px; }
+    .search-wrap svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--gray-400); }
+    .search-input { width:100%; padding:8px 12px 8px 34px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-family:var(--font); outline:none; background:var(--gray-50); transition:border-color .15s; }
+    .search-input:focus { border-color:var(--green); background:var(--white); }
+    .filter-select { padding:8px 12px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-family:var(--font); background:var(--gray-50); color:var(--gray-800); outline:none; cursor:pointer; }
+
+    /* Article rows */
+    .articles-list { padding:0; }
+    .article-row { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid var(--gray-100); cursor:pointer; transition:background .15s; }
+    .article-row:last-child { border-bottom:none; }
+    .article-row:hover { background:var(--gray-50); }
+    .article-thumb { width:52px; height:52px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .article-info { flex:1; min-width:0; }
+    .article-row-title { font-size:14px; font-weight:600; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
+    .article-row-meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--gray-400); flex-wrap:wrap; }
+    .meta-sep { width:3px; height:3px; border-radius:50%; background:var(--gray-300); flex-shrink:0; }
+    .status-badge { flex-shrink:0; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .status-badge.published { background:var(--green-light); color:var(--green-dark); }
+    .status-badge.draft     { background:var(--gray-100);    color:var(--gray-600); }
+    .status-badge.scheduled { background:#fef3c7;            color:#92400e; }
+    .row-actions { display:flex; gap:4px; flex-shrink:0; }
+    .row-btn { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:none; background:none; cursor:pointer; color:var(--gray-400); transition:all .15s; }
+    .row-btn.edit:hover   { background:var(--green-light); color:var(--green); }
+    .row-btn.delete:hover { background:var(--red-light);   color:var(--red); }
+    .row-btn svg { width:15px; height:15px; }
+
+    /* Pagination */
+    .pagination { display:flex; align-items:center; justify-content:center; gap:4px; padding:16px; border-top:1px solid var(--gray-100); }
+    .page-btn { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--gray-200); background:var(--white); color:var(--gray-600); transition:all .15s; }
+    .page-btn:hover  { border-color:var(--green); color:var(--green); }
+    .page-btn.active { background:var(--green); border-color:var(--green); color:var(--white); }
+
+    /* Empty state */
+    .empty-state { text-align:center; padding:40px 20px; color:var(--gray-400); }
+    .empty-state svg { width:48px; height:48px; margin:0 auto 12px; opacity:.4; }
+    .empty-state p { font-size:14px; }
+
+    /* Overlay */
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49; }
+    .sidebar-overlay.show { display:block; }
+
+    /* Responsive */
+    @media (min-width:768px) {
+      .sidebar { transform:translateX(0); position:fixed; }
+      .main { margin-left:var(--sidebar-w); }
+      .menu-toggle { display:none; }
+      .stats-grid { grid-template-columns:repeat(4,1fr); }
+    }
+    @media (min-width:1024px) {
+      .content { padding:28px 32px; }
+      .article-thumb { width:64px; height:64px; }
+    }
+  </style>
+
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <span class="sidebar-logo-name">SLF Admin</span>
+      </div>
+      <div class="sidebar-badge">Panneau de gestion</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item active" href="admin-dashboard.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Tableau de bord
+      </a>
+      <a class="nav-item" href="admin-editor.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        Articles
+        <span class="nav-badge">0</span>
+      </a>
+      <a class="nav-item" href="admin-medias.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Médias
+      </a>
+      <a class="nav-item" href="admin-categories.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Catégories
+      </a>
+      <a class="nav-item" href="admin-membres.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        Membres
+      </a>
+      <div class="nav-section-label">Paramètres</div>
+      <a class="nav-item" href="admin-parametres.html">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Paramètres
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name">Admin</div>
+          <div class="user-role">Administrateur SLF</div>
+        </div>
+        <a href="#" class="logout-btn" title="Déconnexion" onclick="event.preventDefault();SLFAuth.logout()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div>
+          <div class="page-title">Tableau de bord</div>
+          <div class="breadcrumb-top">Bonjour, Admin 👋</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        
+        <a href="index.html" target="_blank" class="topbar-btn" title="Voir le site public">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+        <a href="admin-editor.html" class="btn-new">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Nouvel article
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5ee;">📰</div>
+          <div class="stat-value" style="color:var(--green-dark);" id="statPublished">0</div>
+          <div class="stat-label">Articles publiés</div>
+          <div class="stat-trend up" id="statPublishedTrend">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f0fe;">👁</div>
+          <div class="stat-value" style="color:#1a56db;" id="statViews">0</div>
+          <div class="stat-label">Total des vues</div>
+          <div class="stat-trend up">Toutes rubriques</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef3c7;">✏️</div>
+          <div class="stat-value" style="color:#92400e;" id="statDrafts">0</div>
+          <div class="stat-label">Brouillons</div>
+          <div class="stat-trend down">En cours de rédaction</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f0fe;">🗓</div>
+          <div class="stat-value" style="color:#1a56db;" id="statScheduled">0</div>
+          <div class="stat-label">Planifiés</div>
+          <div class="stat-trend up">À venir</div>
+        </div>
+      </div>
+
+      <!-- Articles -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Tous les articles</span>
+          <a href="admin-editor.html" class="btn-new" style="font-size:12px;padding:6px 12px;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Nouveau
+          </a>
+        </div>
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input class="search-input" placeholder="Rechercher un article…" oninput="filterArticles(this.value)" />
+          </div>
+          <select class="filter-select" onchange="filterByCategory(this.value)">
+            <option value="">Toutes catégories</option>
+            <option>Diplomatie</option>
+            <option>Actions</option>
+            <option>Education</option>
+            <option>Culture</option>
+            <option>Humanitaire</option>
+          </select>
+          <select class="filter-select" onchange="filterByStatus(this.value)">
+            <option value="">Tous statuts</option>
+            <option value="published">Publié</option>
+            <option value="draft">Brouillon</option>
+            <option value="scheduled">Planifié</option>
+          </select>
+        </div>
+
+        <div class="articles-list" id="articlesList">
+          <!-- Rempli dynamiquement par JS depuis localStorage -->
+          <div class="empty-state" id="emptyState" style="display:none;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p>Aucun article ne correspond à votre recherche.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" style="position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:9999;pointer-events:none;"></div>
+
+<script src="admin-auth.js?v=3"></script>
+<script src="slf-utils.js?v=3"></script>
+<script>
+  // ── Vérification d'authentification ──────────────────────────────────────
+  if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
+  const esc = SLFUtils.escapeHtml;
+
+  // ── Helpers localStorage ──────────────────────────────────────────────────
+  function getArticles() {
+    try {
+      const raw = JSON.parse(localStorage.getItem('slf_articles') || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch { return []; }
+  }
+  function setArticles(arr) {
+    localStorage.setItem('slf_articles', JSON.stringify(arr));
+  }
+
+  // ── Icône / couleur par catégorie ─────────────────────────────────────────
+  const CAT_STYLE = {
+    diplomatie:   { icon:'🕊️', bg:'var(--green-light)' },
+    humanitaire:  { icon:'🏥', bg:'#fdecea' },
+    education:    { icon:'🎓', bg:'#fef3c7' },
+    culture:      { icon:'🎭', bg:'#f0e6ff' },
+    actions:      { icon:'🤝', bg:'#e8f0fe' },
+    politique:    { icon:'🏛', bg:'#e8f5ee' },
+    economie:     { icon:'💼', bg:'#fff3e0' },
+    evenement:    { icon:'🎉', bg:'#fce4ec' },
+    communique:   { icon:'📢', bg:'#e3f2fd' },
+    galerie:      { icon:'📸', bg:'#f3e5f5' },
+    video:        { icon:'🎬', bg:'#e8eaf6' },
+    radio:        { icon:'📻', bg:'#e0f7fa' },
+  };
+
+  const EDIT_SVG = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>`;
+  const DEL_SVG  = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`;
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function statusClass(s) {
+    if (s === 'publié')   return 'published';
+    if (s === 'brouillon') return 'draft';
+    if (s === 'planifié')  return 'scheduled';
+    return 'draft';
+  }
+  function statusLabel(s) {
+    if (s === 'publié')   return 'Publié';
+    if (s === 'brouillon') return 'Brouillon';
+    if (s === 'planifié')  return 'Planifié';
+    return s;
+  }
+
+  // ── Rendu d'une ligne d'article ───────────────────────────────────────────
+  function buildRow(article) {
+    const style    = CAT_STYLE[article.categoryKey] || { icon:'📄', bg:'var(--gray-100)' };
+    const safeId   = esc(article.id);
+    const thumb    = article.coverImage
+      ? `<img src="${esc(article.coverImage)}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;" />`
+      : `<div class="article-thumb" style="background:${style.bg};">${style.icon}</div>`;
+    const catLabel = esc(article.categoryLabel || article.sectionLabel || '—');
+    const dateStr  = article.status === 'brouillon'
+      ? `Modifié : ${esc(fmtDate(article.updatedAt))}`
+      : esc(fmtDate(article.updatedAt));
+    const views    = article.views > 0
+      ? `<span class="meta-sep"></span><span>👁 ${Number(article.views).toLocaleString('fr-FR')} vues</span>`
+      : '';
+    const titleSafe = esc(article.title || 'Sans titre');
+    const cls       = statusClass(article.status);
+
+    return `<div class="article-row"
+        data-id="${safeId}"
+        data-title="${esc((article.title || '').toLowerCase())}"
+        data-cat="${esc((article.categoryKey || '').toLowerCase())}"
+        data-status="${esc(cls)}">
+      ${thumb}
+      <div class="article-info">
+        <div class="article-row-title">${titleSafe}</div>
+        <div class="article-row-meta">
+          <span>${catLabel}</span><span class="meta-sep"></span>
+          <span>${dateStr}</span>${views}
+        </div>
+      </div>
+      <span class="status-badge ${cls}">${esc(statusLabel(article.status))}</span>
+      <div class="row-actions">
+        <button class="row-btn edit" title="Modifier"
+          onclick="event.stopPropagation();window.location.href='admin-editor.html?id=${encodeURIComponent(article.id)}'">${EDIT_SVG}</button>
+        <button class="row-btn delete" title="Supprimer"
+          onclick="event.stopPropagation();deleteArticle(this,'${esc(article.id)}')">${DEL_SVG}</button>
+      </div>
+    </div>`;
+  }
+
+  // ── Filtre courant ────────────────────────────────────────────────────────
+  let activeSearch = '';
+  let activeCat    = '';
+  let activeStatus = '';
+
+  function renderArticles() {
+    const articles = getArticles() || [];
+    const list = document.getElementById('articlesList');
+    const empty = document.getElementById('emptyState');
+
+    let filtered = articles.filter(a => {
+      const matchSearch = !activeSearch || a.title.toLowerCase().includes(activeSearch);
+      const matchCat    = !activeCat    || (a.categoryKey||'').toLowerCase() === activeCat.toLowerCase();
+      const matchStatus = !activeStatus || statusClass(a.status) === activeStatus;
+      return matchSearch && matchCat && matchStatus;
+    });
+
+    // Retirer les anciennes lignes (garder emptyState)
+    [...list.querySelectorAll('.article-row')].forEach(r => r.remove());
+
+    if (filtered.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      filtered.forEach(a => {
+        const div = document.createElement('div');
+        div.innerHTML = buildRow(a);
+        list.insertBefore(div.firstElementChild, empty);
+      });
+    }
+
+    updateStats(articles);
+  }
+
+  function updateStats(articles) {
+    const published  = articles.filter(a => a.status === 'publié').length;
+    const drafts     = articles.filter(a => a.status === 'brouillon').length;
+    const scheduled  = articles.filter(a => a.status === 'planifié').length;
+    const totalViews = articles.reduce((s, a) => s + (a.views || 0), 0);
+
+    const pEl = document.getElementById('statPublished');
+    const vEl = document.getElementById('statViews');
+    const dEl = document.getElementById('statDrafts');
+    const sEl = document.getElementById('statScheduled');
+    const tEl = document.getElementById('statPublishedTrend');
+
+    if (pEl) pEl.textContent = published;
+    if (vEl) vEl.textContent = totalViews.toLocaleString('fr-FR');
+    if (dEl) dEl.textContent = drafts;
+    if (sEl) sEl.textContent = scheduled;
+    if (tEl) tEl.textContent = articles.length > 0 ? articles.length + ' article(s) au total' : 'Aucun article';
+
+    // Mettre à jour le badge de la sidebar
+    const badge = document.querySelector('.nav-item .nav-badge');
+    if (badge) badge.textContent = articles.length;
+  }
+
+  // ── Filtres ───────────────────────────────────────────────────────────────
+  function filterArticles(query) {
+    activeSearch = query.toLowerCase();
+    renderArticles();
+  }
+
+  function filterByCategory(cat) {
+    activeCat = cat;
+    renderArticles();
+  }
+
+  function filterByStatus(status) {
+    activeStatus = status;
+    renderArticles();
+  }
+
+  // ── Suppression ───────────────────────────────────────────────────────────
+  function deleteArticle(btn, id) {
+    if (!confirm('Supprimer cet article ? Cette action est irréversible.')) return;
+    const articles = getArticles() || [];
+    setArticles(articles.filter(a => a.id !== id));
+    renderArticles();
+    showToast('🗑 Article supprimé');
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateY(0)';
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; }, 3000);
+  }
+
+  // ── Sidebar ───────────────────────────────────────────────────────────────
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  (function init() {
+    renderArticles();
+
+    // Vérifier si on revient d'une sauvegarde
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('saved') === '1') {
+      showToast('✅ Article enregistré avec succès !');
+      // Nettoyer l'URL
+      history.replaceState({}, '', 'admin-dashboard.html');
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Pages d'administration (zone privée)
+Disallow: /admin-login.html
+Disallow: /admin-dashboard.html
+Disallow: /admin-editor.html
+Disallow: /admin-medias.html
+Disallow: /admin-categories.html
+Disallow: /admin-membres.html
+Disallow: /admin-parametres.html
+
+# Fichiers JS internes
+Disallow: /admin-auth.js
+Disallow: /slf-utils.js
+
+Sitemap: https://www.somalilandfrance.org/sitemap.xml

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page introuvable · SLF Somaliland France</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#00843D;--green-dark:#006830;--red:#CE1126;--white:#FFF;--gray-600:#6c757d;--gray-900:#212529}
+    body{
+      font-family:'Inter',sans-serif; color:var(--gray-900);
+      min-height:100vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:24px 16px;
+      background:linear-gradient(135deg,#f8f9fa 0%,#e8f5ee 100%);
+      text-align:center;
+    }
+    .flag-stripe{display:flex;height:4px;width:120px;border-radius:4px;overflow:hidden;margin-bottom:32px}
+    .flag-stripe span{flex:1}
+    .flag-stripe .g{background:var(--green)}
+    .flag-stripe .w{background:var(--white);border-top:1px solid #eee;border-bottom:1px solid #eee}
+    .flag-stripe .r{background:var(--red)}
+    .code{font-family:'Playfair Display',serif;font-size:120px;font-weight:700;color:var(--green-dark);line-height:1}
+    h1{font-family:'Playfair Display',serif;font-size:28px;color:var(--gray-900);margin:16px 0 12px}
+    p{color:var(--gray-600);font-size:16px;max-width:480px;line-height:1.6;margin-bottom:32px}
+    .btn{display:inline-block;padding:12px 28px;background:var(--green);color:var(--white);border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;transition:background .15s,transform .1s}
+    .btn:hover{background:var(--green-dark);transform:translateY(-1px)}
+  </style>
+</head>
+<body>
+  <div class="flag-stripe"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+  <div class="code">404</div>
+  <h1>Page introuvable</h1>
+  <p>Désolé, la page que vous cherchez n'existe pas ou a été déplacée.</p>
+  <a href="/" class="btn">← Retour à l'accueil</a>
+</body>
+</html>

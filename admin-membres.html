@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Membres · SLF Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#00843D;--green-dark:#006830;--green-light:#e8f5ee;--red:#CE1126;--red-light:#fdecea;--white:#FFFFFF;--sidebar-bg:#0f2419;--gray-50:#f8f9fa;--gray-100:#f1f3f5;--gray-200:#e9ecef;--gray-400:#adb5bd;--gray-600:#6c757d;--gray-800:#343a40;--gray-900:#212529;--font:'Inter',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,.08);--radius:12px;--sidebar-w:240px}
+    body{font-family:var(--font);background:var(--gray-50);color:var(--gray-900)}a{text-decoration:none;color:inherit}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);color:rgba(255,255,255,.85);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}
+    .sidebar-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}.logo-flag{width:32px;height:20px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column}.logo-flag span{flex:1}.logo-flag .g{background:var(--green)}.logo-flag .w{background:rgba(255,255,255,.6)}.logo-flag .r{background:var(--red)}.sidebar-logo-name{font-size:16px;font-weight:800;color:var(--white)}.sidebar-badge{font-size:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:1px}
+    .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}.nav-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);padding:12px 10px 6px;margin-top:4px}.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:rgba(255,255,255,.65);cursor:pointer;transition:all .15s;margin-bottom:2px}.nav-item:hover{background:rgba(255,255,255,.08);color:var(--white)}.nav-item.active{background:var(--green);color:var(--white)}.nav-item svg{width:18px;height:18px;flex-shrink:0}.nav-badge{margin-left:auto;background:var(--red);color:var(--white);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+    .sidebar-footer{padding:12px 8px;border-top:1px solid rgba(255,255,255,.08)}.user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.06)}.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--white);flex-shrink:0}.user-name{font-size:13px;font-weight:600;color:var(--white)}.user-role{font-size:11px;color:rgba(255,255,255,.4)}.logout-btn{margin-left:auto;cursor:pointer;color:rgba(255,255,255,.4)}.logout-btn:hover{color:var(--red)}.logout-btn svg{width:16px;height:16px}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49}.sidebar-overlay.show{display:block}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .topbar{background:var(--white);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:40;gap:12px}.topbar-left{display:flex;align-items:center;gap:12px}.menu-toggle{display:flex;flex-direction:column;gap:4px;cursor:pointer;padding:4px;border:none;background:none}.menu-toggle span{width:20px;height:2px;background:var(--gray-800);border-radius:2px}.page-title{font-size:16px;font-weight:700}.breadcrumb-top{font-size:12px;color:var(--gray-400)}.topbar-right{display:flex;align-items:center;gap:10px}
+    .btn-new{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--green);color:var(--white);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:background .15s}.btn-new:hover{background:var(--green-dark)}.btn-new svg{width:14px;height:14px}
+    .btn-ghost{padding:8px 14px;border:1px solid var(--gray-200);background:var(--white);border-radius:8px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;color:var(--gray-700)}.btn-ghost:hover{background:var(--gray-50)}
+    .content{padding:24px 20px;flex:1}
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+    .mini-stat{background:var(--white);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm);text-align:center}
+    .mini-stat-val{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px}
+    .mini-stat-label{font-size:12px;color:var(--gray-600)}
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:20px}
+    .card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-100);flex-wrap:wrap;gap:10px}.card-title{font-size:15px;font-weight:700}
+    .filter-bar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--gray-100)}
+    .search-wrap{position:relative;flex:1;min-width:160px}.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--gray-400)}
+    .search-input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:var(--font);outline:none;background:var(--gray-50)}.search-input:focus{border-color:var(--green)}
+    .filter-select{padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:var(--font);background:var(--gray-50);outline:none}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    thead th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);background:var(--gray-50);border-bottom:1px solid var(--gray-100)}
+    tbody tr{border-bottom:1px solid var(--gray-100);transition:background .15s}.tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--gray-50)}
+    td{padding:12px 16px;font-size:13px;vertical-align:middle}
+    .member-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--white);flex-shrink:0}
+    .member-name{font-weight:600;font-size:14px}.member-email{font-size:12px;color:var(--gray-400)}
+    .badge-actif{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--green-light);color:var(--green-dark)}
+    .badge-inactif{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--gray-100);color:var(--gray-500)}
+    .badge-honneur{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fef3c7;color:#92400e}
+    .row-btn{padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--font)}.row-btn.edit{background:var(--gray-100);color:var(--gray-700)}.row-btn.edit:hover{background:var(--green-light);color:var(--green-dark)}.row-btn.del{background:none;color:var(--gray-400)}.row-btn.del:hover{background:var(--red-light);color:var(--red)}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--white);border-radius:var(--radius);width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .modal-header{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+    .modal-title{font-size:16px;font-weight:700}
+    .modal-close{cursor:pointer;border:none;background:none;font-size:20px;color:var(--gray-400);line-height:1}
+    .modal-body{padding:20px}
+    .form-group{margin-bottom:14px}
+    .field-label{font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+    .field-input,.field-select{width:100%;padding:9px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:var(--font);outline:none;background:var(--gray-50)}.field-input:focus,.field-select:focus{border-color:var(--green)}
+    .modal-footer{padding:12px 20px;border-top:1px solid var(--gray-100);display:flex;gap:8px;justify-content:flex-end}
+
+    @media(min-width:768px){.sidebar{transform:translateX(0)}.main{margin-left:var(--sidebar-w)}.menu-toggle{display:none}}
+    @media(min-width:1024px){.content{padding:28px 32px}}
+  </style>
+
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div><span class="sidebar-logo-name">SLF Admin</span></div><div class="sidebar-badge">Panneau de gestion</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="admin-dashboard.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Tableau de bord</a>
+      <a class="nav-item" href="admin-editor.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>Articles<span class="nav-badge" id="navArticles">0</span></a>
+      <a class="nav-item" href="admin-medias.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Médias</a>
+      <a class="nav-item" href="admin-categories.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>Catégories</a>
+      <div class="nav-section-label">Membres</div>
+      <a class="nav-item active" href="admin-membres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Membres</a>
+      <div class="nav-section-label">Paramètres</div>
+      <a class="nav-item" href="admin-parametres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Paramètres</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-info"><div class="user-avatar">A</div><div><div class="user-name">Admin</div><div class="user-role">Administrateur SLF</div></div><a href="#" class="logout-btn" title="Déconnexion" onclick="event.preventDefault();SLFAuth.logout()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></a></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div><div class="page-title">Membres</div><div class="breadcrumb-top">Gestion des adhérents</div></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-ghost" onclick="exportCSV()">⬇ Exporter CSV</button>
+        <button class="btn-new" onclick="openModal()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Ajouter un membre
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="stats-row">
+        <div class="mini-stat"><div class="mini-stat-val" style="color:var(--green-dark);" id="statActifs">0</div><div class="mini-stat-label">Membres actifs</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" style="color:#92400e;" id="statHonneur">0</div><div class="mini-stat-label">Membres d'honneur</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" style="color:var(--gray-500);" id="statInactifs">0</div><div class="mini-stat-label">Inactifs</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Liste des membres</span>
+          <span style="font-size:13px;color:var(--gray-400);" id="totalMembers">0 membre</span>
+        </div>
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input class="search-input" placeholder="Rechercher un membre…" oninput="searchMembers(this.value)"/>
+          </div>
+          <select class="filter-select" onchange="filterStatus(this.value)">
+            <option value="">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+            <option value="honneur">Membre d'honneur</option>
+          </select>
+          <select class="filter-select">
+            <option>Toutes les villes</option>
+            <option>Lyon</option><option>Paris</option><option>Marseille</option><option>Villeurbanne</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table id="membersTable">
+            <thead><tr><th>Membre</th><th>Ville</th><th>Adhésion</th><th>Cotisation</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody><!-- Rempli dynamiquement depuis localStorage --></tbody>
+          </table>
+          <div id="emptyMembers" style="text-align:center;padding:48px 20px;color:var(--gray-400);">
+            <div style="font-size:48px;margin-bottom:8px;">👥</div>
+            <p style="font-size:14px;margin-bottom:4px;">Aucun membre enregistré</p>
+            <p style="font-size:12px;">Cliquez sur « Ajouter un membre » pour commencer.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ajout membre -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Ajouter un membre</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label class="field-label">Prénom *</label><input type="text" class="field-input" id="mPrenom" placeholder="Fadumo"/></div>
+        <div class="form-group"><label class="field-label">Nom *</label><input type="text" class="field-input" id="mNom" placeholder="Hassan"/></div>
+      </div>
+      <div class="form-group"><label class="field-label">Email *</label><input type="email" class="field-input" id="mEmail" placeholder="fadumo@example.com"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label class="field-label">Ville</label><input type="text" class="field-input" id="mVille" placeholder="Lyon"/></div>
+        <div class="form-group"><label class="field-label">Statut</label><select class="field-select" id="mStatut"><option value="actif">Actif</option><option value="inactif">Inactif</option><option value="honneur">Membre d'honneur</option></select></div>
+      </div>
+      <div class="form-group"><label class="field-label">Téléphone</label><input type="tel" class="field-input" id="mTel" placeholder="06 XX XX XX XX"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn-new" onclick="addMember()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin-auth.js?v=3"></script>
+<script>
+  if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
+
+  // ── Stockage ─────────────────────────────────────────────────────────────
+  function getMembers() {
+    try { const r = JSON.parse(localStorage.getItem('slf_members') || '[]'); return Array.isArray(r) ? r : []; }
+    catch { return []; }
+  }
+  function setMembers(arr) {
+    try { localStorage.setItem('slf_members', JSON.stringify(arr)); return true; }
+    catch { alert('Stockage saturé'); return false; }
+  }
+  function getArticlesCount() {
+    try { const r = JSON.parse(localStorage.getItem('slf_articles') || '[]'); return Array.isArray(r) ? r.length : 0; }
+    catch { return 0; }
+  }
+
+  // ── Échappement HTML ─────────────────────────────────────────────────────
+  function esc(v) {
+    if (v == null) return '';
+    return String(v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);
+  }
+
+  let activeSearch = '';
+  let activeStatus = '';
+  let editingId    = null;
+
+  // ── Rendu ────────────────────────────────────────────────────────────────
+  function render() {
+    const members = getMembers();
+    const tbody = document.querySelector('#membersTable tbody');
+    const empty = document.getElementById('emptyMembers');
+    tbody.innerHTML = '';
+
+    const filtered = members.filter(m => {
+      const matchS = !activeSearch || (m.prenom + ' ' + m.nom).toLowerCase().includes(activeSearch);
+      const matchT = !activeStatus || m.statut === activeStatus;
+      return matchS && matchT;
+    });
+
+    if (!members.length) {
+      empty.style.display = 'block';
+      document.getElementById('membersTable').style.display = 'none';
+    } else {
+      empty.style.display = 'none';
+      document.getElementById('membersTable').style.display = '';
+    }
+
+    filtered.forEach(m => tbody.appendChild(buildRow(m)));
+
+    // Stats
+    document.getElementById('statActifs').textContent   = members.filter(m => m.statut === 'actif').length;
+    document.getElementById('statHonneur').textContent  = members.filter(m => m.statut === 'honneur').length;
+    document.getElementById('statInactifs').textContent = members.filter(m => m.statut === 'inactif').length;
+    document.getElementById('totalMembers').textContent = members.length + ' membre' + (members.length > 1 ? 's' : '') + ' au total';
+    // Badges sidebar
+    document.getElementById('navArticles').textContent = getArticlesCount();
+  }
+
+  function buildRow(m) {
+    const colors = { actif:'#00843D', honneur:'#92400e', inactif:'#6c757d' };
+    const badge  = m.statut === 'actif' ? 'actif' : m.statut === 'honneur' ? 'honneur' : 'inactif';
+    const badgeLabel = m.statut === 'actif' ? 'Actif' : m.statut === 'honneur' ? 'Honneur' : 'Inactif';
+    const initiale = (m.prenom[0] || '?').toUpperCase();
+    const dateAdh  = m.dateAdhesion ? new Date(m.dateAdhesion).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    const cotis    = m.cotisationOk
+                       ? `<span style="color:var(--green);font-weight:600;">✓ ${esc(m.cotisationAnnee || '')}</span>`
+                       : m.statut === 'honneur'
+                         ? `<span style="color:var(--gray-400);">Exonéré</span>`
+                         : `<span style="color:var(--red);">✗ Non payé</span>`;
+
+    const tr = document.createElement('tr');
+    tr.dataset.status = m.statut;
+    tr.dataset.name   = (m.prenom + ' ' + m.nom);
+    tr.innerHTML = `
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <div class="member-avatar" style="background:${colors[m.statut] || '#6c757d'};">${esc(initiale)}</div>
+        <div>
+          <div class="member-name">${esc(m.prenom + ' ' + m.nom)}</div>
+          <div class="member-email">${esc(m.email)}</div>
+        </div>
+      </div></td>
+      <td>${esc(m.ville || '—')}</td>
+      <td>${esc(dateAdh)}</td>
+      <td>${cotis}</td>
+      <td><span class="badge-${badge}">${badgeLabel}</span></td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="row-btn edit" data-id="${esc(m.id)}">Modifier</button>
+        <button class="row-btn del" data-id="${esc(m.id)}">✕</button>
+      </div></td>`;
+    tr.querySelector('.row-btn.edit').onclick = () => openEdit(m.id);
+    tr.querySelector('.row-btn.del').onclick  = () => delMember(m.id);
+    return tr;
+  }
+
+  // ── Modal ────────────────────────────────────────────────────────────────
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+  function openModal(){document.getElementById('modalOverlay').classList.add('open')}
+  function closeModal(){document.getElementById('modalOverlay').classList.remove('open');editingId = null;}
+  function searchMembers(q){ activeSearch = q.toLowerCase(); render(); }
+  function filterStatus(s){ activeStatus = s; render(); }
+
+  function openEdit(id) {
+    const m = getMembers().find(x => x.id === id);
+    if (!m) return;
+    editingId = id;
+    document.getElementById('mPrenom').value = m.prenom || '';
+    document.getElementById('mNom').value    = m.nom || '';
+    document.getElementById('mEmail').value  = m.email || '';
+    document.getElementById('mVille').value  = m.ville || '';
+    document.getElementById('mStatut').value = m.statut || 'actif';
+    document.getElementById('mTel').value    = m.tel || '';
+    openModal();
+  }
+
+  function delMember(id) {
+    if (!confirm('Supprimer ce membre ?')) return;
+    setMembers(getMembers().filter(m => m.id !== id));
+    render();
+  }
+
+  function addMember() {
+    const prenom = document.getElementById('mPrenom').value.trim();
+    const nom    = document.getElementById('mNom').value.trim();
+    const email  = document.getElementById('mEmail').value.trim();
+    const ville  = document.getElementById('mVille').value.trim();
+    const statut = document.getElementById('mStatut').value;
+    const tel    = document.getElementById('mTel').value.trim();
+    if (!prenom || !nom || !email) { alert('Prénom, nom et email sont obligatoires'); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('Adresse email invalide'); return; }
+
+    const members = getMembers();
+    if (editingId) {
+      const idx = members.findIndex(m => m.id === editingId);
+      if (idx !== -1) members[idx] = { ...members[idx], prenom, nom, email, ville, statut, tel };
+    } else {
+      members.unshift({
+        id: 'mem_' + Date.now(),
+        prenom, nom, email, ville, statut, tel,
+        dateAdhesion: new Date().toISOString(),
+        cotisationAnnee: new Date().getFullYear(),
+        cotisationOk: false,
+      });
+    }
+    if (!setMembers(members)) return;
+    closeModal();
+    ['mPrenom','mNom','mEmail','mVille','mTel'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('mStatut').value = 'actif';
+    render();
+  }
+
+  function exportCSV() {
+    const members = getMembers();
+    if (!members.length) { alert('Aucun membre à exporter'); return; }
+    const rows = [['Prénom','Nom','Email','Ville','Statut','Téléphone','Adhésion','Cotisation OK']];
+    members.forEach(m => rows.push([
+      m.prenom, m.nom, m.email, m.ville || '', m.statut, m.tel || '',
+      m.dateAdhesion ? new Date(m.dateAdhesion).toLocaleDateString('fr-FR') : '',
+      m.cotisationOk ? 'Oui' : 'Non'
+    ]));
+    const csv = rows.map(r => r.map(c => `"${(c+'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('﻿' + csv);
+    a.download = 'membres-slf.csv';
+    a.click();
+  }
+
+  render();
+</script>
+</body>
+</html>

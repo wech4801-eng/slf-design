@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catégories · SLF Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--green:#00843D;--green-dark:#006830;--green-light:#e8f5ee;--red:#CE1126;--red-light:#fdecea;--white:#FFFFFF;--sidebar-bg:#0f2419;--gray-50:#f8f9fa;--gray-100:#f1f3f5;--gray-200:#e9ecef;--gray-400:#adb5bd;--gray-600:#6c757d;--gray-800:#343a40;--gray-900:#212529;--font:'Inter',sans-serif;--shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.10);--radius:12px;--sidebar-w:240px}
+    body{font-family:var(--font);background:var(--gray-50);color:var(--gray-900)}a{text-decoration:none;color:inherit}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);color:rgba(255,255,255,.85);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transform:translateX(-100%);transition:transform .25s}
+    .sidebar.open{transform:translateX(0)}
+    .sidebar-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .logo-flag{width:32px;height:20px;border-radius:3px;overflow:hidden;display:flex;flex-direction:column}
+    .logo-flag span{flex:1}.logo-flag .g{background:var(--green)}.logo-flag .w{background:rgba(255,255,255,.6)}.logo-flag .r{background:var(--red)}
+    .sidebar-logo-name{font-size:16px;font-weight:800;color:var(--white)}
+    .sidebar-badge{font-size:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:1px}
+    .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}
+    .nav-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);padding:12px 10px 6px;margin-top:4px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:rgba(255,255,255,.65);cursor:pointer;transition:all .15s;margin-bottom:2px}
+    .nav-item:hover{background:rgba(255,255,255,.08);color:var(--white)}.nav-item.active{background:var(--green);color:var(--white)}
+    .nav-item svg{width:18px;height:18px;flex-shrink:0}.nav-badge{margin-left:auto;background:var(--red);color:var(--white);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+    .sidebar-footer{padding:12px 8px;border-top:1px solid rgba(255,255,255,.08)}
+    .user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.06)}
+    .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--white);flex-shrink:0}
+    .user-name{font-size:13px;font-weight:600;color:var(--white)}.user-role{font-size:11px;color:rgba(255,255,255,.4)}
+    .logout-btn{margin-left:auto;cursor:pointer;color:rgba(255,255,255,.4);transition:color .15s}.logout-btn:hover{color:var(--red)}.logout-btn svg{width:16px;height:16px}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49}.sidebar-overlay.show{display:block}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .topbar{background:var(--white);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:40;gap:12px}
+    .topbar-left{display:flex;align-items:center;gap:12px}.menu-toggle{display:flex;flex-direction:column;gap:4px;cursor:pointer;padding:4px;border:none;background:none}.menu-toggle span{width:20px;height:2px;background:var(--gray-800);border-radius:2px}
+    .page-title{font-size:16px;font-weight:700}.breadcrumb-top{font-size:12px;color:var(--gray-400)}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .btn-new{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--green);color:var(--white);border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:background .15s}.btn-new:hover{background:var(--green-dark)}.btn-new svg{width:14px;height:14px}
+    .content{padding:24px 20px;flex:1}
+    .grid-2{display:grid;grid-template-columns:1fr;gap:20px}
+    .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:0}
+    .card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--gray-100)}
+    .card-title{font-size:15px;font-weight:700}
+
+    /* Table */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    thead th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);background:var(--gray-50);border-bottom:1px solid var(--gray-100)}
+    tbody tr{border-bottom:1px solid var(--gray-100);transition:background .15s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--gray-50)}
+    td{padding:14px 16px;font-size:14px;vertical-align:middle}
+    .cat-icon{font-size:20px}
+    .cat-name{font-weight:600}
+    .cat-slug{font-size:12px;color:var(--gray-400);margin-top:2px}
+    .count-badge{display:inline-flex;align-items:center;padding:3px 10px;background:var(--green-light);color:var(--green-dark);border-radius:20px;font-size:12px;font-weight:600}
+    .row-actions{display:flex;gap:6px}
+    .row-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all .15s}
+    .row-btn.edit{background:var(--gray-100);color:var(--gray-800)}.row-btn.edit:hover{background:var(--green-light);color:var(--green-dark)}
+    .row-btn.delete{background:none;color:var(--gray-400)}.row-btn.delete:hover{background:var(--red-light);color:var(--red)}
+
+    /* Add form */
+    .add-form{padding:20px}
+    .form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .form-group{flex:1;min-width:120px}
+    .field-label{font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+    .field-input,.field-select{width:100%;padding:9px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:var(--font);outline:none;background:var(--gray-50);transition:border-color .15s}
+    .field-input:focus,.field-select:focus{border-color:var(--green);background:var(--white)}
+
+    /* Color swatches */
+    .color-swatches{display:flex;gap:8px;flex-wrap:wrap}
+    .swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s}
+    .swatch:hover,.swatch.active{transform:scale(1.15);border-color:var(--gray-800)}
+
+    @media(min-width:768px){.sidebar{transform:translateX(0)}.main{margin-left:var(--sidebar-w)}.menu-toggle{display:none}}
+    @media(min-width:1024px){.content{padding:28px 32px}.grid-2{grid-template-columns:1fr 360px}}
+  </style>
+
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div><span class="sidebar-logo-name">SLF Admin</span></div><div class="sidebar-badge">Panneau de gestion</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="admin-dashboard.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Tableau de bord</a>
+      <a class="nav-item" href="admin-editor.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>Articles<span class="nav-badge" id="navArticles">0</span></a>
+      <a class="nav-item" href="admin-medias.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Médias</a>
+      <a class="nav-item active" href="admin-categories.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>Catégories</a>
+      <a class="nav-item" href="admin-membres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Membres</a>
+      <div class="nav-section-label">Paramètres</div>
+      <a class="nav-item" href="admin-parametres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Paramètres</a>
+    </nav>
+    <div class="sidebar-footer"><div class="user-info"><div class="user-avatar">A</div><div><div class="user-name">Admin</div><div class="user-role">Administrateur SLF</div></div><a href="#" class="logout-btn" title="Déconnexion" onclick="event.preventDefault();SLFAuth.logout()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></a></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div><div class="page-title">Catégories</div><div class="breadcrumb-top">Gérer les catégories d'articles</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="grid-2">
+        <!-- Liste -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Catégories existantes</span>
+            <span style="font-size:12px;color:var(--gray-400);">6 catégories</span>
+          </div>
+          <div class="table-wrap">
+            <table id="catTable">
+              <thead><tr><th>Icône</th><th>Nom</th><th>Articles</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr><td class="cat-icon">🕊️</td><td><div class="cat-name">Diplomatie</div><div class="cat-slug">diplomatie</div></td><td><span class="count-badge">3</span></td><td><div class="row-actions"><button class="row-btn edit" onclick="editCat(this,'Diplomatie','🕊️')">Modifier</button><button class="row-btn delete" onclick="deleteCat(this)">Supprimer</button></div></td></tr>
+                <tr><td class="cat-icon">🤝</td><td><div class="cat-name">Actions</div><div class="cat-slug">actions</div></td><td><span class="count-badge">2</span></td><td><div class="row-actions"><button class="row-btn edit" onclick="editCat(this,'Actions','🤝')">Modifier</button><button class="row-btn delete" onclick="deleteCat(this)">Supprimer</button></div></td></tr>
+                <tr><td class="cat-icon">🎓</td><td><div class="cat-name">Éducation</div><div class="cat-slug">education</div></td><td><span class="count-badge">1</span></td><td><div class="row-actions"><button class="row-btn edit" onclick="editCat(this,'Éducation','🎓')">Modifier</button><button class="row-btn delete" onclick="deleteCat(this)">Supprimer</button></div></td></tr>
+                <tr><td class="cat-icon">🌍</td><td><div class="cat-name">Culture</div><div class="cat-slug">culture</div></td><td><span class="count-badge">2</span></td><td><div class="row-actions"><button class="row-btn edit" onclick="editCat(this,'Culture','🌍')">Modifier</button><button class="row-btn delete" onclick="deleteCat(this)">Supprimer</button></div></td></tr>
+                <tr><td class="cat-icon">🏥</td><td><div class="cat-name">Humanitaire</div><div class="cat-slug">humanitaire</div></td><td><span class="count-badge">1</span></td><td><div class="row-actions"><button class="row-btn edit" onclick="editCat(this,'Humanitaire','🏥')">Modifier</button><button class="row-btn delete" onclick="deleteCat(this)">Supprimer</button></div></td></tr>
+                <tr><td class="cat-icon">🎬</td><td><div class="cat-name">Médias</div><div class="cat-slug">medias</div></td><td><span class="count-badge">0</span></td><td><div class="row-actions"><button class="row-btn edit" onclick="editCat(this,'Médias','🎬')">Modifier</button><button class="row-btn delete" onclick="deleteCat(this)">Supprimer</button></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Formulaire ajout -->
+        <div class="card">
+          <div class="card-header"><span class="card-title" id="formTitle">Ajouter une catégorie</span></div>
+          <div class="add-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="field-label">Nom *</label>
+                <input type="text" class="field-input" id="catName" placeholder="Ex: Politique" />
+              </div>
+              <div class="form-group" style="max-width:100px;">
+                <label class="field-label">Icône</label>
+                <input type="text" class="field-input" id="catIcon" placeholder="🏷️" style="text-align:center;font-size:18px;" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="field-label">Slug URL</label>
+                <input type="text" class="field-input" id="catSlug" placeholder="politique" />
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label class="field-label">Description (optionnel)</label>
+              <input type="text" class="field-input" id="catDesc" placeholder="Courte description de la catégorie…" />
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-new" onclick="saveCat()" style="flex:1;justify-content:center;">Enregistrer</button>
+              <button onclick="resetForm()" style="padding:8px 16px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:var(--white);font-family:var(--font);">Annuler</button>
+            </div>
+            <p id="formMsg" style="font-size:12px;color:var(--green);margin-top:10px;display:none;"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="admin-auth.js?v=3"></script>
+<script>
+  // ── Vérification d'authentification ──────────────────────────────────────
+  if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
+
+  // Mettre à jour le badge sidebar
+  (function() {
+    let n = 0;
+    try { const a = JSON.parse(localStorage.getItem('slf_articles') || '[]'); n = Array.isArray(a) ? a.length : 0; } catch {}
+    const b = document.getElementById('navArticles');
+    if (b) b.textContent = n;
+  })();
+
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+  function slugify(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+  document.getElementById('catName').addEventListener('input',function(){document.getElementById('catSlug').value=slugify(this.value)});
+
+  function makeCell(text, cls) {
+    const td = document.createElement('td');
+    if (cls) td.className = cls;
+    td.textContent = text;
+    return td;
+  }
+
+  function saveCat(){
+    const name=document.getElementById('catName').value.trim();
+    const icon=document.getElementById('catIcon').value||'🏷️';
+    const slug=document.getElementById('catSlug').value||slugify(name);
+    if(!name){alert('Le nom est obligatoire');return}
+    const tbody=document.querySelector('#catTable tbody');
+    const tr=document.createElement('tr');
+
+    // Icône
+    tr.appendChild(makeCell(icon, 'cat-icon'));
+    // Nom + slug
+    const tdName = document.createElement('td');
+    const nDiv = document.createElement('div'); nDiv.className = 'cat-name'; nDiv.textContent = name;
+    const sDiv = document.createElement('div'); sDiv.className = 'cat-slug'; sDiv.textContent = slug;
+    tdName.appendChild(nDiv); tdName.appendChild(sDiv);
+    tr.appendChild(tdName);
+    // Compteur
+    const tdCount = document.createElement('td');
+    const badge = document.createElement('span'); badge.className = 'count-badge'; badge.textContent = '0';
+    tdCount.appendChild(badge); tr.appendChild(tdCount);
+    // Actions
+    const tdAct = document.createElement('td');
+    const wrap = document.createElement('div'); wrap.className = 'row-actions';
+    const bEd = document.createElement('button'); bEd.className = 'row-btn edit'; bEd.textContent = 'Modifier';
+    bEd.onclick = () => editCat(bEd, name, icon);
+    const bDel = document.createElement('button'); bDel.className = 'row-btn delete'; bDel.textContent = 'Supprimer';
+    bDel.onclick = () => deleteCat(bDel);
+    wrap.appendChild(bEd); wrap.appendChild(bDel);
+    tdAct.appendChild(wrap); tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+    resetForm();
+    const msg=document.getElementById('formMsg');msg.textContent='✓ Catégorie ajoutée !';msg.style.display='block';
+    setTimeout(()=>msg.style.display='none',2500);
+  }
+  function editCat(btn,name,icon){
+    document.getElementById('formTitle').textContent='Modifier la catégorie';
+    document.getElementById('catName').value=name;
+    document.getElementById('catIcon').value=icon;
+    document.getElementById('catSlug').value=slugify(name);
+  }
+  function deleteCat(btn){
+    if(!confirm('Supprimer cette catégorie ?'))return;
+    btn.closest('tr').remove();
+  }
+  function resetForm(){
+    document.getElementById('formTitle').textContent='Ajouter une catégorie';
+    ['catName','catIcon','catSlug','catDesc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  }
+</script>
+</body>
+</html>

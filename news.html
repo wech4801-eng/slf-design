@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>News · SLF Somaliland France</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #00843D; --green-dark: #006830; --green-light: #e8f5ee;
+      --red: #CE1126; --red-light: #fdecea; --white: #FFFFFF;
+      --gray-50: #f8f9fa; --gray-100: #f1f3f5; --gray-200: #e9ecef;
+      --gray-400: #adb5bd; --gray-600: #6c757d; --gray-800: #343a40; --gray-900: #212529;
+      --font-body: 'Inter', sans-serif; --font-display: 'Playfair Display', serif;
+      --radius: 12px; --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.10); --shadow-lg: 0 8px 32px rgba(0,0,0,.14);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); color: var(--gray-900); background: var(--gray-50); line-height: 1.6; }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+    .flag-stripe { display: flex; height: 4px; width: 100%; }
+    .flag-stripe span { flex: 1; }
+    .flag-stripe .s-green { background: var(--green); }
+    .flag-stripe .s-white { background: var(--white); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
+    .flag-stripe .s-red { background: var(--red); }
+    .site-header { position: sticky; top: 0; z-index: 100; background: var(--white); box-shadow: var(--shadow-sm); }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 16px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .logo-flag { width: 36px; height: 24px; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); }
+    .logo-flag span { flex: 1; }
+    .logo-flag .g { background: var(--green); }
+    .logo-flag .w { background: var(--white); border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .logo-flag .r { background: var(--red); }
+    .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .logo-name { font-weight: 800; font-size: 18px; color: var(--green-dark); letter-spacing: -.5px; }
+    .logo-sub { font-size: 10px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; }
+    .nav-desktop { display: none; gap: 2px; align-items: center; }
+    .nav-desktop a { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--gray-800); transition: background .15s, color .15s; white-space: nowrap; }
+    .nav-desktop a:hover, .nav-desktop a.active { background: var(--green-light); color: var(--green-dark); }
+    .nav-item-drop { position: relative; }
+    .nav-item-drop > .nav-drop-trigger { display: flex; align-items: center; gap: 3px; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--gray-800); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; user-select: none; }
+    .nav-item-drop > .nav-drop-trigger:hover { background: var(--green-light); color: var(--green-dark); }
+    .nav-item-drop > .nav-drop-trigger svg { width: 12px; height: 12px; transition: transform .2s; }
+    .nav-item-drop:hover > .nav-drop-trigger svg { transform: rotate(180deg); }
+    .nav-dropdown { visibility: hidden; opacity: 0; pointer-events: none; transform: translateY(-4px); position: absolute; top: calc(100% + 6px); left: 0; background: var(--white); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 6px; min-width: 200px; z-index: 200; border: 1px solid var(--gray-100); transition: visibility 0s linear 250ms, opacity .15s ease 100ms, transform .15s ease 100ms; }
+    .nav-dropdown::before { content: ''; position: absolute; top: -10px; left: 0; right: 0; height: 10px; }
+    .nav-item-drop:hover .nav-dropdown { visibility: visible; opacity: 1; pointer-events: auto; transform: translateY(0); transition: visibility 0s linear 0ms, opacity .15s ease 0ms, transform .15s ease 0ms; }
+    .nav-dropdown a { display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: var(--gray-800); font-weight: 500; transition: background .12s; white-space: nowrap; }
+    .nav-dropdown a:hover { background: var(--green-light); color: var(--green-dark); }
+    .nav-dropdown .drop-sep { height: 1px; background: var(--gray-100); margin: 4px 0; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-admin { display: flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--green); color: var(--white); border-radius: 8px; font-size: 13px; font-weight: 600; transition: background .15s, transform .1s; white-space: nowrap; }
+    .btn-admin:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .btn-admin svg { width: 14px; height: 14px; }
+    .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; border: none; background: none; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--gray-800); border-radius: 2px; transition: all .25s; }
+    .mobile-menu { display: none; position: fixed; top: 64px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 99; }
+    .mobile-menu.open { display: block; }
+    .mobile-menu-inner { background: var(--white); padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+    .mobile-menu-inner a { padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 15px; color: var(--gray-800); border-bottom: 1px solid var(--gray-100); transition: background .15s; }
+    .mobile-menu-inner a:hover { background: var(--green-light); color: var(--green-dark); }
+    /* Breadcrumb */
+    .breadcrumb { max-width: 1200px; margin: 20px auto 0; padding: 0 16px; font-size: 13px; color: var(--gray-600); display: flex; align-items: center; gap: 6px; }
+    .breadcrumb a { color: var(--green); }
+    .breadcrumb a:hover { text-decoration: underline; }
+    /* Page content */
+    .page-content { max-width: 1200px; margin: 24px auto 0; padding: 0 16px; }
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-family: var(--font-display); font-size: clamp(28px, 5vw, 42px); color: var(--green-dark); margin-bottom: 12px; }
+    .page-subtitle { font-size: 16px; color: var(--gray-600); max-width: 700px; }
+    /* News grid */
+    .news-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+    .news-card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; }
+    .news-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .news-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .news-card-body { padding: 20px; }
+    .news-cat { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+    .news-cat.diplomatie { background: #e8f0fe; color: #1a56db; }
+    .news-cat.actions { background: var(--green-light); color: var(--green-dark); }
+    .news-cat.culture { background: #fef3c7; color: #92400e; }
+    .news-cat.medias { background: var(--red-light); color: var(--red); }
+    .news-title { font-weight: 700; font-size: 18px; line-height: 1.35; margin-bottom: 10px; color: var(--gray-900); }
+    .news-excerpt { font-size: 14px; color: var(--gray-600); margin-bottom: 14px; line-height: 1.65; }
+    .news-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gray-400); }
+    .news-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--gray-400); }
+    .read-more { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-weight: 600; font-size: 13px; margin-top: 12px; transition: gap .15s; }
+    .read-more:hover { gap: 10px; }
+    /* Footer */
+    footer { margin-top: 48px; background: var(--gray-900); color: rgba(255,255,255,.75); }
+    .footer-top { max-width: 1200px; margin: 0 auto; padding: 40px 16px 24px; display: grid; grid-template-columns: 1fr; gap: 32px; }
+    .footer-brand .logo-name { color: var(--white); }
+    .footer-brand p { font-size: 13px; margin-top: 12px; line-height: 1.7; }
+    .footer-col h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--white); margin-bottom: 12px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col ul li a { font-size: 13px; color: rgba(255,255,255,.65); transition: color .15s; }
+    .footer-col ul li a:hover { color: var(--white); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.08); padding: 16px; text-align: center; font-size: 12px; color: rgba(255,255,255,.4); }
+    @media (min-width: 640px) { .news-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 768px) { .header-inner { height: 68px; } .nav-desktop { display: flex; } .hamburger { display: none; } .footer-top { grid-template-columns: 2fr 1fr 1fr; } }
+    @media (min-width: 1024px) { .news-grid { grid-template-columns: repeat(3, 1fr); } .flag-stripe { height: 5px; } }
+  </style>
+
+  <meta name="description" content="Actualités de l'Association Somaliland-France et nouvelles du Somaliland." />
+  <meta name="author" content="Association Somaliland-France" />
+  <link rel="canonical" href="https://www.somalilandfrance.org/news.html" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.somalilandfrance.org/news.html" />
+  <meta property="og:title" content="News · SLF" />
+  <meta property="og:description" content="Actualités de l'Association Somaliland-France et nouvelles du Somaliland." />
+  <meta property="og:image" content="https://www.somalilandfrance.org/images/diplomatie1.jpg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="SLF · Somaliland France" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="News · SLF" />
+  <meta name="twitter:description" content="Actualités de l'Association Somaliland-France et nouvelles du Somaliland." />
+  <meta name="twitter:image" content="https://www.somalilandfrance.org/images/diplomatie1.jpg" />
+  <meta name="theme-color" content="#00843D" />
+</head>
+<body>
+
+  <div class="flag-stripe"><span class="s-green"></span><span class="s-white"></span><span class="s-red"></span></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <div class="logo-text"><span class="logo-name">SLF</span><span class="logo-sub">Somaliland France</span></div>
+      </a>
+      <nav class="nav-desktop">
+        <a href="index.html">Accueil</a>
+        <a href="news.html" class="active">News</a>
+        <a href="diplomatie.html">Diplomatie</a>
+        <div class="nav-item-drop">
+          <div class="nav-drop-trigger">L'association <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+          <div class="nav-dropdown">
+            <a href="qui-sommes-nous.html">Qui sommes-nous ?</a>
+            <a href="notre-but.html">Notre but</a>
+            <a href="actions-realisees.html">Actions réalisées</a>
+            <div class="drop-sep"></div>
+            <a href="bulletin-adhesion.html">Bulletin d'adhésion</a>
+            <a href="appel-cotisation.html">Appel à cotisation</a>
+            <div class="drop-sep"></div>
+            <a href="en-images.html">En images</a>
+          </div>
+        </div>
+        <div class="nav-item-drop">
+          <div class="nav-drop-trigger">Médias <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+          <div class="nav-dropdown">
+            <a href="radios.html">Radios</a>
+            <a href="videos.html">Vidéos</a>
+          </div>
+        </div>
+        <a href="liens-utiles.html">Liens utiles</a>
+        <a href="connaitre-somaliland.html">Connaître le Somaliland</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <a href="admin-login.html" class="btn-admin" title="Admin" aria-label="Admin">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></a>
+        <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" onclick="closeMenu(event)">
+    <nav class="mobile-menu-inner">
+      <a href="index.html">Accueil</a>
+      <a href="news.html">News</a>
+      <a href="diplomatie.html">Diplomatie</a>
+      <a href="association.html" style="font-weight:700;color:var(--green-dark);">L'association</a>
+      <a href="qui-sommes-nous.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Qui sommes-nous ?</a>
+      <a href="notre-but.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Notre but</a>
+      <a href="actions-realisees.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Actions réalisées</a>
+      <a href="bulletin-adhesion.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Bulletin d'adhésion</a>
+      <a href="appel-cotisation.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Appel à cotisation</a>
+      <a href="en-images.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ En images</a>
+      <a href="medias.html" style="font-weight:700;color:var(--green-dark);">Médias</a>
+      <a href="radios.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Radios</a>
+      <a href="videos.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Vidéos</a>
+      <a href="liens-utiles.html">Liens utiles</a>
+      <a href="connaitre-somaliland.html">Connaître le Somaliland</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+
+  <div class="breadcrumb">
+    <a href="index.html">Accueil</a>
+    <span>›</span>
+    <span>News</span>
+  </div>
+
+  <div class="page-content">
+    <div class="page-header">
+      <h1 class="page-title">News</h1>
+      <p class="page-subtitle">Suivez toute l'actualité du Somaliland et de l'association Somaliland-France.</p>
+    </div>
+
+    <div class="news-grid" id="news-grid">
+
+      <!-- Articles dynamiques (admin) injectés ici par JS — les cartes statiques ci-dessous servent de fallback -->
+      <div id="dynamic-news-container" style="display:contents;"></div>
+
+      <a href="https://www.jeuneafrique.com/111432/economie/le-somaliland-se-r-ve-en-hub-de-l-afrique-de-l-est/" target="_blank" rel="noopener" class="news-card news-static-card">
+        <img class="news-card-img" src="images/diplomatie1.jpg" alt="Port de Berbera" />
+        <div class="news-card-body">
+          <span class="news-cat diplomatie">Économie</span>
+          <h2 class="news-title">Le Somaliland se rêve en hub de l'Afrique de l'Est</h2>
+          <p class="news-excerpt">Malgré sa déclaration unilatérale d'indépendance de 1991, le Somaliland a un rêve : faire du pays le hub logistique de l'Afrique de l'Est.</p>
+          <div class="news-meta"><span>18 sept. 2013</span><span class="news-meta-dot"></span><span>Jeune Afrique</span></div>
+          <span class="read-more">Lire la suite →</span>
+        </div>
+      </a>
+
+      <a href="https://www.lemonde.fr/blog/somaliland/2013/05/17/somaliland-12-voyage-en-terre-inconnue/" target="_blank" rel="noopener" class="news-card news-static-card">
+        <img class="news-card-img" src="images/map500.jpg" alt="Carte Somaliland" />
+        <div class="news-card-body">
+          <span class="news-cat culture">Reportage</span>
+          <h2 class="news-title">Somaliland (1/2) : Voyage en terre inconnue</h2>
+          <p class="news-excerpt">Considérée comme un territoire fantôme, cette république autoproclamée se distingue pourtant par sa stabilité et ses orientations démocratiques.</p>
+          <div class="news-meta"><span>17 mai 2013</span><span class="news-meta-dot"></span><span>Le Monde Blog</span></div>
+          <span class="read-more">Lire la suite →</span>
+        </div>
+      </a>
+
+      <a href="https://www.lemonde.fr/blog/somaliland/2013/05/16/somaliland-22-leconomie-et-la-question-de-la-reconnaissance/" target="_blank" rel="noopener" class="news-card news-static-card">
+        <img class="news-card-img" src="images/corne.gif" alt="Corne de l'Afrique" />
+        <div class="news-card-body">
+          <span class="news-cat culture">Reportage</span>
+          <h2 class="news-title">Somaliland (2/2) : L'économie et la question de la reconnaissance</h2>
+          <p class="news-excerpt">L'économie du Somaliland repose sur l'agriculture, l'élevage et le soutien financier de la diaspora.</p>
+          <div class="news-meta"><span>16 mai 2013</span><span class="news-meta-dot"></span><span>Le Monde Blog</span></div>
+          <span class="read-more">Lire la suite →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <div id="news-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--gray-400);">
+      <div style="font-size:48px;margin-bottom:12px;">📰</div>
+      <p style="font-size:16px;margin-bottom:6px;">Pas encore d'actualité publiée par l'association.</p>
+      <p style="font-size:13px;">Les articles ci-dessus proviennent de sources externes (presse).</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+          <div class="logo-text"><span class="logo-name">SLF</span><span class="logo-sub" style="color:rgba(255,255,255,.5)">Somaliland France</span></div>
+        </div>
+        <p>Organisation militante et à vocation humaine, œuvrant pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="news.html">Actualités</a></li>
+          <li><a href="diplomatie.html">Diplomatie</a></li>
+          <li><a href="association.html">L'association</a></li>
+          <li><a href="medias.html">Médias</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>L'association</h4>
+        <ul>
+          <li><a href="qui-sommes-nous.html">Qui sommes-nous ?</a></li>
+          <li><a href="notre-but.html">Notre but</a></li>
+          <li><a href="actions-realisees.html">Actions réalisées</a></li>
+          <li><a href="bulletin-adhesion.html">Adhérer</a></li>
+          <li><a href="appel-cotisation.html">Cotisation</a></li>
+          <li><a href="liens-utiles.html">Liens utiles</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="flag-stripe" style="margin-bottom:12px;height:3px;"></div>
+      © 2026 Association Somaliland-France (SLF) · Tous droits réservés
+    </div>
+  </footer>
+
+  <script>
+    function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+    function closeMenu(e) { if (e.target === e.currentTarget) document.getElementById('mobileMenu').classList.remove('open'); }
+
+    // ── Injection des articles publiés depuis l'admin ─────────────────────
+    (function() {
+      let articles = [];
+      try { articles = JSON.parse(localStorage.getItem('slf_articles') || '[]'); } catch {}
+      if (!Array.isArray(articles)) return;
+
+      const published = articles
+        .filter(a => a && a.status === 'publié')
+        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+      if (!published.length) return;
+
+      const container = document.getElementById('dynamic-news-container');
+      if (!container) return;
+
+      const CAT_CLASS = {
+        diplomatie:'diplomatie', humanitaire:'actions', education:'education',
+        culture:'culture', actions:'actions', politique:'diplomatie',
+        economie:'education', evenement:'culture', communique:'actions',
+        galerie:'culture', video:'culture', radio:'culture'
+      };
+
+      function fmtDate(iso) {
+        try { return new Date(iso).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }); }
+        catch { return ''; }
+      }
+      function safeUrl(u) {
+        if (!u) return '';
+        const s = String(u).trim();
+        if (/^[./?#]/.test(s) || /^[^a-zA-Z]/.test(s)) return s;
+        if (/^(https?:|mailto:|tel:)/i.test(s)) return s;
+        if (/^data:image\//i.test(s)) return s;
+        return '';
+      }
+
+      // Supprimer les cartes statiques de fallback
+      document.querySelectorAll('.news-static-card').forEach(el => el.remove());
+
+      const now = Date.now();
+      published.forEach(art => {
+        const catClass = CAT_CLASS[art.categoryKey] || 'culture';
+        const catLabel = art.categoryLabel || art.sectionLabel || 'Article';
+        const words    = ((art.content||'').replace(/<[^>]+>/g,'')+' '+(art.chapeau||'')).split(/\s+/).filter(w=>w).length;
+        const mins     = Math.max(1, Math.round(words / 200));
+
+        const card = document.createElement('a');
+        card.href      = 'article.html?id=' + encodeURIComponent(art.id);
+        card.className = 'news-card';
+
+        const cover = safeUrl(art.coverImage);
+        if (cover) {
+          const img = document.createElement('img');
+          img.className = 'news-card-img';
+          img.src = cover; img.alt = art.title || ''; img.loading = 'lazy';
+          card.appendChild(img);
+        } else {
+          const ph = document.createElement('div');
+          ph.className = 'news-card-img';
+          ph.style.cssText = 'background:linear-gradient(135deg,var(--green-dark),#004d2a,#8B0000);display:flex;align-items:center;justify-content:center;font-size:48px;';
+          ph.textContent = '📰';
+          card.appendChild(ph);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'news-card-body';
+
+        const cat = document.createElement('span');
+        cat.className = 'news-cat ' + catClass;
+        cat.style.position = 'relative';
+        cat.textContent = catLabel;
+        const isNew = (now - new Date(art.updatedAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+        if (isNew) {
+          const badge = document.createElement('span');
+          badge.style.cssText = 'position:absolute;top:-8px;right:-8px;background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.3px;';
+          badge.textContent = 'NOUVEAU';
+          cat.appendChild(badge);
+        }
+        body.appendChild(cat);
+
+        const h2 = document.createElement('h2');
+        h2.className = 'news-title';
+        h2.textContent = art.title || 'Sans titre';
+        body.appendChild(h2);
+
+        if (art.chapeau) {
+          const p = document.createElement('p');
+          p.className = 'news-excerpt';
+          p.textContent = art.chapeau;
+          body.appendChild(p);
+        }
+
+        const meta = document.createElement('div');
+        meta.className = 'news-meta';
+        const sD = document.createElement('span'); sD.textContent = fmtDate(art.updatedAt);
+        const d1 = document.createElement('span'); d1.className = 'news-meta-dot';
+        const sA = document.createElement('span'); sA.textContent = art.author || 'Rédaction SLF';
+        const d2 = document.createElement('span'); d2.className = 'news-meta-dot';
+        const sM = document.createElement('span'); sM.textContent = mins + ' min';
+        meta.appendChild(sD); meta.appendChild(d1); meta.appendChild(sA); meta.appendChild(d2); meta.appendChild(sM);
+        body.appendChild(meta);
+
+        const more = document.createElement('span');
+        more.className = 'read-more';
+        more.textContent = 'Lire la suite →';
+        body.appendChild(more);
+
+        card.appendChild(body);
+        container.appendChild(card);
+      });
+    })();
+  </script>
+</body>
+</html>

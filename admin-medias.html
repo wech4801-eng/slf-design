@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Médias · SLF Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --green:#00843D; --green-dark:#006830; --green-light:#e8f5ee;
+      --red:#CE1126; --red-light:#fdecea; --white:#FFFFFF; --sidebar-bg:#0f2419;
+      --gray-50:#f8f9fa; --gray-100:#f1f3f5; --gray-200:#e9ecef;
+      --gray-400:#adb5bd; --gray-600:#6c757d; --gray-800:#343a40; --gray-900:#212529;
+      --font:'Inter',sans-serif; --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:0 4px 16px rgba(0,0,0,.10); --radius:12px; --sidebar-w:240px;
+    }
+    body { font-family:var(--font); background:var(--gray-50); color:var(--gray-900); }
+    a { text-decoration:none; color:inherit; }
+    .app { display:flex; min-height:100vh; }
+    .sidebar { width:var(--sidebar-w); background:var(--sidebar-bg); color:rgba(255,255,255,.85); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; transform:translateX(-100%); transition:transform .25s; }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-header { padding:20px 16px 16px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .sidebar-logo { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .logo-flag { width:32px; height:20px; border-radius:3px; overflow:hidden; display:flex; flex-direction:column; }
+    .logo-flag span { flex:1; }
+    .logo-flag .g { background:var(--green); } .logo-flag .w { background:rgba(255,255,255,.6); } .logo-flag .r { background:var(--red); }
+    .sidebar-logo-name { font-size:16px; font-weight:800; color:var(--white); }
+    .sidebar-badge { font-size:10px; background:rgba(255,255,255,.1); color:rgba(255,255,255,.6); padding:3px 8px; border-radius:4px; text-transform:uppercase; letter-spacing:1px; }
+    .sidebar-nav { flex:1; padding:12px 8px; overflow-y:auto; }
+    .nav-section-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.3); padding:12px 10px 6px; margin-top:4px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; font-size:14px; font-weight:500; color:rgba(255,255,255,.65); cursor:pointer; transition:all .15s; margin-bottom:2px; }
+    .nav-item:hover { background:rgba(255,255,255,.08); color:var(--white); }
+    .nav-item.active { background:var(--green); color:var(--white); }
+    .nav-item svg { width:18px; height:18px; flex-shrink:0; }
+    .nav-badge { margin-left:auto; background:var(--red); color:var(--white); font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; }
+    .sidebar-footer { padding:12px 8px; border-top:1px solid rgba(255,255,255,.08); }
+    .user-info { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; background:rgba(255,255,255,.06); }
+    .user-avatar { width:32px; height:32px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:var(--white); flex-shrink:0; }
+    .user-name { font-size:13px; font-weight:600; color:var(--white); }
+    .user-role { font-size:11px; color:rgba(255,255,255,.4); }
+    .logout-btn { margin-left:auto; cursor:pointer; color:rgba(255,255,255,.4); transition:color .15s; }
+    .logout-btn:hover { color:var(--red); }
+    .logout-btn svg { width:16px; height:16px; }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49; }
+    .sidebar-overlay.show { display:block; }
+    .main { flex:1; display:flex; flex-direction:column; min-width:0; }
+    .topbar { background:var(--white); height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:var(--shadow-sm); position:sticky; top:0; z-index:40; gap:12px; }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .menu-toggle { display:flex; flex-direction:column; gap:4px; cursor:pointer; padding:4px; border:none; background:none; }
+    .menu-toggle span { width:20px; height:2px; background:var(--gray-800); border-radius:2px; }
+    .page-title { font-size:16px; font-weight:700; }
+    .breadcrumb-top { font-size:12px; color:var(--gray-400); }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+    .btn-new { display:flex; align-items:center; gap:6px; padding:8px 16px; background:var(--green); color:var(--white); border:none; border-radius:8px; font-size:13px; font-weight:600; font-family:var(--font); cursor:pointer; white-space:nowrap; transition:background .15s; }
+    .btn-new:hover { background:var(--green-dark); }
+    .btn-new svg { width:14px; height:14px; }
+    .content { padding:24px 20px; flex:1; }
+    .card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; margin-bottom:20px; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--gray-100); flex-wrap:wrap; gap:10px; }
+    .card-title { font-size:15px; font-weight:700; }
+
+    /* Upload zone */
+    .upload-zone {
+      border:2px dashed var(--gray-200); border-radius:var(--radius); padding:36px;
+      text-align:center; cursor:pointer; transition:all .15s; margin-bottom:20px;
+      background:var(--white);
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color:var(--green); background:var(--green-light); }
+    .upload-zone-icon { font-size:40px; margin-bottom:12px; }
+    .upload-zone h3 { font-size:16px; font-weight:600; margin-bottom:6px; }
+    .upload-zone p { font-size:13px; color:var(--gray-600); }
+
+    /* Filter tabs */
+    .media-tabs { display:flex; gap:4px; flex-wrap:wrap; padding:12px 20px; border-bottom:1px solid var(--gray-100); }
+    .media-tab { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:500; cursor:pointer; border:none; background:none; color:var(--gray-600); transition:all .15s; }
+    .media-tab:hover { background:var(--gray-100); }
+    .media-tab.active { background:var(--green); color:var(--white); }
+
+    /* Stats bar */
+    .media-stats { display:flex; gap:20px; padding:12px 20px; font-size:12px; color:var(--gray-600); border-bottom:1px solid var(--gray-100); flex-wrap:wrap; }
+    .media-stats strong { color:var(--gray-900); }
+
+    /* Media grid */
+    .media-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; padding:20px; }
+    .media-item { border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; transition:all .15s; position:relative; background:var(--gray-100); }
+    .media-item:hover { border-color:var(--green); box-shadow:var(--shadow-md); }
+    .media-item.selected { border-color:var(--green); }
+    .media-item img { width:100%; height:120px; object-fit:cover; display:block; }
+    .media-placeholder { width:100%; height:120px; display:flex; align-items:center; justify-content:center; font-size:36px; background:var(--gray-100); }
+    .media-info { padding:8px 10px; background:var(--white); }
+    .media-name { font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .media-meta { font-size:11px; color:var(--gray-400); margin-top:2px; }
+    .media-check { position:absolute; top:8px; left:8px; width:20px; height:20px; border-radius:50%; background:var(--green); color:var(--white); display:none; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+    .media-item.selected .media-check { display:flex; }
+
+    /* Detail panel */
+    .media-detail {
+      position:fixed; right:0; top:0; bottom:0; width:300px;
+      background:var(--white); box-shadow:-4px 0 20px rgba(0,0,0,.12);
+      z-index:60; transform:translateX(100%); transition:transform .25s;
+      display:flex; flex-direction:column;
+    }
+    .media-detail.open { transform:translateX(0); }
+    .detail-header { padding:16px 20px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; justify-content:space-between; }
+    .detail-title { font-size:15px; font-weight:700; }
+    .detail-close { cursor:pointer; color:var(--gray-400); border:none; background:none; font-size:20px; line-height:1; }
+    .detail-body { flex:1; overflow-y:auto; padding:20px; }
+    .detail-preview { width:100%; height:180px; object-fit:cover; border-radius:10px; margin-bottom:16px; background:var(--gray-100); display:flex; align-items:center; justify-content:center; font-size:48px; }
+    .detail-preview img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+    .field-label { font-size:12px; font-weight:600; color:var(--gray-600); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; display:block; }
+    .field-val { font-size:13px; color:var(--gray-900); margin-bottom:14px; word-break:break-all; }
+    .field-input { width:100%; padding:9px 12px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-family:var(--font); outline:none; margin-bottom:14px; }
+    .field-input:focus { border-color:var(--green); }
+    .url-copy { display:flex; gap:6px; }
+    .url-copy input { flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:12px; font-family:var(--font); outline:none; background:var(--gray-50); }
+    .btn-copy { padding:8px 12px; background:var(--green); color:var(--white); border:none; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .btn-del { width:100%; margin-top:16px; padding:10px; background:var(--red-light); color:var(--red); border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; }
+
+    @media (min-width:768px) { .sidebar { transform:translateX(0); } .main { margin-left:var(--sidebar-w); } .menu-toggle { display:none; } }
+    @media (min-width:1024px) { .content { padding:28px 32px; } .media-grid { grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); } }
+  </style>
+
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <span class="sidebar-logo-name">SLF Admin</span>
+      </div>
+      <div class="sidebar-badge">Panneau de gestion</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item" href="admin-dashboard.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Tableau de bord</a>
+      <a class="nav-item" href="admin-editor.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>Articles<span class="nav-badge" id="navArticles">0</span></a>
+      <a class="nav-item active" href="admin-medias.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Médias</a>
+      <a class="nav-item" href="admin-categories.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>Catégories</a>
+      <a class="nav-item" href="admin-membres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Membres</a>
+      <div class="nav-section-label">Paramètres</div>
+      <a class="nav-item" href="admin-parametres.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Paramètres</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">A</div>
+        <div><div class="user-name">Admin</div><div class="user-role">Administrateur SLF</div></div>
+        <a href="#" class="logout-btn" onclick="event.preventDefault();SLFAuth.logout()" title="Déconnexion"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div>
+          <div class="page-title">Médiathèque</div>
+          <div class="breadcrumb-top">Images, vidéos et documents</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-new" onclick="document.getElementById('uploadInput').click()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Importer
+        </button>
+        <input type="file" id="uploadInput" accept="image/*,video/*,.pdf" multiple style="display:none" onchange="handleUpload(event)" />
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Upload zone -->
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('uploadInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="upload-zone-icon">📁</div>
+        <h3>Glissez vos fichiers ici ou cliquez pour importer</h3>
+        <p>JPG, PNG, GIF, WEBP, MP4, PDF — Max 50 Mo par fichier</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Médias intégrés dans les articles</span>
+          <span style="font-size:13px;color:var(--gray-400);" id="countLabel">0 fichier</span>
+        </div>
+        <div class="media-tabs">
+          <button class="media-tab active" onclick="filterMedia('all',this)">Tous</button>
+          <button class="media-tab" onclick="filterMedia('image',this)">Images</button>
+          <button class="media-tab" onclick="filterMedia('video',this)">Vidéos</button>
+        </div>
+
+        <div class="media-grid" id="mediaGrid"></div>
+        <div id="emptyMedias" style="text-align:center;padding:48px 20px;color:var(--gray-400);">
+          <div style="font-size:48px;margin-bottom:8px;">🖼️</div>
+          <p style="font-size:14px;margin-bottom:4px;">Aucun média stocké</p>
+          <p style="font-size:12px;">Les images et vidéos ajoutées dans vos articles apparaîtront ici automatiquement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="media-detail" id="detailPanel">
+  <div class="detail-header">
+    <span class="detail-title">Détails du fichier</span>
+    <button class="detail-close" onclick="closeDetail()">×</button>
+  </div>
+  <div class="detail-body">
+    <div class="detail-preview" id="detailPreview">🖼️</div>
+    <label class="field-label">Nom du fichier</label>
+    <div class="field-val" id="detailName">—</div>
+    <label class="field-label">Taille</label>
+    <div class="field-val" id="detailSize">—</div>
+    <label class="field-label">Date d'ajout</label>
+    <div class="field-val" id="detailDate">—</div>
+    <label class="field-label">Texte alternatif (SEO)</label>
+    <input type="text" class="field-input" id="detailAlt" placeholder="Description de l'image…" />
+    <label class="field-label">URL du fichier</label>
+    <div class="url-copy">
+      <input type="text" id="detailUrl" readonly />
+      <button class="btn-copy" onclick="copyUrl()">Copier</button>
+    </div>
+    <button class="btn-del" onclick="deleteMedia()">🗑 Supprimer ce fichier</button>
+  </div>
+</div>
+
+<script src="admin-auth.js?v=3"></script>
+<script src="slf-utils.js?v=3"></script>
+<script>
+  // ── Vérification d'authentification ──────────────────────────────────────
+  if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
+
+  function esc(v) {
+    if (v == null) return '';
+    return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  }
+
+  let activeFilter = 'all';
+  let currentItem = null;
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+  function filterMedia(type, btn) {
+    document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = type;
+    render();
+  }
+
+  // Aggrège tous les médias issus des articles publiés/brouillons
+  function collectMedia() {
+    const arts = SLFUtils.getArticles();
+    const media = [];
+    arts.forEach(a => {
+      if (a.coverImage) media.push({
+        id: a.id + '_cover',
+        url: a.coverImage, type: 'image',
+        name: 'Couverture · ' + (a.title || 'Sans titre'),
+        articleId: a.id, articleTitle: a.title
+      });
+      (a.gallery || []).forEach((src, i) => media.push({
+        id: a.id + '_gal_' + i,
+        url: src, type: 'image',
+        name: `Galerie ${i+1} · ${a.title || 'Sans titre'}`,
+        articleId: a.id, articleTitle: a.title
+      }));
+      (a.videos || []).forEach((v, i) => media.push({
+        id: a.id + '_vid_' + i,
+        url: v.url, type: 'video',
+        name: (v.label || `Vidéo ${i+1}`) + ' · ' + (a.title || 'Sans titre'),
+        videoType: v.type,
+        articleId: a.id, articleTitle: a.title
+      }));
+    });
+    return media;
+  }
+
+  function render() {
+    const all = collectMedia();
+    const items = activeFilter === 'all' ? all : all.filter(m => m.type === activeFilter);
+    const grid = document.getElementById('mediaGrid');
+    const empty = document.getElementById('emptyMedias');
+    grid.innerHTML = '';
+
+    document.getElementById('countLabel').textContent =
+      `${all.length} fichier${all.length > 1 ? 's' : ''} (depuis ${SLFUtils.getArticles().length} article${SLFUtils.getArticles().length > 1 ? 's' : ''})`;
+
+    if (!items.length) {
+      empty.style.display = 'block';
+      empty.querySelector('p').textContent = all.length === 0
+        ? 'Aucun média stocké'
+        : 'Aucun média dans cette catégorie';
+      grid.style.display = 'none';
+    } else {
+      empty.style.display = 'none';
+      grid.style.display = '';
+      items.forEach(m => grid.appendChild(buildItem(m)));
+    }
+
+    // Badge sidebar
+    const navArt = document.getElementById('navArticles');
+    if (navArt) navArt.textContent = SLFUtils.getArticles().length;
+  }
+
+  function buildItem(m) {
+    const item = document.createElement('div');
+    item.className = 'media-item';
+    item.dataset.type = m.type;
+    item.dataset.id   = m.id;
+    item.onclick = () => openDetail(m);
+
+    if (m.type === 'image') {
+      const img = document.createElement('img');
+      img.src = SLFUtils.sanitizeUrl(m.url);
+      img.alt = '';
+      img.style.cssText = 'width:100%;height:120px;object-fit:cover;';
+      item.appendChild(img);
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'media-placeholder';
+      ph.textContent = m.videoType === 'file' ? '💾' : '🎬';
+      item.appendChild(ph);
+    }
+    const info = document.createElement('div');
+    info.className = 'media-info';
+    const name = document.createElement('div'); name.className = 'media-name';
+    name.textContent = m.name;
+    const meta = document.createElement('div'); meta.className = 'media-meta';
+    meta.textContent = m.type === 'image' ? 'Image' : (m.videoType === 'file' ? 'Vidéo locale' : 'Vidéo externe');
+    info.appendChild(name); info.appendChild(meta);
+    item.appendChild(info);
+    return item;
+  }
+
+  function openDetail(m) {
+    currentItem = m;
+    document.getElementById('detailName').textContent = m.name;
+    document.getElementById('detailSize').textContent = m.type === 'image' ? 'Image' : 'Vidéo';
+    document.getElementById('detailDate').textContent = '—';
+    document.getElementById('detailUrl').value = m.url || '';
+    const prev = document.getElementById('detailPreview');
+    prev.innerHTML = '';
+    if (m.type === 'image') {
+      const img = document.createElement('img');
+      img.src = SLFUtils.sanitizeUrl(m.url);
+      img.alt = '';
+      prev.appendChild(img);
+    } else {
+      prev.textContent = '🎬';
+    }
+    document.getElementById('detailPanel').classList.add('open');
+  }
+  function closeDetail() {
+    document.getElementById('detailPanel').classList.remove('open');
+    currentItem = null;
+  }
+  function copyUrl() {
+    const url = document.getElementById('detailUrl').value;
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector('.btn-copy');
+      btn.textContent = '✓ Copié !';
+      setTimeout(() => btn.textContent = 'Copier', 2000);
+    });
+  }
+  function deleteMedia() {
+    alert('Pour retirer ce média, ouvrez l\'article correspondant dans l\'éditeur.');
+  }
+
+  // L'import direct n'est pas connecté à un backend.
+  // Les médias doivent être ajoutés via l'éditeur d'article.
+  function handleUpload(e) {
+    e.target.value = '';
+    alert('L\'import de médias se fait depuis l\'éditeur d\'article :\n→ Cliquez sur « Articles » puis ouvrez ou créez un article pour ajouter une image de couverture, une galerie ou des vidéos.');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('drag');
+    alert('L\'import de médias se fait depuis l\'éditeur d\'article.');
+  }
+
+  render();
+</script>
+</body>
+</html>

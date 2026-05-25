@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Éditeur d'article · SLF Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #00843D; --green-dark: #006830; --green-light: #e8f5ee;
+      --red: #CE1126; --red-light: #fdecea;
+      --white: #FFFFFF; --sidebar-bg: #0f2419;
+      --gray-50: #f8f9fa; --gray-100: #f1f3f5; --gray-200: #e9ecef;
+      --gray-400: #adb5bd; --gray-600: #6c757d; --gray-800: #343a40; --gray-900: #212529;
+      --font: 'Inter', sans-serif; --font-display: 'Playfair Display', serif;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08); --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+      --radius: 12px; --sidebar-w: 240px;
+    }
+    body { font-family: var(--font); background: var(--gray-50); color: var(--gray-900); }
+    img  { max-width: 100%; display: block; }
+
+    .app { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--sidebar-bg); color: rgba(255,255,255,.85);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+      transform: translateX(-100%); transition: transform .25s;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .logo-flag { width: 32px; height: 20px; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
+    .logo-flag span { flex: 1; }
+    .logo-flag .g { background: var(--green); } .logo-flag .w { background: rgba(255,255,255,.6); } .logo-flag .r { background: var(--red); }
+    .sidebar-logo-name { font-size: 16px; font-weight: 800; color: var(--white); }
+    .sidebar-badge { font-size: 10px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6); padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+    .nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.3); padding: 12px 10px 6px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,.65); cursor: pointer; transition: all .15s; margin-bottom: 2px; }
+    .nav-item:hover { background: rgba(255,255,255,.08); color: var(--white); }
+    .nav-item.active { background: var(--green); color: var(--white); }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-badge { margin-left: auto; background: var(--red); color: var(--white); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+    .sidebar-footer { padding: 12px 8px; border-top: 1px solid rgba(255,255,255,.08); }
+    .user-info { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,.06); }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--white); }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .user-role { font-size: 11px; color: rgba(255,255,255,.4); }
+    .logout-btn { margin-left: auto; cursor: pointer; color: rgba(255,255,255,.4); transition: color .15s; }
+    .logout-btn:hover { color: var(--red); }
+    .logout-btn svg { width: 16px; height: 16px; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 49; }
+    .sidebar-overlay.show { display: block; }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    .topbar {
+      background: var(--white); height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; box-shadow: var(--shadow-sm);
+      position: sticky; top: 0; z-index: 40; gap: 12px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .menu-toggle { display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 4px; border: none; background: none; }
+    .menu-toggle span { width: 20px; height: 2px; background: var(--gray-800); border-radius: 2px; }
+    .page-title { font-size: 16px; font-weight: 700; }
+    .breadcrumb-top { font-size: 12px; color: var(--gray-400); }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      padding: 8px 14px; border: 1px solid var(--gray-200);
+      background: var(--white); border-radius: 8px;
+      font-size: 13px; font-weight: 500; font-family: var(--font);
+      cursor: pointer; color: var(--gray-700); transition: all .15s;
+    }
+    .btn-ghost:hover { background: var(--gray-50); border-color: var(--gray-400); }
+    .btn-primary {
+      padding: 8px 16px; background: var(--green); color: var(--white);
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      font-family: var(--font); cursor: pointer; transition: background .15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-primary svg { width: 14px; height: 14px; }
+    .btn-red {
+      padding: 8px 14px; background: var(--red-light); color: var(--red);
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      font-family: var(--font); cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Editor layout */
+    .editor-layout {
+      display: flex; gap: 0; flex: 1;
+    }
+
+    /* Editor main column */
+    .editor-col { flex: 1; padding: 24px 20px; min-width: 0; overflow-y: auto; }
+
+    /* Title input */
+    .title-input {
+      width: 100%; font-family: var(--font-display);
+      font-size: clamp(22px, 4vw, 32px); font-weight: 700;
+      border: none; outline: none; background: transparent;
+      color: var(--gray-900); margin-bottom: 16px;
+      padding: 0; line-height: 1.2;
+    }
+    .title-input::placeholder { color: var(--gray-300); }
+
+    .excerpt-input {
+      width: 100%; font-family: var(--font);
+      font-size: 16px; font-style: italic;
+      border: none; outline: none; background: transparent;
+      color: var(--gray-600); resize: none; line-height: 1.6;
+      margin-bottom: 20px; padding: 0;
+      border-left: 3px solid var(--green); padding-left: 14px;
+    }
+    .excerpt-input::placeholder { color: var(--gray-300); }
+
+    .divider-line { height: 1px; background: var(--gray-200); margin: 20px 0; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 4px;
+      padding: 10px 12px;
+      background: var(--white); border-radius: 10px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+      position: sticky; top: 70px; z-index: 30;
+    }
+    .tool-group { display: flex; gap: 2px; }
+    .tool-sep { width: 1px; background: var(--gray-200); margin: 2px 6px; }
+    .tool-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; background: none; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--gray-700);
+      transition: all .15s;
+    }
+    .tool-btn:hover { background: var(--green-light); color: var(--green-dark); }
+    .tool-btn.active { background: var(--green); color: var(--white); }
+    .tool-btn svg { width: 15px; height: 15px; }
+    .tool-btn.wide { width: auto; padding: 0 10px; font-size: 12px; }
+
+    /* Editor area */
+    .editor-area {
+      min-height: 400px;
+      font-size: 16px; line-height: 1.8;
+      color: var(--gray-900);
+      outline: none;
+      padding: 4px 0;
+    }
+    .editor-area:empty::before {
+      content: 'Commencez à écrire votre article ici… Utilisez la barre d\'outils pour mettre en forme votre texte, insérer des images et des vidéos.';
+      color: var(--gray-300);
+      pointer-events: none;
+    }
+
+    /* ── Galerie multi-images ─────────────────────────────────────────────── */
+    .media-section { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow-sm); margin:20px 0; overflow:hidden; }
+    .media-section-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--gray-100); }
+    .media-section-title { font-size:13px; font-weight:700; color:var(--gray-800); display:flex; align-items:center; gap:8px; }
+    .media-section-count { font-size:11px; background:var(--green-light); color:var(--green-dark); padding:2px 8px; border-radius:10px; font-weight:600; }
+    .media-add-btn { padding:6px 12px; background:var(--green); color:var(--white); border:none; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font); display:flex; align-items:center; gap:5px; }
+    .media-add-btn:hover { background:var(--green-dark); }
+
+    .gallery-drop-zone {
+      margin:12px 16px; border:2px dashed var(--gray-200); border-radius:10px;
+      padding:20px; text-align:center; cursor:pointer; transition:all .15s;
+    }
+    .gallery-drop-zone.drag-over { border-color:var(--green); background:var(--green-light); }
+    .gallery-drop-zone-icon { font-size:28px; margin-bottom:6px; }
+    .gallery-drop-zone-text { font-size:13px; color:var(--gray-600); margin-bottom:3px; }
+    .gallery-drop-zone-sub  { font-size:11px; color:var(--gray-400); }
+
+    .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; padding:12px 16px 16px; }
+    .gallery-thumb { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; background:var(--gray-100); }
+    .gallery-thumb img { width:100%; height:100%; object-fit:cover; }
+    .gallery-thumb-del { position:absolute; top:4px; right:4px; width:22px; height:22px; background:rgba(0,0,0,.65); color:#fff; border:none; border-radius:50%; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
+    .gallery-thumb-del:hover { background:var(--red); }
+
+    /* ── Section vidéos ───────────────────────────────────────────────────── */
+    .video-tabs { display:flex; gap:0; border-bottom:1px solid var(--gray-100); }
+    .video-tab { flex:1; padding:10px; text-align:center; font-size:12px; font-weight:600; color:var(--gray-600); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; }
+    .video-tab.active { color:var(--red); border-bottom-color:var(--red); }
+    .video-tab-panel { padding:14px 16px; display:none; }
+    .video-tab-panel.active { display:block; }
+    .video-url-row { display:flex; gap:8px; }
+    .video-url-input {
+      flex: 1; padding: 8px 12px; border: 1px solid var(--gray-200);
+      border-radius: 8px; font-size: 13px; font-family: var(--font); outline: none;
+      transition: border-color .15s;
+    }
+    .video-url-input:focus { border-color: var(--red); }
+    .btn-embed { padding: 8px 14px; background: var(--red); color: var(--white); border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+    .video-list { padding:0 16px 12px; display:flex; flex-direction:column; gap:8px; }
+    .video-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--gray-50); border-radius:8px; font-size:12px; }
+    .video-item-icon { font-size:20px; flex-shrink:0; }
+    .video-item-label { flex:1; color:var(--gray-700); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .video-item-del { width:22px; height:22px; background:var(--red-light); color:var(--red); border:none; border-radius:50%; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .video-file-upload { display:flex; flex-direction:column; gap:10px; }
+    .video-upload-btn { padding:10px; border:2px dashed var(--gray-200); border-radius:8px; text-align:center; cursor:pointer; font-size:13px; color:var(--gray-600); transition:all .15s; }
+    .video-upload-btn:hover { border-color:var(--red); color:var(--red); }
+
+    /* Settings sidebar */
+    .settings-col {
+      width: 280px; flex-shrink: 0;
+      border-left: 1px solid var(--gray-200);
+      background: var(--white);
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .settings-section { margin-bottom: 24px; }
+    .settings-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-400); margin-bottom: 10px; }
+    .settings-item { margin-bottom: 12px; }
+    .field-label { font-size: 13px; font-weight: 600; color: var(--gray-800); margin-bottom: 6px; display: block; }
+    .field-input, .field-select, .field-textarea {
+      width: 100%; padding: 9px 12px;
+      border: 1px solid var(--gray-200); border-radius: 8px;
+      font-size: 13px; font-family: var(--font); color: var(--gray-900);
+      background: var(--gray-50); outline: none; transition: border-color .15s;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--green); background: var(--white); }
+    .field-textarea { resize: vertical; min-height: 80px; }
+
+    /* Cover image selector */
+    .cover-picker {
+      border: 2px dashed var(--gray-200); border-radius: 10px;
+      padding: 20px; text-align: center; cursor: pointer;
+      transition: all .15s; position: relative; overflow: hidden;
+    }
+    .cover-picker:hover { border-color: var(--green); background: var(--green-light); }
+    .cover-picker-placeholder { font-size: 28px; margin-bottom: 6px; }
+    .cover-picker-label { font-size: 12px; color: var(--gray-600); }
+
+    /* Publish status */
+    .status-toggle { display: flex; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; }
+    .status-option {
+      flex: 1; padding: 8px; text-align: center;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all .15s; border: none; background: none; font-family: var(--font);
+      color: var(--gray-600);
+    }
+    .status-option.active { background: var(--green); color: var(--white); }
+
+    /* Tags input */
+    .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px solid var(--gray-200); border-radius: 8px; background: var(--gray-50); min-height: 42px; cursor: text; }
+    .tag-chip { display: flex; align-items: center; gap: 4px; background: var(--green-light); color: var(--green-dark); padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .tag-chip button { border: none; background: none; cursor: pointer; color: var(--green); font-size: 14px; line-height: 1; padding: 0; }
+    .tag-input { border: none; background: none; outline: none; font-size: 13px; font-family: var(--font); color: var(--gray-900); min-width: 80px; }
+
+    /* Word count */
+    .word-count { font-size: 11px; color: var(--gray-400); text-align: right; margin-top: 8px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--gray-900); color: var(--white);
+      padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      box-shadow: var(--shadow-md); z-index: 100; transition: transform .3s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: var(--green-dark); }
+
+    @media (min-width: 768px) {
+      .sidebar { transform: translateX(0); }
+      .main { margin-left: var(--sidebar-w); }
+      .menu-toggle { display: none; }
+      .settings-col { display: block; }
+    }
+    @media (min-width: 1024px) {
+      .editor-col { padding: 28px 32px; }
+    }
+  </style>
+
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <span class="sidebar-logo-name">SLF Admin</span>
+      </div>
+      <div class="sidebar-badge">Panneau de gestion</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item" onclick="window.location.href='admin-dashboard.html'">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Tableau de bord
+      </div>
+      <div class="nav-item active">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        Articles
+        <span class="nav-badge" id="navArticles">0</span>
+      </div>
+      <div class="nav-item" onclick="window.location.href='admin-medias.html'">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Médias
+      </div>
+      <div class="nav-item" onclick="window.location.href='admin-categories.html'">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Catégories
+      </div>
+      <div class="nav-item" onclick="window.location.href='admin-membres.html'">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        Membres
+      </div>
+
+      <div class="nav-section-label">Paramètres</div>
+      <div class="nav-item" onclick="window.location.href='admin-parametres.html'">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Paramètres
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name">Admin</div>
+          <div class="user-role">Administrateur</div>
+        </div>
+        <a href="#" class="logout-btn" title="Déconnexion" onclick="event.preventDefault();SLFAuth.logout()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div>
+          <div class="page-title">Éditeur d'article</div>
+          <div class="breadcrumb-top"><a href="admin-dashboard.html" style="color:var(--green);">Articles</a> › Nouvel article</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-ghost" onclick="saveAction('brouillon')">💾 Brouillon</button>
+        <button class="btn-ghost" onclick="previewAction()">👁 Aperçu</button>
+        <button class="btn-primary" onclick="saveAction('publié')">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Publier
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor + Settings -->
+    <div class="editor-layout">
+
+      <!-- Editor column -->
+      <div class="editor-col">
+
+        <textarea class="title-input" placeholder="Titre de l'article…" rows="2" oninput="updateWordCount();generateSlug()" id="article-title"></textarea>
+
+        <textarea class="excerpt-input" id="article-chapeau" placeholder="Chapeau / introduction (affiché en accroche sur la page d'accueil)…" rows="3" oninput="updateWordCount()"></textarea>
+
+        <div class="divider-line"></div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="tool-group">
+            <button class="tool-btn" title="Gras" onclick="execCmd('bold')"><b>B</b></button>
+            <button class="tool-btn" title="Italique" onclick="execCmd('italic')"><i>I</i></button>
+            <button class="tool-btn" title="Souligné" onclick="execCmd('underline')"><u>U</u></button>
+            <button class="tool-btn" title="Barré" onclick="execCmd('strikeThrough')"><s>S</s></button>
+          </div>
+          <div class="tool-sep"></div>
+          <div class="tool-group">
+            <button class="tool-btn wide" title="Titre H2" onclick="execCmd('formatBlock','h2')">H2</button>
+            <button class="tool-btn wide" title="Titre H3" onclick="execCmd('formatBlock','h3')">H3</button>
+            <button class="tool-btn wide" title="Paragraphe" onclick="execCmd('formatBlock','p')">¶</button>
+          </div>
+          <div class="tool-sep"></div>
+          <div class="tool-group">
+            <button class="tool-btn" title="Liste à puces" onclick="execCmd('insertUnorderedList')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            </button>
+            <button class="tool-btn" title="Liste numérotée" onclick="execCmd('insertOrderedList')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </button>
+            <button class="tool-btn" title="Citation" onclick="execCmd('formatBlock','blockquote')">❝</button>
+          </div>
+          <div class="tool-sep"></div>
+          <div class="tool-group">
+            <button class="tool-btn" title="Insérer une image" onclick="insertMedia('image')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </button>
+            <button class="tool-btn" title="Insérer une vidéo" onclick="insertMedia('video')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+            <button class="tool-btn" title="Insérer un lien" onclick="insertLink()">🔗</button>
+          </div>
+          <div class="tool-sep"></div>
+          <div class="tool-group">
+            <button class="tool-btn" title="Aligner à gauche"  onclick="execCmd('justifyLeft')">⬅</button>
+            <button class="tool-btn" title="Centrer"           onclick="execCmd('justifyCenter')">↔</button>
+            <button class="tool-btn" title="Aligner à droite"  onclick="execCmd('justifyRight')">➡</button>
+          </div>
+        </div>
+
+        <!-- Editor content area -->
+        <div class="editor-area" contenteditable="true" id="editorContent" oninput="updateWordCount()"
+          ondragover="event.preventDefault()" ondrop="handleInlineDrop(event)"></div>
+        <div class="word-count" id="wordCount">0 mots</div>
+
+        <!-- ── GALERIE D'IMAGES ─────────────────────────────── -->
+        <div class="media-section">
+          <div class="media-section-header">
+            <div class="media-section-title">
+              📸 Galerie d'images
+              <span class="media-section-count" id="galleryCount">0</span>
+            </div>
+            <button class="media-add-btn" onclick="document.getElementById('galleryInput').click()">
+              + Ajouter des photos
+            </button>
+          </div>
+          <input type="file" id="galleryInput" accept="image/*" multiple style="display:none" onchange="addGalleryImages(event)" />
+
+          <!-- Drop zone galerie -->
+          <div class="gallery-drop-zone" id="galleryDropZone"
+            onclick="document.getElementById('galleryInput').click()"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleGalleryDrop(event)">
+            <div class="gallery-drop-zone-icon">🖼</div>
+            <div class="gallery-drop-zone-text">Glissez vos photos ici ou cliquez</div>
+            <div class="gallery-drop-zone-sub">Ajoutez autant d'images que vous voulez · JPG, PNG, WEBP, GIF</div>
+          </div>
+
+          <!-- Grille de miniatures -->
+          <div class="gallery-grid" id="galleryGrid" style="display:none;"></div>
+        </div>
+
+        <!-- ── VIDÉOS ───────────────────────────────────────── -->
+        <div class="media-section">
+          <div class="media-section-header">
+            <div class="media-section-title">
+              🎬 Vidéos
+              <span class="media-section-count" id="videoCount">0</span>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="video-tabs">
+            <div class="video-tab active" onclick="switchVideoTab('link',this)">📎 Lien YouTube / Vimeo</div>
+            <div class="video-tab" onclick="switchVideoTab('file',this)">💾 Vidéo locale</div>
+          </div>
+
+          <div class="video-tab-panel active" id="vtab-link">
+            <div class="video-url-row">
+              <input type="url" class="video-url-input" id="videoUrlInput" placeholder="https://youtube.com/watch?v=… ou https://vimeo.com/…" />
+              <button class="btn-embed" onclick="addVideoLink()">Ajouter</button>
+            </div>
+          </div>
+          <div class="video-tab-panel" id="vtab-file">
+            <div class="video-file-upload">
+              <div class="video-upload-btn" onclick="document.getElementById('videoFileInput').click()">
+                📁 Cliquez pour choisir un fichier vidéo (MP4, WebM, MOV…)
+              </div>
+              <input type="file" id="videoFileInput" accept="video/*" style="display:none" onchange="addVideoFile(event)" />
+              <div style="font-size:11px;color:var(--gray-400);text-align:center;">
+                ⚠️ Les vidéos lourdes sont stockées temporairement dans votre navigateur — préférez un lien YouTube/Vimeo pour les grandes vidéos.
+              </div>
+            </div>
+          </div>
+
+          <!-- Liste des vidéos ajoutées -->
+          <div class="video-list" id="videoList"></div>
+        </div>
+
+      </div>
+
+      <!-- Settings column -->
+      <div class="settings-col">
+
+        <div class="settings-section">
+          <div class="settings-label">📋 Statut</div>
+          <div class="status-toggle">
+            <button class="status-option" onclick="setStatus(this,'brouillon')">Brouillon</button>
+            <button class="status-option active" onclick="setStatus(this,'publié')">Publier</button>
+            <button class="status-option" onclick="setStatus(this,'planifié')">Planifier</button>
+          </div>
+          <div class="settings-item" id="scheduleDate" style="display:none;">
+            <label class="field-label">Date de publication</label>
+            <input type="datetime-local" class="field-input" />
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">📂 Rubrique / Section</div>
+          <div class="settings-item">
+            <select class="field-select" id="sectionSelect" onchange="updateCategory()">
+              <option value="">— Choisir une rubrique —</option>
+
+              <optgroup label="🏠 Accueil &amp; Actualités">
+                <option value="news">📰 Actualités (page News)</option>
+                <option value="accueil">🏠 Mise en avant Accueil</option>
+              </optgroup>
+
+              <optgroup label="🕊️ Diplomatie">
+                <option value="diplomatie">🕊️ Diplomatie</option>
+              </optgroup>
+
+              <optgroup label="🏛 L'association">
+                <option value="association">🏛 Présentation générale</option>
+                <option value="qui-sommes-nous">👥 Qui sommes-nous ?</option>
+                <option value="notre-but">🎯 Notre but</option>
+                <option value="actions-realisees">🤝 Actions réalisées</option>
+                <option value="bulletin-adhesion">📋 Bulletin d'adhésion</option>
+                <option value="appel-cotisation">💰 Appel à cotisation</option>
+                <option value="en-images">📸 En images (galerie photos)</option>
+              </optgroup>
+
+              <optgroup label="📡 Médias">
+                <option value="medias">📡 Médias (page générale)</option>
+                <option value="radios">📻 Radios du Somaliland</option>
+                <option value="videos">🎬 Vidéos</option>
+              </optgroup>
+
+              <optgroup label="🌍 Connaître le Somaliland">
+                <option value="connaitre-somaliland">🗺️ Histoire &amp; Géographie</option>
+              </optgroup>
+
+              <optgroup label="🔗 Autres">
+                <option value="liens-utiles">🔗 Liens utiles</option>
+                <option value="contact">✉️ Contact &amp; Infos pratiques</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="settings-label" style="margin-top:14px;">🏷 Catégorie thématique</div>
+          <div class="settings-item">
+            <select class="field-select" id="categorySelect">
+              <option value="">— Catégorie thématique —</option>
+              <optgroup label="Principales">
+                <option value="diplomatie">🕊️ Diplomatie</option>
+                <option value="actions">🤝 Actions &amp; Solidarité</option>
+                <option value="humanitaire">🏥 Humanitaire &amp; Santé</option>
+                <option value="education">🎓 Éducation</option>
+                <option value="culture">🌍 Culture &amp; Société</option>
+              </optgroup>
+              <optgroup label="Autres">
+                <option value="politique">🏛 Politique</option>
+                <option value="economie">💼 Économie</option>
+                <option value="evenement">🎉 Événement</option>
+                <option value="communique">📢 Communiqué</option>
+                <option value="galerie">📸 Galerie photo</option>
+                <option value="video">🎬 Vidéo</option>
+                <option value="radio">📻 Radio &amp; Audio</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Aperçu de la destination -->
+          <div id="destinationPreview" style="display:none;margin-top:10px;padding:10px 12px;background:var(--green-light);border-radius:8px;font-size:12px;color:var(--green-dark);">
+            <strong>Destination :</strong> <span id="destinationText"></span><br>
+            <a id="destinationLink" href="#" target="_blank" style="color:var(--green);font-size:11px;margin-top:4px;display:inline-block;">👁 Voir la rubrique →</a>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">🏷 Tags</div>
+          <div class="tags-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
+            <input class="tag-input" id="tagInput" placeholder="Ajouter un tag…" onkeydown="addTag(event)" />
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">🖼 Image de couverture</div>
+          <div id="coverWarning" style="display:none;background:#fdecea;border-left:3px solid var(--red);color:#8B0000;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:10px;">
+            ⚠️ Cet article n'a pas d'image. Sans image, un placeholder vert/rouge s'affichera à la place.
+          </div>
+          <div class="cover-picker" onclick="document.getElementById('coverInput').click()">
+            <div class="cover-picker-placeholder" id="coverIcon">🏔</div>
+            <div class="cover-picker-label" id="coverLabel">Cliquez pour choisir une image de couverture</div>
+            <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="previewCover(event)" />
+          </div>
+          <div id="coverStatus" style="margin-top:8px;font-size:12px;color:var(--gray-600);">Aucune image sélectionnée</div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">🔍 SEO</div>
+          <div class="settings-item">
+            <label class="field-label">Titre SEO</label>
+            <input type="text" class="field-input" id="seoTitle" placeholder="Titre optimisé pour Google…" maxlength="60" />
+          </div>
+          <div class="settings-item">
+            <label class="field-label">Meta description</label>
+            <textarea class="field-textarea" id="metaDesc" placeholder="Description affichée dans les résultats Google (max 160 caractères)…" maxlength="160"></textarea>
+          </div>
+          <div class="settings-item">
+            <label class="field-label">Slug URL</label>
+            <input type="text" class="field-input" id="slugInput" placeholder="mon-article-en-somaliland" />
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">✍️ Auteur</div>
+          <div class="settings-item">
+            <select class="field-select" id="authorSelect">
+              <option>Admin (vous)</option>
+              <option>Abdi Abdillahi Mohamed</option>
+              <option>Hassan Adan Mohamed</option>
+              <option>Rédaction SLF</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-red" style="width:100%;justify-content:center;margin-top:8px;" onclick="deleteCurrentArticle()">
+          🗑 Supprimer l'article
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">✅ Article sauvegardé !</div>
+
+<script src="admin-auth.js?v=3"></script>
+<script src="slf-utils.js?v=3"></script>
+<script>
+  // ── Vérification d'authentification ──────────────────────────────────────
+  if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
+  const esc = SLFUtils.escapeHtml;
+
+  // ── Helpers d'état de l'image de couverture ─────────────────────────────
+  function updateCoverStatus() {
+    const status  = document.getElementById('coverStatus');
+    const warning = document.getElementById('coverWarning');
+    if (!status) return;
+    if (coverImageData) {
+      const kb = Math.round(SLFUtils.estimateBytes(coverImageData) / 1024);
+      status.innerHTML  = '<span style="color:var(--green);font-weight:600;">✓ Image prête (' + kb + ' Ko)</span>';
+      if (warning) warning.style.display = 'none';
+    } else {
+      status.innerHTML  = '<span style="color:var(--red);font-weight:600;">⚠️ Aucune image — placeholder s\'affichera</span>';
+      if (warning) warning.style.display = 'block';
+    }
+  }
+
+  // Mettre à jour le badge de la sidebar avec le vrai nombre d'articles
+  (function() {
+    const n = SLFUtils.getArticles().length;
+    const badge = document.querySelector('.nav-badge');
+    if (badge) badge.textContent = n;
+  })();
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+
+  function execCmd(cmd, val) {
+    document.getElementById('editorContent').focus();
+    document.execCommand(cmd, false, val || null);
+  }
+
+  function insertMedia(type) {
+    if (type === 'image') {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*';
+      inp.onchange = (e) => insertInlineImage(e.target.files[0]);
+      inp.click();
+    }
+    if (type === 'video') document.getElementById('videoUrlInput').focus();
+  }
+
+  function insertLink() {
+    const url = prompt('URL du lien :');
+    if (url) document.execCommand('createLink', false, url);
+  }
+
+  // ── Image inline dans le contenu (toolbar) ───────────────────────────────
+  async function insertInlineImage(file) {
+    const check = SLFUtils.validateImageFile(file);
+    if (!check.ok) { showToast('⚠️ ' + check.reason, 'error'); return; }
+    setUploadingState(+1);
+    try {
+      const dataUrl = await SLFUtils.compressImage(file, { maxDim: 1400 });
+      document.getElementById('editorContent').focus();
+      document.execCommand('insertImage', false, dataUrl);
+      showToast('🖼 Image insérée dans le texte !', 'success');
+    } catch (e) {
+      showToast('⚠️ Échec de l\'insertion de l\'image', 'error');
+      console.error(e);
+    } finally {
+      setUploadingState(-1);
+    }
+  }
+
+  function handleInlineDrop(e) {
+    const file = [...(e.dataTransfer.files || [])].find(f => f.type.startsWith('image/'));
+    if (file) { e.preventDefault(); insertInlineImage(file); }
+  }
+
+  // ── Image de couverture ───────────────────────────────────────────────────
+  let coverImageData = null;
+
+  // Compte des opérations d'upload en cours (cover + galerie + inline)
+  let pendingUploads = 0;
+  function setUploadingState(delta) {
+    pendingUploads = Math.max(0, pendingUploads + delta);
+    const busy = pendingUploads > 0;
+    // Désactive les boutons de sauvegarde
+    document.querySelectorAll('.topbar-right button').forEach(b => {
+      b.disabled = busy;
+      b.style.opacity = busy ? '.5' : '';
+      b.style.cursor  = busy ? 'wait' : '';
+    });
+  }
+
+  async function previewCover(e) {
+    const file = e.target.files[0];
+    const check = SLFUtils.validateImageFile(file);
+    if (!check.ok) { showToast('⚠️ ' + check.reason, 'error'); e.target.value = ''; return; }
+
+    // État visuel : indique que la compression est en cours
+    const picker = document.querySelector('.cover-picker');
+    picker.innerHTML = '';
+    const loading = document.createElement('div');
+    loading.style.cssText = 'padding:24px;text-align:center;color:var(--gray-600);';
+    loading.textContent = '⏳ Compression de l\'image en cours…';
+    picker.appendChild(loading);
+
+    setUploadingState(+1);
+    try {
+      const dataUrl = await SLFUtils.compressImage(file, { maxDim: 1600 });
+      coverImageData = dataUrl;
+      const sizeKb = Math.round(SLFUtils.estimateBytes(dataUrl) / 1024);
+
+      // Affiche l'aperçu + un check visible
+      picker.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;';
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = '';
+      img.style.cssText = 'width:100%;border-radius:8px;height:120px;object-fit:cover;';
+      const badge = document.createElement('div');
+      badge.style.cssText = 'position:absolute;top:6px;right:6px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;';
+      badge.textContent = '✓ ' + sizeKb + ' Ko';
+      wrap.appendChild(img); wrap.appendChild(badge);
+      const input = document.createElement('input');
+      input.type = 'file'; input.id = 'coverInput'; input.accept = 'image/*';
+      input.style.display = 'none';
+      input.onchange = previewCover;
+      picker.appendChild(wrap); picker.appendChild(input);
+      updateCoverStatus();
+      showToast('🖼 Image prête (' + sizeKb + ' Ko)', 'success');
+    } catch (err) {
+      picker.innerHTML = '';
+      const ic = document.createElement('div'); ic.className = 'cover-picker-placeholder'; ic.textContent = '🏔';
+      const lbl = document.createElement('div'); lbl.className = 'cover-picker-label'; lbl.textContent = 'Cliquez pour choisir une image de couverture';
+      const input = document.createElement('input');
+      input.type='file'; input.id='coverInput'; input.accept='image/*';
+      input.style.display='none'; input.onchange = previewCover;
+      picker.appendChild(ic); picker.appendChild(lbl); picker.appendChild(input);
+      showToast('⚠️ Échec du chargement de l\'image', 'error');
+      console.error(err);
+    } finally {
+      setUploadingState(-1);
+    }
+  }
+
+  // ── Galerie multi-images ──────────────────────────────────────────────────
+  let galleryImages = [];
+
+  function addGalleryImages(e) {
+    processGalleryFiles([...e.target.files]);
+    e.target.value = '';
+  }
+
+  function handleGalleryDrop(e) {
+    e.preventDefault();
+    document.getElementById('galleryDropZone').classList.remove('drag-over');
+    const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+    processGalleryFiles(files);
+  }
+
+  async function processGalleryFiles(files) {
+    if (!files.length) return;
+    const valid = [];
+    const errors = [];
+    files.forEach(file => {
+      const check = SLFUtils.validateImageFile(file);
+      if (check.ok) valid.push(file);
+      else errors.push(`${file.name} — ${check.reason}`);
+    });
+    if (errors.length) showToast('⚠️ ' + errors[0], 'error');
+    if (!valid.length) return;
+
+    setUploadingState(+1);
+    showToast(`⏳ Compression de ${valid.length} image(s)…`);
+    try {
+      const results = await Promise.all(valid.map(f =>
+        SLFUtils.compressImage(f, { maxDim: 1400 }).then(data => ({ data, name: f.name }))
+      ));
+      results.forEach(r => galleryImages.push(r));
+      renderGallery();
+      showToast(`📸 ${valid.length} photo(s) ajoutée(s) !`, 'success');
+    } catch (err) {
+      showToast('⚠️ Échec lors de la compression', 'error');
+      console.error(err);
+    } finally {
+      setUploadingState(-1);
+    }
+  }
+
+  function removeGalleryImage(idx) {
+    galleryImages.splice(idx, 1);
+    renderGallery();
+  }
+
+  function renderGallery() {
+    const grid  = document.getElementById('galleryGrid');
+    const count = document.getElementById('galleryCount');
+    const drop  = document.getElementById('galleryDropZone');
+    if (!grid) return;
+    count.textContent = galleryImages.length;
+    grid.style.display = galleryImages.length ? 'grid' : 'none';
+    drop.style.display = galleryImages.length ? 'none' : '';
+    grid.innerHTML = '';
+    galleryImages.forEach((img, i) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'gallery-thumb';
+      const imgEl = document.createElement('img');
+      imgEl.src = SLFUtils.sanitizeUrl(img.data);
+      imgEl.alt = img.name || '';
+      imgEl.loading = 'lazy';
+      const del = document.createElement('button');
+      del.className = 'gallery-thumb-del';
+      del.title = 'Supprimer';
+      del.textContent = '×';
+      del.onclick = () => removeGalleryImage(i);
+      thumb.appendChild(imgEl);
+      thumb.appendChild(del);
+      grid.appendChild(thumb);
+    });
+    // Bouton « + Ajouter »
+    const add = document.createElement('div');
+    add.className = 'gallery-thumb';
+    add.style.cssText = 'border:2px dashed var(--gray-300);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;color:var(--gray-400);';
+    add.onclick = () => document.getElementById('galleryInput').click();
+    add.innerHTML = '<span style="font-size:24px;">+</span><span>Ajouter</span>';
+    grid.appendChild(add);
+  }
+
+  // ── Vidéos ────────────────────────────────────────────────────────────────
+  let articleVideos = [];
+
+  function switchVideoTab(tab, btn) {
+    document.querySelectorAll('.video-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.video-tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('vtab-' + tab).classList.add('active');
+  }
+
+  function parseVideoUrl(url) {
+    let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
+    if (m) return { type:'youtube', embed:'https://www.youtube.com/embed/'+m[1], label:'YouTube · '+m[1] };
+    m = url.match(/vimeo\.com\/(\d+)/);
+    if (m) return { type:'vimeo', embed:'https://player.vimeo.com/video/'+m[1], label:'Vimeo · '+m[1] };
+    return null;
+  }
+
+  function addVideoLink() {
+    const url = document.getElementById('videoUrlInput').value.trim();
+    if (!url) return;
+    const parsed = parseVideoUrl(url);
+    if (!parsed) { showToast('⚠️ URL YouTube ou Vimeo invalide', 'error'); return; }
+    articleVideos.push({ type:parsed.type, url:parsed.embed, label:parsed.label });
+    document.getElementById('videoUrlInput').value = '';
+    renderVideos();
+    showToast('🎬 Vidéo ajoutée !', 'success');
+  }
+
+  function addVideoFile(e) {
+    const file = e.target.files[0];
+    const check = SLFUtils.validateVideoFile(file);
+    if (!check.ok) { showToast('⚠️ ' + check.reason, 'error'); e.target.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      articleVideos.push({ type:'file', url:ev.target.result, label:file.name, mime:file.type });
+      renderVideos();
+      showToast('💾 Vidéo locale ajoutée !', 'success');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
+  function removeVideo(idx) {
+    articleVideos.splice(idx, 1);
+    renderVideos();
+  }
+
+  function renderVideos() {
+    const list  = document.getElementById('videoList');
+    const count = document.getElementById('videoCount');
+    if (!list) return;
+    count.textContent = articleVideos.length;
+    list.innerHTML = '';
+    articleVideos.forEach((v, i) => {
+      const row = document.createElement('div');
+      row.className = 'video-item';
+      const ic = document.createElement('span');
+      ic.className = 'video-item-icon';
+      ic.textContent = v.type === 'youtube' ? '▶️' : v.type === 'vimeo' ? '🎬' : '💾';
+      const lab = document.createElement('span');
+      lab.className = 'video-item-label';
+      lab.textContent = v.label || '';
+      const del = document.createElement('button');
+      del.className = 'video-item-del';
+      del.title = 'Retirer';
+      del.textContent = '×';
+      del.onclick = () => removeVideo(i);
+      row.appendChild(ic); row.appendChild(lab); row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  function updateWordCount() {
+    const content = document.getElementById('editorContent').innerText || '';
+    const title   = document.getElementById('article-title').value || '';
+    const words   = (content + ' ' + title).trim().split(/\s+/).filter(w => w).length;
+    const minutes = Math.max(1, Math.round(words / 200));
+    document.getElementById('wordCount').textContent = `${words} mots · ${minutes} min de lecture`;
+  }
+
+  function generateSlug() {
+    const title = document.getElementById('article-title').value || '';
+    const slug = title
+      .toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    const slugInput = document.getElementById('slugInput');
+    if (slugInput) slugInput.value = slug;
+  }
+
+  // (le slug est déjà régénéré via l'attribut oninput du titre)
+
+  function buildTagChip(val) {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.appendChild(document.createTextNode(val + ' '));
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '×';
+    btn.onclick = function () { chip.remove(); };
+    chip.appendChild(btn);
+    return chip;
+  }
+
+  function addTag(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const input = document.getElementById('tagInput');
+      const val   = input.value.trim().replace(/,$/, '');
+      if (!val) return;
+      document.getElementById('tagsWrap').insertBefore(buildTagChip(val), input);
+      input.value = '';
+    }
+  }
+
+  function removeTag(btn) { btn.parentElement.remove(); }
+
+  function setStatus(btn, status) {
+    document.querySelectorAll('.status-option').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const scheduleDate = document.getElementById('scheduleDate');
+    if (scheduleDate) scheduleDate.style.display = status === 'planifié' ? 'block' : 'none';
+  }
+
+  // ── Article ID courant (null = nouvel article) ──────────────────────────────
+  let currentArticleId = null;
+
+  function collectArticleData(status) {
+    const titleEl    = document.getElementById('article-title');
+    const chapeauEl  = document.getElementById('article-chapeau');
+    const contentEl  = document.getElementById('editorContent');
+    const sectionEl  = document.getElementById('sectionSelect');
+    const categoryEl = document.getElementById('categorySelect');
+    const slugEl     = document.getElementById('slugInput');
+    const seoEl      = document.getElementById('seoTitle');
+    const metaEl     = document.getElementById('metaDesc');
+    const authorEl   = document.getElementById('authorSelect');
+
+    // Récupérer les tags
+    const tags = [...document.querySelectorAll('#tagsWrap .tag-chip')]
+      .map(chip => chip.textContent.replace('×','').trim())
+      .filter(t => t);
+
+    // Rubrique label
+    const sectionOpt = sectionEl.options[sectionEl.selectedIndex];
+    const sectionLabel = sectionOpt && sectionOpt.value ? sectionOpt.text.replace(/^[^\wÀ-ɏ]+/,'').trim() : '';
+
+    // Catégorie label + key
+    const catOpt = categoryEl.options[categoryEl.selectedIndex];
+    const catKey   = catOpt ? catOpt.value : '';
+    const catLabel = catOpt && catOpt.value ? catOpt.text.replace(/^[^\wÀ-ɏ]+/,'').trim() : '';
+
+    const now = new Date().toISOString();
+
+    return {
+      title:        titleEl.value.trim() || 'Sans titre',
+      chapeau:      chapeauEl ? chapeauEl.value.trim() : '',
+      content:      contentEl.innerHTML,
+      coverImage:   coverImageData,
+      section:      sectionEl.value,
+      sectionLabel: sectionLabel,
+      categoryKey:  catKey,
+      categoryLabel:catLabel,
+      tags:         tags,
+      slug:         slugEl ? slugEl.value.trim() : '',
+      seoTitle:     seoEl ? seoEl.value.trim() : '',
+      metaDesc:     metaEl ? metaEl.value.trim() : '',
+      author:       authorEl ? authorEl.value : 'Admin',
+      status:       status,
+      updatedAt:    now,
+      gallery:      galleryImages.map(i => i.data),   // base64 array
+      videos:       articleVideos,                     // [{type, url, label}]
+    };
+  }
+
+  function safeSaveArticles(articles) {
+    try {
+      localStorage.setItem('slf_articles', JSON.stringify(articles));
+      return true;
+    } catch (err) {
+      showToast('⚠️ Stockage saturé : retirez des images/vidéos avant de sauvegarder', 'error');
+      console.error('localStorage quota exceeded', err);
+      return false;
+    }
+  }
+
+  function saveAction(status) {
+    if (pendingUploads > 0) {
+      showToast('⏳ Patientez : compression d\'image en cours…', 'error');
+      return;
+    }
+    const titleEl = document.getElementById('article-title');
+    if (!titleEl.value.trim()) {
+      titleEl.focus();
+      showToast('⚠️ Entrez un titre avant de sauvegarder', 'error');
+      return;
+    }
+    // Garde-fou : publier sans image → demander confirmation
+    if (status === 'publié' && !coverImageData) {
+      if (!confirm('Aucune image de couverture n\'a été ajoutée.\n\nVoulez-vous vraiment publier l\'article sans image ?\n\n(Un placeholder vert/rouge s\'affichera à la place sur la page d\'accueil.)')) {
+        return;
+      }
+    }
+
+    const data = collectArticleData(status);
+    const articles = SLFUtils.getArticles();
+
+    if (currentArticleId) {
+      // Modifier un article existant
+      const idx = articles.findIndex(a => a.id === currentArticleId);
+      if (idx !== -1) {
+        articles[idx] = { ...articles[idx], ...data };
+      } else {
+        data.id = currentArticleId; data.createdAt = data.updatedAt; data.views = 0;
+        articles.unshift(data);
+      }
+    } else {
+      // Nouvel article
+      data.id        = 'art_' + Date.now();
+      data.createdAt = data.updatedAt;
+      data.views     = 0;
+      currentArticleId = data.id;
+      articles.unshift(data);
+    }
+
+    if (!safeSaveArticles(articles)) return;
+
+    if (status === 'publié') {
+      showToast('✅ Article publié !', 'success');
+      setTimeout(() => { window.location.href = 'admin-dashboard.html?saved=1'; }, 1200);
+    } else {
+      showToast('💾 Brouillon sauvegardé !', 'success');
+      // Mettre à jour le breadcrumb (sans innerHTML)
+      const bc = document.querySelector('.breadcrumb-top');
+      if (bc) {
+        bc.innerHTML = '';
+        const a = document.createElement('a');
+        a.href = 'admin-dashboard.html'; a.style.color = 'var(--green)'; a.textContent = 'Articles';
+        bc.appendChild(a);
+        bc.appendChild(document.createTextNode(' › ' + data.title));
+      }
+    }
+  }
+
+  function deleteCurrentArticle() {
+    if (!currentArticleId) { window.location.href = 'admin-dashboard.html'; return; }
+    if (!confirm('Supprimer cet article définitivement ?')) return;
+    const articles = SLFUtils.getArticles();
+    const filtered = articles.filter(a => a.id !== currentArticleId);
+    safeSaveArticles(filtered);
+    window.location.href = 'admin-dashboard.html';
+  }
+
+  function loadArticleData(article) {
+    document.getElementById('article-title').value    = article.title || '';
+    const ch = document.getElementById('article-chapeau');
+    if (ch) ch.value = article.chapeau || '';
+    // Le contenu de l'éditeur est éditable contenteditable — on injecte mais
+    // après sanitisation. Le contenu provient déjà de cet admin, mais cela
+    // protège en cas de localStorage corrompu / partagé entre comptes.
+    document.getElementById('editorContent').innerHTML = SLFUtils.sanitizeArticleHtml(article.content || '');
+
+    const sec = document.getElementById('sectionSelect');
+    if (sec && article.section) sec.value = article.section;
+    updateCategory();
+
+    const cat = document.getElementById('categorySelect');
+    if (cat && article.categoryKey) cat.value = article.categoryKey;
+
+    const slug = document.getElementById('slugInput');
+    if (slug) slug.value = article.slug || '';
+
+    const seo = document.getElementById('seoTitle');
+    if (seo) seo.value = article.seoTitle || '';
+
+    const meta = document.getElementById('metaDesc');
+    if (meta) meta.value = article.metaDesc || '';
+
+    const author = document.getElementById('authorSelect');
+    if (author && article.author) author.value = article.author;
+
+    // Tags
+    const tagsWrap = document.getElementById('tagsWrap');
+    const tagInput = document.getElementById('tagInput');
+    if (tagsWrap && article.tags) {
+      [...tagsWrap.querySelectorAll('.tag-chip')].forEach(c => c.remove());
+      article.tags.forEach(t => {
+        tagsWrap.insertBefore(buildTagChip(t), tagInput);
+      });
+    }
+
+    // Image couverture
+    if (article.coverImage) {
+      coverImageData = article.coverImage;
+      const picker = document.querySelector('.cover-picker');
+      if (picker) {
+        picker.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;';
+        const img = document.createElement('img');
+        img.src = SLFUtils.sanitizeUrl(article.coverImage);
+        img.alt = '';
+        img.style.cssText = 'width:100%;border-radius:8px;height:120px;object-fit:cover;';
+        const badge = document.createElement('div');
+        badge.style.cssText = 'position:absolute;top:6px;right:6px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;';
+        badge.textContent = '✓ ' + Math.round(SLFUtils.estimateBytes(article.coverImage) / 1024) + ' Ko';
+        wrap.appendChild(img); wrap.appendChild(badge);
+        const input = document.createElement('input');
+        input.type='file'; input.id='coverInput'; input.accept='image/*';
+        input.style.display='none'; input.onchange = previewCover;
+        picker.appendChild(wrap); picker.appendChild(input);
+      }
+    } else {
+      // Article existant SANS image → afficher l'avertissement rouge
+      coverImageData = null;
+    }
+    updateCoverStatus();
+
+    // Galerie
+    if (article.gallery && article.gallery.length) {
+      galleryImages = article.gallery.map((data, i) => ({ data, name: 'image-' + i }));
+      renderGallery();
+    }
+
+    // Vidéos
+    if (article.videos && article.videos.length) {
+      articleVideos = article.videos;
+      renderVideos();
+    }
+
+    // Statut
+    const statusBtns = document.querySelectorAll('.status-option');
+    statusBtns.forEach(b => {
+      b.classList.remove('active');
+      if ((article.status === 'publié' && b.textContent === 'Publier') ||
+          (article.status === 'brouillon' && b.textContent === 'Brouillon') ||
+          (article.status === 'planifié' && b.textContent === 'Planifier')) {
+        b.classList.add('active');
+      }
+    });
+
+    // Breadcrumb + titre de page (sans innerHTML)
+    const bc = document.querySelector('.breadcrumb-top');
+    if (bc) {
+      bc.innerHTML = '';
+      const a = document.createElement('a');
+      a.href = 'admin-dashboard.html'; a.style.color = 'var(--green)'; a.textContent = 'Articles';
+      bc.appendChild(a);
+      bc.appendChild(document.createTextNode(' › ' + (article.title || '')));
+    }
+
+    updateWordCount();
+  }
+
+  function initEditorPage() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) {
+      // Nouvel article : afficher l'état "aucune image"
+      updateCoverStatus();
+      return;
+    }
+    const articles = JSON.parse(localStorage.getItem('slf_articles') || '[]');
+    const article = articles.find(a => a.id === id);
+    if (!article) { updateCoverStatus(); return; }
+    currentArticleId = id;
+    loadArticleData(article);
+  }
+
+  function previewAction() {
+    if (pendingUploads > 0) {
+      showToast('⏳ Patientez : compression d\'image en cours…', 'error');
+      return;
+    }
+    const titleEl = document.getElementById('article-title');
+    if (!titleEl.value.trim()) {
+      titleEl.focus();
+      showToast('⚠️ Entrez un titre pour pouvoir prévisualiser', 'error');
+      return;
+    }
+    // Sauvegarder en brouillon (sans redirection) pour obtenir un ID
+    const data     = collectArticleData('brouillon');
+    const articles = SLFUtils.getArticles();
+    if (currentArticleId) {
+      const idx = articles.findIndex(a => a.id === currentArticleId);
+      if (idx !== -1) articles[idx] = { ...articles[idx], ...data };
+      else { data.id = currentArticleId; data.createdAt = data.updatedAt; data.views = 0; articles.unshift(data); }
+    } else {
+      data.id        = 'art_' + Date.now();
+      data.createdAt = data.updatedAt;
+      data.views     = 0;
+      currentArticleId = data.id;
+      articles.unshift(data);
+    }
+    if (!safeSaveArticles(articles)) return;
+    // Ouvrir l'aperçu dans un nouvel onglet avec l'ID correct
+    window.open('article.html?id=' + encodeURIComponent(currentArticleId) + '&preview=1', '_blank');
+  }
+
+  // Mapping rubrique → page + label
+  const RUBRIQUES = {
+    'news':               { label: 'Actualités', page: 'news.html' },
+    'accueil':            { label: 'Mise en avant Accueil', page: 'index.html' },
+    'diplomatie':         { label: 'Diplomatie', page: 'diplomatie.html' },
+    'association':        { label: 'Présentation de l\'association', page: 'association.html' },
+    'qui-sommes-nous':    { label: 'Qui sommes-nous ?', page: 'qui-sommes-nous.html' },
+    'notre-but':          { label: 'Notre but', page: 'notre-but.html' },
+    'actions-realisees':  { label: 'Actions réalisées', page: 'actions-realisees.html' },
+    'bulletin-adhesion':  { label: 'Bulletin d\'adhésion', page: 'bulletin-adhesion.html' },
+    'appel-cotisation':   { label: 'Appel à cotisation', page: 'appel-cotisation.html' },
+    'en-images':          { label: 'En images (galerie photos)', page: 'en-images.html' },
+    'medias':             { label: 'Médias', page: 'medias.html' },
+    'radios':             { label: 'Radios du Somaliland', page: 'radios.html' },
+    'videos':             { label: 'Vidéos', page: 'videos.html' },
+    'connaitre-somaliland':{ label: 'Connaître le Somaliland', page: 'connaitre-somaliland.html' },
+    'liens-utiles':       { label: 'Liens utiles', page: 'liens-utiles.html' },
+    'contact':            { label: 'Contact', page: 'contact.html' },
+  };
+
+  function updateCategory() {
+    const val = document.getElementById('sectionSelect').value;
+    const preview = document.getElementById('destinationPreview');
+    if (!val || !RUBRIQUES[val]) { preview.style.display = 'none'; return; }
+    const r = RUBRIQUES[val];
+    document.getElementById('destinationText').textContent = r.label;
+    document.getElementById('destinationLink').href = r.page;
+    preview.style.display = 'block';
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.classList.remove('show'); }, 2800);
+  }
+
+  // Init au chargement
+  initEditorPage();
+</script>
+</body>
+</html>
