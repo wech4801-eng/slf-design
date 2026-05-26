@@ -47,7 +47,7 @@
     return t ? { 'Authorization': 'Bearer ' + t } : {};
   }
 
-  async function fetchJson(url, opts = {}) {
+  async function fetchJson(url, opts = {}, isRetry = false) {
     const res = await fetch(url, {
       ...opts,
       headers: {
@@ -58,12 +58,83 @@
     if (res.status === 204) return null;
     const ct = res.headers.get('content-type') || '';
     const body = ct.includes('application/json') ? await res.json() : await res.text();
+
+    // Auto-relogin sur 401 (token absent ou expiré)
+    if (res.status === 401 && !isRetry && opts.method && opts.method !== 'GET') {
+      const reAuthed = await promptReauth();
+      if (reAuthed) {
+        // Re-essayer avec le nouveau token
+        return fetchJson(url, {
+          ...opts,
+          headers: { ...(opts.headers || {}), ...authHeaders() },
+        }, true);
+      }
+    }
+
     if (!res.ok) {
       const err = new Error(body?.error || res.statusText);
       err.status = res.status;
       throw err;
     }
     return body;
+  }
+
+  // Modal de re-authentification (créée à la volée)
+  let reauthPromise = null;
+  function promptReauth() {
+    // Évite plusieurs prompts simultanés
+    if (reauthPromise) return reauthPromise;
+    reauthPromise = new Promise((resolve) => {
+      // Construit la modale en DOM
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+      const box = document.createElement('div');
+      box.style.cssText = 'background:#fff;border-radius:12px;padding:24px;max-width:380px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3);font-family:Inter,sans-serif;';
+      box.innerHTML = `
+        <h3 style="margin:0 0 8px;color:#006830;font-size:18px;font-family:'Playfair Display',serif;">🔒 Session expirée</h3>
+        <p style="margin:0 0 16px;color:#6c757d;font-size:13px;line-height:1.5;">
+          Pour des raisons de sécurité, votre session admin a expiré.
+          Entrez votre mot de passe pour continuer sans perdre votre travail.
+        </p>
+        <input type="password" id="__slfReauthPwd" placeholder="Mot de passe admin"
+               style="width:100%;padding:10px 12px;border:2px solid #e9ecef;border-radius:8px;font-size:14px;outline:none;margin-bottom:8px;" />
+        <div id="__slfReauthErr" style="display:none;color:#CE1126;font-size:12px;margin-bottom:8px;">⚠️ Mot de passe incorrect</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button id="__slfReauthCancel" style="padding:9px 14px;background:#f1f3f5;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Annuler</button>
+          <button id="__slfReauthOk"     style="padding:9px 18px;background:#00843D;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Confirmer</button>
+        </div>`;
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+      const input = box.querySelector('#__slfReauthPwd');
+      const err   = box.querySelector('#__slfReauthErr');
+      const ok    = box.querySelector('#__slfReauthOk');
+      const cancel= box.querySelector('#__slfReauthCancel');
+      setTimeout(() => input.focus(), 50);
+
+      const cleanup = (val) => {
+        overlay.remove();
+        reauthPromise = null;
+        resolve(val);
+      };
+      ok.onclick = async () => {
+        const pwd = input.value;
+        if (!pwd) { input.focus(); return; }
+        ok.disabled = true; ok.textContent = '…';
+        const success = await login(pwd);
+        if (success) cleanup(true);
+        else {
+          err.style.display = 'block';
+          ok.disabled = false; ok.textContent = 'Confirmer';
+          input.value = ''; input.focus();
+        }
+      };
+      cancel.onclick = () => cleanup(false);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') ok.click();
+        if (e.key === 'Escape') cancel.click();
+      });
+    });
+    return reauthPromise;
   }
 
   // ── Détection backend (1 ping API au démarrage) ────────────────────────────
