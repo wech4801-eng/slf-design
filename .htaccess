@@ -1,0 +1,65 @@
+# ── SLF — Configuration Apache pour Hostinger ───────────────────
+# Ce fichier est lu automatiquement par Hostinger.
+
+# Forcer HTTPS (Hostinger fournit un certificat SSL gratuit)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Rediriger HTTP → HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Rediriger /api/anything → api.php (préservation du chemin via REQUEST_URI)
+    RewriteRule ^api(/.*)?$ api.php [L,QSA]
+</IfModule>
+
+# ── Page d'erreur 404 personnalisée ─────────────────────────────
+ErrorDocument 404 /404.html
+
+# ── Headers de sécurité ─────────────────────────────────────────
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # CSP — autorise les fonts Google et les iframes YouTube/Vimeo
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src https://www.youtube.com https://player.vimeo.com; connect-src 'self'"
+</IfModule>
+
+# ── Cache long pour les assets statiques ────────────────────────
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg              "access plus 1 year"
+    ExpiresByType image/png               "access plus 1 year"
+    ExpiresByType image/gif               "access plus 1 year"
+    ExpiresByType image/webp              "access plus 1 year"
+    ExpiresByType image/svg+xml           "access plus 1 month"
+    ExpiresByType font/woff2              "access plus 1 year"
+    ExpiresByType text/css                "access plus 1 week"
+    ExpiresByType application/javascript  "access plus 1 hour"
+    ExpiresByType text/html               "access plus 0 seconds"
+</IfModule>
+
+# ── Compression gzip ────────────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml application/xml
+</IfModule>
+
+# ── Bloquer l'accès aux fichiers sensibles ──────────────────────
+<FilesMatch "^\.(htaccess|env|gitignore|git)|package\.json|server\.js|README\.md|HOSTINGER\.md|netlify\.toml$">
+    Require all denied
+</FilesMatch>
+
+# Empêcher l'accès direct au dossier de données
+<IfModule mod_rewrite.c>
+    RewriteRule ^data/ - [F,L]
+</IfModule>
+
+# Index par défaut
+DirectoryIndex index.html
+
+# Empêcher l'affichage du contenu des dossiers
+Options -Indexes

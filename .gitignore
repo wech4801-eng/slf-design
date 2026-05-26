@@ -29,3 +29,6 @@ coverage/
 
 # ── Fichiers utilisateur (à uploader plus tard) ─────────────────
 uploads/
+
+# ── Données runtime (générées par le serveur Node) ──────────────
+data/

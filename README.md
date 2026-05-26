@@ -8,9 +8,14 @@ et l'amitié franco-somalilandaise.
 
 ## Pile technique
 
-- HTML5 / CSS3 / JavaScript pur (aucune dépendance, aucun build step)
-- Stockage des articles en `localStorage` du navigateur de l'administrateur
-- Compatible **Netlify**, **Vercel**, **Cloudflare Pages**, **GitHub Pages**
+- HTML5 / CSS3 / JavaScript pur (aucune dépendance npm côté front)
+- Backend : **PHP 7.4+** (compatible Hostinger directement)
+- Alternative dev : **Node.js** (`node server.js`)
+- Stockage : fichiers JSON dans `data/`
+- Temps réel : SSE + fallback polling 5 s
+- Aucune base de données, aucune dépendance externe
+
+**Déploiement Hostinger : voir [HOSTINGER.md](HOSTINGER.md) — 5 minutes.**
 
 ## Structure du projet
 

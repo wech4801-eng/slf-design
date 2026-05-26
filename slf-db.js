@@ -187,34 +187,68 @@
   function logout() { setToken(null); }
   function isAdmin() { return !!getToken(); }
 
-  // ── Temps réel via Server-Sent Events ───────────────────────────────────
+  // ── Temps réel : SSE + fallback polling (compatible Hostinger) ─────────
   let evtSource = null;
+  let pollTimer = null;
+  let lastChange = 0;
   let articlesSubs = new Set();
   let membersSubs  = new Set();
 
-  function ensureSSE() {
-    if (evtSource || backend !== 'api') return;
+  function notifyArticles() {
+    articlesSubs.forEach(cb => { getArticles().then(cb).catch(() => {}); });
+  }
+  function notifyMembers() {
+    membersSubs.forEach(cb => { getMembers().then(cb).catch(() => {}); });
+  }
+
+  // Polling : interroge /api/changes toutes les 5 s et notifie si changement
+  function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(async () => {
+      try {
+        const r = await fetch(API + '/changes?since=' + lastChange);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (j.lastChange && j.lastChange > lastChange) {
+          lastChange = j.lastChange;
+          if (j.changed) { notifyArticles(); notifyMembers(); }
+        }
+      } catch {}
+    }, 5000);
+  }
+  function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function ensureRealtime() {
+    if (backend !== 'api') return;
+    if (evtSource || pollTimer) return;
+    // Tente SSE d'abord ; bascule en polling si erreur
     try {
       evtSource = new EventSource(API + '/stream');
-      evtSource.addEventListener('articles-updated', () => {
-        // Notifier tous les abonnés (qui vont re-fetch eux-mêmes)
-        articlesSubs.forEach(cb => { getArticles().then(cb).catch(() => {}); });
-      });
-      evtSource.addEventListener('members-updated', () => {
-        membersSubs.forEach(cb => { getMembers().then(cb).catch(() => {}); });
-      });
+      let gotMessage = false;
+      evtSource.addEventListener('articles-updated', () => { gotMessage = true; notifyArticles(); });
+      evtSource.addEventListener('members-updated',  () => { gotMessage = true; notifyMembers();  });
       evtSource.onerror = () => {
-        // Le navigateur reconnecte automatiquement
+        // Si on n'a jamais rien reçu, fermer et basculer en polling
+        if (!gotMessage) {
+          try { evtSource.close(); } catch {}
+          evtSource = null;
+          console.info('[SLFDB] SSE indisponible (hébergement mutualisé ?) → polling 5 s');
+          startPolling();
+        }
+        // Sinon : laisser le navigateur reconnecter tout seul
       };
-    } catch (e) { console.warn('[SLFDB] SSE indisponible:', e); }
+    } catch {
+      startPolling();
+    }
   }
 
   function onArticlesChange(cb) {
     articlesSubs.add(cb);
     detectBackend().then(ok => {
-      // Premier appel : envoyer l'état actuel
       getArticles().then(cb).catch(() => cb([]));
-      if (ok) ensureSSE();
+      if (ok) ensureRealtime();
     });
     return () => articlesSubs.delete(cb);
   }
@@ -222,7 +256,7 @@
     membersSubs.add(cb);
     detectBackend().then(ok => {
       getMembers().then(cb).catch(() => cb([]));
-      if (ok) ensureSSE();
+      if (ok) ensureRealtime();
     });
     return () => membersSubs.delete(cb);
   }
