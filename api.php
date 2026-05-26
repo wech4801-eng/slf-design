@@ -30,7 +30,7 @@
 // ── Configuration ─────────────────────────────────────────────────────────
 define('ADMIN_PASS', getenv('ADMIN_PASS') ?: 'WqTC^+3wjc*v3#Qnbp');
 define('DATA_DIR',   __DIR__ . '/data');
-define('TOKEN_TTL',  8 * 3600); // 8 heures
+define('TOKEN_TTL',  7 * 24 * 3600); // 7 jours
 define('MAX_BODY',   12 * 1024 * 1024); // 12 Mo (images base64)
 
 // ── Création du dossier de données ────────────────────────────────────────

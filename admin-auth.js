@@ -77,6 +77,11 @@
 
   function logout(redirect = 'admin-login.html') {
     clearSession();
+    // Aussi nettoyer le token API et le mot de passe mémorisés (si présents)
+    try {
+      localStorage.removeItem('slf_admin_token');
+      localStorage.removeItem('slf_admin_pwd');
+    } catch {}
     window.location.href = redirect;
   }
 

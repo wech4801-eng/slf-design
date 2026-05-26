@@ -66,7 +66,7 @@ async function writeCollection(name, arr) {
 
 // ── Tokens admin (en mémoire, expirent au redémarrage serveur) ────────────
 const tokens = new Map(); // token -> expiresAt (ms)
-const TOKEN_TTL = 8 * 3600 * 1000;
+const TOKEN_TTL = 7 * 24 * 3600 * 1000; // 7 jours
 
 function issueToken() {
   const t = crypto.randomBytes(32).toString('hex');
