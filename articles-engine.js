@@ -40,17 +40,41 @@
   const sections = PAGE_SECTIONS[pageName];
   if (!sections) return; // Page non concernée (index, news, article…)
 
-  // ── Lecture et filtrage des articles ──────────────────────────────────────
-  let allArticles = [];
-  try { allArticles = JSON.parse(localStorage.getItem('slf_articles') || '[]'); }
-  catch { return; }
-  if (!Array.isArray(allArticles)) return;
+  // ── Lecture des articles via SLFDB (temps réel) ─────────────────────────
+  let published = [];
+  let injected  = false;
 
-  const published = allArticles
-    .filter(a => a && a.status === 'publié' && sections.includes(a.section))
-    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  function updateFromArticles(allArticles) {
+    if (!Array.isArray(allArticles)) return;
+    published = allArticles
+      .filter(a => a && a.status === 'publié' && sections.includes(a.section))
+      .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    // Si on n'a pas encore injecté de section et qu'on a maintenant des articles → injecter
+    // Si on avait déjà injecté → rafraîchir la grille
+    if (!injected && published.length) {
+      injected = true;
+      inject();
+    } else if (injected) {
+      const grid = document.getElementById('slf-section-grid');
+      const sec  = document.getElementById('slf-section-wrap');
+      if (grid) {
+        grid.innerHTML = '';
+        published.forEach(art => grid.appendChild(buildCard(art)));
+      }
+      const count = document.getElementById('slf-section-count');
+      if (count) count.textContent = published.length;
+      if (sec) sec.style.display = published.length ? '' : 'none';
+    }
+  }
 
-  if (!published.length) return;
+  // S'abonner aux changements
+  if (typeof SLFDB !== 'undefined') {
+    SLFDB.onArticlesChange(updateFromArticles);
+  } else {
+    // Fallback localStorage si SLFDB pas chargé
+    try { updateFromArticles(JSON.parse(localStorage.getItem('slf_articles') || '[]')); } catch {}
+  }
+  return;
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function fmtDate(iso) {
@@ -154,6 +178,7 @@
     if (!footer) return;
 
     const section = document.createElement('div');
+    section.id = 'slf-section-wrap';
     section.style.cssText = 'max-width:1200px;margin:40px auto 20px;padding:0 16px;';
 
     const headerWrap = document.createElement('div');
@@ -163,6 +188,7 @@
     h2.style.cssText = 'font-size:20px;font-weight:800;color:#212529;display:flex;align-items:center;gap:8px;';
     h2.appendChild(document.createTextNode('📰 Articles publiés dans cette section '));
     const count = document.createElement('span');
+    count.id = 'slf-section-count';
     count.style.cssText = 'font-size:13px;font-weight:600;background:#e8f5ee;color:#006830;padding:3px 10px;border-radius:20px;';
     count.textContent = published.length;
     h2.appendChild(count);

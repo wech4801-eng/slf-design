@@ -285,6 +285,7 @@
   <meta name="twitter:description" content="Article publié par l'Association Somaliland-France." />
   <meta name="twitter:image" content="https://www.somalilandfrance.org/images/diplomatie1.jpg" />
   <meta name="theme-color" content="#00843D" />
+    <script src="slf-db.js?v=2"></script>
 </head>
 <body>
 
@@ -442,34 +443,36 @@ function copyArticleLink(btn) {
   });
 }
 
-// ── Chargement d'un article depuis localStorage ──────────────────────────────
-(function() {
+// ── Chargement d'un article via SLFDB ──────────────────────────────────────
+(async function() {
   const params  = new URLSearchParams(window.location.search);
   const id      = params.get('id');
   const isAdmin = SLFAuth && SLFAuth.isAuthenticated();
   const wrap    = document.getElementById('article-wrap');
   const empty   = document.getElementById('article-empty');
 
-  const articles = SLFUtils.getArticles();
-  const art      = id ? articles.find(a => a.id === id) : null;
+  let art = null;
+  let articles = [];
+  if (id) {
+    try {
+      art = await SLFDB.getArticle(id);
+      articles = await SLFDB.getArticles();
+    } catch (e) { console.error(e); }
+  }
 
   if (!art) {
-    // Pas d'ID, ou article introuvable → afficher l'état vide
     if (wrap) wrap.style.display = 'none';
     if (empty) empty.style.display = '';
     return;
   }
 
-  // Article trouvé → afficher la carte article et masquer l'empty state
   if (wrap) wrap.style.display = '';
   if (empty) empty.style.display = 'none';
 
-  // ── Compteur de vues (non-admin uniquement) ───────────────────────────────
+  // ── Compteur de vues (non-admin, non-preview) ─────────────────────────────
   if (!isAdmin && !params.get('preview')) {
-    try {
-      art.views = (art.views || 0) + 1;
-      localStorage.setItem('slf_articles', JSON.stringify(articles));
-    } catch {}
+    SLFDB.incrementViews(id);
+    art.views = (art.views || 0) + 1;
   }
 
   // Helpers locaux

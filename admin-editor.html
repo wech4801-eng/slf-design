@@ -287,6 +287,7 @@
 
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <script src="slf-db.js?v=2"></script>
 </head>
 <body>
 <div class="app">
@@ -1061,7 +1062,7 @@
     }
   }
 
-  function saveAction(status) {
+  async function saveAction(status) {
     if (pendingUploads > 0) {
       showToast('⏳ Patientez : compression d\'image en cours…', 'error');
       return;
@@ -1080,30 +1081,36 @@
     }
 
     const data = collectArticleData(status);
-    const articles = SLFUtils.getArticles();
 
+    // Récupérer l'article existant pour préserver createdAt/views
+    let existing = null;
     if (currentArticleId) {
-      // Modifier un article existant
-      const idx = articles.findIndex(a => a.id === currentArticleId);
-      if (idx !== -1) {
-        articles[idx] = { ...articles[idx], ...data };
-      } else {
-        data.id = currentArticleId; data.createdAt = data.updatedAt; data.views = 0;
-        articles.unshift(data);
-      }
-    } else {
-      // Nouvel article
-      data.id        = 'art_' + Date.now();
-      data.createdAt = data.updatedAt;
-      data.views     = 0;
-      currentArticleId = data.id;
-      articles.unshift(data);
+      try { existing = await SLFDB.getArticle(currentArticleId); } catch {}
     }
 
-    if (!safeSaveArticles(articles)) return;
+    let merged;
+    if (existing) {
+      merged = { ...existing, ...data, id: currentArticleId };
+    } else {
+      merged = {
+        ...data,
+        id:        currentArticleId || 'art_' + Date.now(),
+        createdAt: data.updatedAt,
+        views:     0,
+      };
+      currentArticleId = merged.id;
+    }
+
+    try {
+      await SLFDB.saveArticle(merged);
+    } catch (err) {
+      showToast('⚠️ Erreur de sauvegarde : ' + (err.message || err), 'error');
+      console.error(err);
+      return;
+    }
 
     if (status === 'publié') {
-      showToast('✅ Article publié !', 'success');
+      showToast('✅ Article publié !' + (SLFDB.backend === 'firebase' ? ' (visible partout)' : ''), 'success');
       setTimeout(() => { window.location.href = 'admin-dashboard.html?saved=1'; }, 1200);
     } else {
       showToast('💾 Brouillon sauvegardé !', 'success');
@@ -1119,12 +1126,12 @@
     }
   }
 
-  function deleteCurrentArticle() {
+  async function deleteCurrentArticle() {
     if (!currentArticleId) { window.location.href = 'admin-dashboard.html'; return; }
     if (!confirm('Supprimer cet article définitivement ?')) return;
-    const articles = SLFUtils.getArticles();
-    const filtered = articles.filter(a => a.id !== currentArticleId);
-    safeSaveArticles(filtered);
+    try {
+      await SLFDB.deleteArticle(currentArticleId);
+    } catch (e) { console.error(e); }
     window.location.href = 'admin-dashboard.html';
   }
 
@@ -1229,7 +1236,7 @@
     updateWordCount();
   }
 
-  function initEditorPage() {
+  async function initEditorPage() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (!id) {
@@ -1237,14 +1244,18 @@
       updateCoverStatus();
       return;
     }
-    const articles = JSON.parse(localStorage.getItem('slf_articles') || '[]');
-    const article = articles.find(a => a.id === id);
-    if (!article) { updateCoverStatus(); return; }
-    currentArticleId = id;
-    loadArticleData(article);
+    try {
+      const article = await SLFDB.getArticle(id);
+      if (!article) { updateCoverStatus(); return; }
+      currentArticleId = id;
+      loadArticleData(article);
+    } catch (e) {
+      console.error(e);
+      updateCoverStatus();
+    }
   }
 
-  function previewAction() {
+  async function previewAction() {
     if (pendingUploads > 0) {
       showToast('⏳ Patientez : compression d\'image en cours…', 'error');
       return;
@@ -1255,22 +1266,17 @@
       showToast('⚠️ Entrez un titre pour pouvoir prévisualiser', 'error');
       return;
     }
-    // Sauvegarder en brouillon (sans redirection) pour obtenir un ID
-    const data     = collectArticleData('brouillon');
-    const articles = SLFUtils.getArticles();
+    const data = collectArticleData('brouillon');
+    let existing = null;
     if (currentArticleId) {
-      const idx = articles.findIndex(a => a.id === currentArticleId);
-      if (idx !== -1) articles[idx] = { ...articles[idx], ...data };
-      else { data.id = currentArticleId; data.createdAt = data.updatedAt; data.views = 0; articles.unshift(data); }
-    } else {
-      data.id        = 'art_' + Date.now();
-      data.createdAt = data.updatedAt;
-      data.views     = 0;
-      currentArticleId = data.id;
-      articles.unshift(data);
+      try { existing = await SLFDB.getArticle(currentArticleId); } catch {}
     }
-    if (!safeSaveArticles(articles)) return;
-    // Ouvrir l'aperçu dans un nouvel onglet avec l'ID correct
+    const merged = existing
+      ? { ...existing, ...data, id: currentArticleId }
+      : { ...data, id: currentArticleId || ('art_' + Date.now()), createdAt: data.updatedAt, views: 0 };
+    if (!currentArticleId) currentArticleId = merged.id;
+    try { await SLFDB.saveArticle(merged); }
+    catch (e) { showToast('⚠️ Erreur sauvegarde aperçu', 'error'); console.error(e); return; }
     window.open('article.html?id=' + encodeURIComponent(currentArticleId) + '&preview=1', '_blank');
   }
 

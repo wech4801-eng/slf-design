@@ -237,6 +237,7 @@
   </a>
 
   <script src="admin-auth.js?v=3"></script>
+  <script src="slf-db.js?v=2"></script>
   <script>
     // Si déjà connecté, rediriger directement vers le dashboard
     if (SLFAuth.isAuthenticated()) {
@@ -253,11 +254,20 @@
       btn.disabled = true;
       btn.textContent = 'Vérification…';
 
-      const ok = await SLFAuth.login(username, password);
+      // 1) Authentification locale (SHA-256) — protège l'UI
+      const okLocal = await SLFAuth.login(username, password);
+      // 2) Authentification serveur — émet un token API pour les écritures
+      let okApi = false;
+      try { okApi = await SLFDB.login(password); } catch {}
+
+      const ok = okLocal; // Local suffit pour entrer dans l'UI
 
       if (ok) {
         btn.textContent = 'Connexion…';
         errBox.style.display = 'none';
+        if (!okApi) {
+          console.warn('[SLF] Connexion locale OK mais token API non émis (serveur indisponible). Les écritures iront en localStorage.');
+        }
         setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 400);
       } else {
         btn.disabled = false;

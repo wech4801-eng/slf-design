@@ -805,6 +805,7 @@
   <meta name="twitter:description" content="Association Somaliland-France : œuvre pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans." />
   <meta name="twitter:image" content="https://www.somalilandfrance.org/images/comite_executif.jpg" />
   <meta name="theme-color" content="#00843D" />
+    <script src="slf-db.js?v=2"></script>
 </head>
 <body>
 
@@ -1101,10 +1102,8 @@
       }
     }
 
-    // ── Articles publiés depuis l'admin ──────────────────────────────────────
-    (function() {
-      let articles = [];
-      try { articles = JSON.parse(localStorage.getItem('slf_articles') || '[]'); } catch {}
+    // ── Articles publiés depuis l'admin (via SLFDB temps réel) ──────────────
+    function renderArticlesPage(articles) {
       if (!Array.isArray(articles)) articles = [];
 
       const published = articles
@@ -1266,13 +1265,19 @@
       // ── Injection dans "Actualités SLF" (3 articles max) ─────────────────
       const container = document.getElementById('dynamic-latest-container');
       const empty     = document.getElementById('latest-empty');
+      // Vider le conteneur avant de re-remplir (cas d'un re-render via SSE)
+      if (container) container.innerHTML = '';
+
       if (published.length) {
         if (empty) empty.style.display = 'none';
         published.slice(0, 3).forEach(art => container.appendChild(buildCard(art)));
       } else {
         if (empty) empty.style.display = '';
       }
-    })();
+    }
+
+    // Abonnement temps réel : re-render à chaque changement
+    SLFDB.onArticlesChange(renderArticlesPage);
   </script>
 </body>
 </html>

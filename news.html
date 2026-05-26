@@ -125,6 +125,7 @@
   <meta name="twitter:description" content="Actualités de l'Association Somaliland-France et nouvelles du Somaliland." />
   <meta name="twitter:image" content="https://www.somalilandfrance.org/images/diplomatie1.jpg" />
   <meta name="theme-color" content="#00843D" />
+    <script src="slf-db.js?v=2"></script>
 </head>
 <body>
 
@@ -294,20 +295,26 @@
     function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
     function closeMenu(e) { if (e.target === e.currentTarget) document.getElementById('mobileMenu').classList.remove('open'); }
 
-    // ── Injection des articles publiés depuis l'admin ─────────────────────
-    (function() {
-      let articles = [];
-      try { articles = JSON.parse(localStorage.getItem('slf_articles') || '[]'); } catch {}
-      if (!Array.isArray(articles)) return;
+    // ── Injection des articles publiés depuis l'admin (temps réel SLFDB) ──
+    function renderNewsPage(articles) {
+      if (!Array.isArray(articles)) articles = [];
 
       const published = articles
         .filter(a => a && a.status === 'publié')
         .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
-      if (!published.length) return;
-
       const container = document.getElementById('dynamic-news-container');
       if (!container) return;
+      // Vider le conteneur dynamique avant de re-remplir
+      container.innerHTML = '';
+      // Réafficher les cartes statiques s'il n'y a aucun article SLF
+      const staticCards = document.querySelectorAll('.news-static-card');
+      if (!published.length) {
+        staticCards.forEach(el => el.style.display = '');
+        return;
+      } else {
+        staticCards.forEach(el => el.style.display = 'none');
+      }
 
       const CAT_CLASS = {
         diplomatie:'diplomatie', humanitaire:'actions', education:'education',
@@ -328,9 +335,6 @@
         if (/^data:image\//i.test(s)) return s;
         return '';
       }
-
-      // Supprimer les cartes statiques de fallback
-      document.querySelectorAll('.news-static-card').forEach(el => el.remove());
 
       const now = Date.now();
       published.forEach(art => {
@@ -403,7 +407,8 @@
         card.appendChild(body);
         container.appendChild(card);
       });
-    })();
+    }
+    SLFDB.onArticlesChange(renderNewsPage);
   </script>
 </body>
 </html>

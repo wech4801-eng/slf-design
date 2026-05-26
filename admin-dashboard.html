@@ -167,6 +167,7 @@
 
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <script src="slf-db.js?v=2"></script>
 </head>
 <body>
 <div class="app">
@@ -327,16 +328,8 @@
   if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }
   const esc = SLFUtils.escapeHtml;
 
-  // ── Helpers localStorage ──────────────────────────────────────────────────
-  function getArticles() {
-    try {
-      const raw = JSON.parse(localStorage.getItem('slf_articles') || '[]');
-      return Array.isArray(raw) ? raw : [];
-    } catch { return []; }
-  }
-  function setArticles(arr) {
-    localStorage.setItem('slf_articles', JSON.stringify(arr));
-  }
+  // ── État : articles synchronisés via SLFDB ───────────────────────────────
+  let allArticles = [];
 
   // ── Icône / couleur par catégorie ─────────────────────────────────────────
   const CAT_STYLE = {
@@ -422,7 +415,7 @@
   let activeStatus = '';
 
   function renderArticles() {
-    const articles = getArticles() || [];
+    const articles = allArticles;
     const list = document.getElementById('articlesList');
     const empty = document.getElementById('emptyState');
 
@@ -490,12 +483,18 @@
   }
 
   // ── Suppression ───────────────────────────────────────────────────────────
-  function deleteArticle(btn, id) {
+  async function deleteArticle(btn, id) {
     if (!confirm('Supprimer cet article ? Cette action est irréversible.')) return;
-    const articles = getArticles() || [];
-    setArticles(articles.filter(a => a.id !== id));
-    renderArticles();
-    showToast('🗑 Article supprimé');
+    try {
+      await SLFDB.deleteArticle(id);
+      // Le SSE va déclencher la re-render automatiquement, mais on rafraîchit
+      // tout de suite pour le ressenti immédiat
+      allArticles = allArticles.filter(a => a.id !== id);
+      renderArticles();
+      showToast('🗑 Article supprimé');
+    } catch (e) {
+      showToast('⚠️ Erreur : ' + (e.message || e));
+    }
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
@@ -513,15 +512,16 @@
     document.getElementById('overlay').classList.toggle('show');
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
+  // ── Init : abonnement temps réel SLFDB ───────────────────────────────────
   (function init() {
-    renderArticles();
+    SLFDB.onArticlesChange(articles => {
+      allArticles = Array.isArray(articles) ? articles : [];
+      renderArticles();
+    });
 
-    // Vérifier si on revient d'une sauvegarde
     const params = new URLSearchParams(window.location.search);
     if (params.get('saved') === '1') {
       showToast('✅ Article enregistré avec succès !');
-      // Nettoyer l'URL
       history.replaceState({}, '', 'admin-dashboard.html');
     }
   })();
