@@ -87,10 +87,24 @@
 
   /**
    * À appeler en haut des pages admin protégées. Redirige vers la page de
-   * connexion si la session est absente ou expirée.
+   * connexion si :
+   *   • la session locale est absente/expirée
+   *   • OU la session existe MAIS aucun moyen de joindre l'API admin
+   *     (ni token, ni mot de passe mémorisé) — cas des sessions créées
+   *     avant l'ajout du backend Node/PHP.
+   *
+   * Mieux vaut rediriger maintenant que d'échouer à la sauvegarde.
    */
   function requireAuth(loginPage = 'admin-login.html') {
     if (!isAuthenticated()) {
+      window.location.replace(loginPage);
+      return false;
+    }
+    const hasApiToken = !!localStorage.getItem('slf_admin_token');
+    const hasPwd      = !!localStorage.getItem('slf_admin_pwd');
+    if (!hasApiToken && !hasPwd) {
+      // Session locale orpheline → forcer une re-connexion propre
+      clearSession();
       window.location.replace(loginPage);
       return false;
     }
