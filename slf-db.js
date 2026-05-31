@@ -113,8 +113,25 @@
       apiReady = false;
       backend = 'localStorage';
       console.warn('[SLFDB] API injoignable → fallback localStorage (mono-appareil)');
+      // Sur les pages admin, afficher une bannière discrète "mode démo"
+      if (location.pathname.includes('admin-')) showDemoBanner();
     }
     return apiReady;
+  }
+
+  // Bannière "mode démo" affichée si l'API n'est pas disponible
+  // (typique d'un hébergement GitHub Pages).
+  function showDemoBanner() {
+    if (document.getElementById('__slfDemoBanner')) return;
+    const wait = () => {
+      if (!document.body) return setTimeout(wait, 50);
+      const b = document.createElement('div');
+      b.id = '__slfDemoBanner';
+      b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#fef3c7;color:#92400e;font-family:Inter,sans-serif;font-size:12px;padding:8px 16px;text-align:center;z-index:999;border-top:1px solid #fde68a;box-shadow:0 -2px 8px rgba(0,0,0,.05);';
+      b.innerHTML = '⚠️ <strong>Mode démo</strong> — pas de serveur disponible. Les articles que vous créez sont stockés uniquement dans <em>ce navigateur</em>. Pour une vraie mise en production, utilisez Hostinger (voir HOSTINGER.md).';
+      document.body.appendChild(b);
+    };
+    wait();
   }
 
   // ── Stockage local (fallback uniquement) ──────────────────────────────────

@@ -15,7 +15,14 @@ et l'amitié franco-somalilandaise.
 - Temps réel : SSE + fallback polling 5 s
 - Aucune base de données, aucune dépendance externe
 
-**Déploiement Hostinger : voir [HOSTINGER.md](HOSTINGER.md) — 5 minutes.**
+### Déploiement
+
+| Cible | Guide | Cas d'usage |
+|---|---|---|
+| **Hostinger** | [HOSTINGER.md](HOSTINGER.md) | Production réelle (articles partagés) |
+| **GitHub Pages** | [GITHUB.md](GITHUB.md) | Démo gratuite pour montrer à un client |
+| **Render/Railway** | (similaire à Hostinger, mais avec `node server.js`) | Production sans PHP |
+| **Local dev** | `node server.js` ou `php -S` | Développement |
 
 ## Structure du projet
 

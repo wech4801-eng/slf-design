@@ -1,0 +1,48 @@
+name: Déploiement GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer Pages
+        uses: actions/configure-pages@v4
+
+      - name: Préparer le contenu (exclure les fichiers serveur)
+        run: |
+          mkdir -p _site
+          # Tout copier sauf ce qui est inutile sur GitHub Pages
+          rsync -av --exclude='.git' --exclude='.github' \
+                    --exclude='node_modules' --exclude='data' \
+                    --exclude='server.js' --exclude='api.php' \
+                    --exclude='package.json' --exclude='netlify.toml' \
+                    --exclude='.htaccess' \
+                    ./ _site/
+
+      - name: Upload artefact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+      - name: Publier sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
