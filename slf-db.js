@@ -102,9 +102,18 @@
   let apiReady = null;
   async function detectBackend() {
     if (apiReady !== null) return apiReady;
+    // Optimisation : sur GitHub Pages, on sait qu'il n'y a pas d'API → skip le ping
+    const isGithubPages = /\.github\.io$/i.test(location.hostname);
+    if (isGithubPages) {
+      apiReady = false;
+      backend = 'localStorage';
+      console.info('[SLFDB] GitHub Pages détecté → mode démo (localStorage)');
+      if (location.pathname.includes('admin-')) showDemoBanner();
+      return false;
+    }
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 2500);
+      const timer = setTimeout(() => ctrl.abort(), 1500);
       await fetch(API + '/articles', { signal: ctrl.signal });
       clearTimeout(timer);
       apiReady = true;
@@ -113,7 +122,6 @@
       apiReady = false;
       backend = 'localStorage';
       console.warn('[SLFDB] API injoignable → fallback localStorage (mono-appareil)');
-      // Sur les pages admin, afficher une bannière discrète "mode démo"
       if (location.pathname.includes('admin-')) showDemoBanner();
     }
     return apiReady;
