@@ -26,6 +26,8 @@ jobs:
 
       - name: Configurer Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       - name: Préparer le contenu (exclure les fichiers serveur)
         run: |
