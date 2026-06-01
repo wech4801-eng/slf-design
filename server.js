@@ -30,9 +30,25 @@ const path   = require('path');
 const crypto = require('crypto');
 
 const PORT        = parseInt(process.env.PORT || '3456', 10);
-const ADMIN_PASS  = process.env.ADMIN_PASS || 'WqTC^+3wjc*v3#Qnbp';
+// SÉCURITÉ : ADMIN_PASS doit être passé en variable d'environnement.
+// Si absent, on génère un mot de passe aléatoire au démarrage et on l'affiche
+// dans le terminal (une seule fois). À sauvegarder dans le gestionnaire de
+// secrets du fournisseur (Hostinger hPanel → Avancé → Variables PHP, .env, etc.).
+const ADMIN_PASS  = process.env.ADMIN_PASS
+  || (() => {
+        const p = 'aslf_' + crypto.randomBytes(12).toString('base64url');
+        console.warn('\n⚠️  ADMIN_PASS non défini en variable d\'environnement.');
+        console.warn('   Mot de passe temporaire généré pour cette session :');
+        console.warn('   →  ' + p);
+        console.warn('   Définissez ADMIN_PASS pour une valeur stable.\n');
+        return p;
+      })();
+const ADMIN_PASS_BUF = Buffer.from(ADMIN_PASS, 'utf8');
 const DATA_DIR    = path.resolve(__dirname, process.env.DATA_DIR || 'data');
 const STATIC_DIR  = __dirname;
+// Whitelist d'origines pour CORS sur les endpoints d'écriture.
+// '*' = tout le monde (insécure mais pratique pour un site statique mono-origine).
+const CORS_ALLOWED = (process.env.CORS_ALLOWED || '*').split(',').map(s => s.trim());
 
 // ── Stockage fichier simple (JSON) ────────────────────────────────────────
 const FILES = {
@@ -78,6 +94,37 @@ async function writeCollection(name, arr) {
 // ── Tokens admin (en mémoire, expirent au redémarrage serveur) ────────────
 const tokens = new Map(); // token -> expiresAt (ms)
 const TOKEN_TTL = 7 * 24 * 3600 * 1000; // 7 jours
+
+// ── Rate limiting (mémoire, sliding window) ────────────────────────────────
+// Anti-bruteforce sur /api/login : 8 tentatives / 15 min par IP, puis 401.
+const RL_WINDOW_MS = 15 * 60 * 1000;
+const RL_MAX       = 8;
+const rateLog = new Map(); // ip -> [timestamp, ...]
+function rateLimitLogin(req) {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+          || req.socket?.remoteAddress
+          || 'unknown';
+  const now = Date.now();
+  const log = (rateLog.get(ip) || []).filter(t => now - t < RL_WINDOW_MS);
+  log.push(now);
+  rateLog.set(ip, log);
+  // Purge périodique des IP inactives
+  if (rateLog.size > 5000) {
+    for (const [k, v] of rateLog) if (now - v[v.length-1] > RL_WINDOW_MS) rateLog.delete(k);
+  }
+  return log.length <= RL_MAX;
+}
+
+// Comparaison constante anti-timing-attack
+function timingSafeEqualStr(a, b) {
+  const ba = Buffer.from(String(a), 'utf8');
+  if (ba.length !== ADMIN_PASS_BUF.length) {
+    // Comparaison fictive pour égaliser le temps même quand les tailles diffèrent
+    crypto.timingSafeEqual(Buffer.alloc(ADMIN_PASS_BUF.length), ADMIN_PASS_BUF);
+    return false;
+  }
+  return crypto.timingSafeEqual(ba, ADMIN_PASS_BUF);
+}
 
 function issueToken() {
   const t = crypto.randomBytes(32).toString('hex');
@@ -168,12 +215,21 @@ async function serveStatic(req, res, urlPath) {
     }
     const ext = path.extname(full).toLowerCase();
     const mime = MIME[ext] || 'application/octet-stream';
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': mime,
       'Content-Length': stat.size,
-      'Cache-Control': ext === '.html' ? 'no-cache, no-store, must-revalidate'
-                                       : 'public, max-age=3600',
-    });
+      // HTML : revalidation à chaque requête mais cacheable (304 si non modifié).
+      // Assets : cache 1h navigateur + immutable pour les ressources versionnées ?v=N
+      'Cache-Control': ext === '.html'
+        ? 'no-cache'
+        : 'public, max-age=86400, stale-while-revalidate=604800',
+      // Headers de sécurité (s'appliquent aussi aux HTML)
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    };
+    res.writeHead(200, headers);
     fs.createReadStream(full).pipe(res);
   } catch {
     // 404 → servir 404.html si elle existe
@@ -189,17 +245,29 @@ async function serveStatic(req, res, urlPath) {
 
 // ── API ──────────────────────────────────────────────────────────────────
 async function handleApi(req, res, url) {
-  // CORS (utile si front et back sont sur des origines différentes)
-  res.setHeader('Access-Control-Allow-Origin',  '*');
+  // CORS : pour les GET publics, on autorise tout. Pour les écritures,
+  // on n'autorise que les origines whitelist (par défaut '*' rétrocompatible).
+  const origin = req.headers.origin || '';
+  const isWrite = req.method !== 'GET' && req.method !== 'OPTIONS';
+  let allowed = '*';
+  if (isWrite && CORS_ALLOWED[0] !== '*') {
+    allowed = CORS_ALLOWED.includes(origin) ? origin : 'null';
+  }
+  res.setHeader('Access-Control-Allow-Origin',  allowed);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   // ── /api/login ──
   if (url.pathname === '/api/login' && req.method === 'POST') {
+    if (!rateLimitLogin(req)) {
+      return sendJson(res, 429, { error: 'too_many_attempts', retryAfter: RL_WINDOW_MS / 1000 });
+    }
     try {
       const body = await readBody(req);
-      if (body.password === ADMIN_PASS) {
+      if (timingSafeEqualStr(body.password || '', ADMIN_PASS)) {
         const token = issueToken();
         return sendJson(res, 200, { token, expiresIn: TOKEN_TTL });
       }

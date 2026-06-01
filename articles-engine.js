@@ -67,14 +67,13 @@
     }
   }
 
-  // S'abonner aux changements
+  // S'abonner aux changements (SLFDB déclenche inject() via updateFromArticles)
   if (typeof SLFDB !== 'undefined') {
     SLFDB.onArticlesChange(updateFromArticles);
   } else {
     // Fallback localStorage si SLFDB pas chargé
     try { updateFromArticles(JSON.parse(localStorage.getItem('slf_articles') || '[]')); } catch {}
   }
-  return;
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function fmtDate(iso) {
@@ -232,10 +231,7 @@
 
     published.forEach(art => grid.appendChild(buildCard(art)));
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inject);
-  } else {
-    inject();
-  }
+  // inject() est invoqué par updateFromArticles() quand des articles arrivent
+  // (pas d'appel inconditionnel ici pour éviter une section vide sur les pages
+  //  sans articles publiés dans la section).
 })();

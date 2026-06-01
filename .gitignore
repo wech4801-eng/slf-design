@@ -32,3 +32,5 @@ uploads/
 
 # ── Données runtime (générées par le serveur Node) ──────────────
 data/
+# Exception : conserver le .htaccess de défense en profondeur
+!data/.htaccess

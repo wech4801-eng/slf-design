@@ -28,10 +28,33 @@
  */
 
 // ── Configuration ─────────────────────────────────────────────────────────
-define('ADMIN_PASS', getenv('ADMIN_PASS') ?: 'WqTC^+3wjc*v3#Qnbp');
+// SÉCURITÉ : définir ADMIN_PASS via Hostinger hPanel → Avancé → Variables PHP.
+// Si non défini, on lit data/.admin-pass (généré aléatoirement au 1er lancement
+// et accessible par SSH uniquement). NE JAMAIS stocker le mot de passe en clair
+// dans le code source versionné.
 define('DATA_DIR',   __DIR__ . '/data');
 define('TOKEN_TTL',  7 * 24 * 3600); // 7 jours
 define('MAX_BODY',   12 * 1024 * 1024); // 12 Mo (images base64)
+define('RL_WINDOW',  15 * 60);          // 15 min
+define('RL_MAX',     8);                // 8 tentatives login / fenêtre
+
+function _resolve_admin_pass() {
+    $env = getenv('ADMIN_PASS');
+    if ($env && strlen($env) >= 8) return $env;
+    $f = DATA_DIR . '/.admin-pass';
+    if (!is_dir(DATA_DIR)) @mkdir(DATA_DIR, 0755, true);
+    if (file_exists($f)) {
+        $p = trim(file_get_contents($f));
+        if ($p) return $p;
+    }
+    // Génération initiale (le fichier est créé hors document_root grâce au .htaccess)
+    $p = 'aslf_' . bin2hex(random_bytes(9));
+    file_put_contents($f, $p, LOCK_EX);
+    @chmod($f, 0600);
+    error_log('[ASLF] ADMIN_PASS généré dans data/.admin-pass : ' . $p);
+    return $p;
+}
+define('ADMIN_PASS', _resolve_admin_pass());
 
 // ── Création du dossier de données ────────────────────────────────────────
 if (!is_dir(DATA_DIR)) {
@@ -146,8 +169,30 @@ $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // Retirer le préfixe /api/
 $path = preg_replace('#^.*/api/?#', '', $uri);
 
+// ── Rate limiting login (sliding window par IP) ─────────────────────────
+function _rate_limit_login() {
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $ip = explode(',', $ip)[0];
+    $f = DATA_DIR . '/.rl-login.json';
+    $now = time();
+    $data = file_exists($f) ? (json_decode(file_get_contents($f), true) ?: []) : [];
+    // Purge des entrées hors fenêtre
+    foreach ($data as $k => $stamps) {
+        $data[$k] = array_values(array_filter($stamps, fn($t) => $now - $t < RL_WINDOW));
+        if (empty($data[$k])) unset($data[$k]);
+    }
+    $log = $data[$ip] ?? [];
+    $log[] = $now;
+    $data[$ip] = $log;
+    file_put_contents($f, json_encode($data), LOCK_EX);
+    return count($log) <= RL_MAX;
+}
+
 // ── POST /api/login ────────
 if ($path === 'login' && $method === 'POST') {
+    if (!_rate_limit_login()) {
+        json_response(429, ['error' => 'too_many_attempts', 'retryAfter' => RL_WINDOW]);
+    }
     $body = read_body();
     $pass = $body['password'] ?? '';
     if (!hash_equals(ADMIN_PASS, $pass)) {

@@ -201,7 +201,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <img class="logo-img" src="images/logo-aslf.png?v=2" alt="Logo ASLF" />
+        <img decoding="async" class="logo-img" src="images/logo-aslf.png?v=2" alt="Logo ASLF" />
         <span class="sidebar-logo-name">ASLF Admin</span>
       </div>
       <div class="sidebar-badge">Panneau de gestion</div>
@@ -398,7 +398,7 @@
     const style    = CAT_STYLE[article.categoryKey] || { icon:'📄', bg:'var(--gray-100)' };
     const safeId   = esc(article.id);
     const thumb    = article.coverImage
-      ? `<img src="${esc(article.coverImage)}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;" />`
+      ? `<img loading="lazy" decoding="async" src="${esc(article.coverImage)}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;" />`
       : `<div class="article-thumb" style="background:${style.bg};">${style.icon}</div>`;
     const catLabel = esc(article.categoryLabel || article.sectionLabel || '—');
     const dateStr  = article.status === 'brouillon'
