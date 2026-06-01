@@ -716,10 +716,251 @@
     .articles-empty .ico { font-size: 36px; margin-bottom: 8px; }
     .articles-empty p { font-size: 14px; }
 
+    /* ── Page de garde ASLF ──────────────────────────────────── */
+    .home-hero {
+      position: relative;
+      background:
+        linear-gradient(135deg, rgba(0,104,48,.93) 0%, rgba(0,77,42,.95) 50%, rgba(139,0,0,.93) 100%),
+        url('images/livret/1.png') center/cover;
+      color: var(--white);
+      padding: 80px 16px 96px;
+      overflow: hidden;
+      text-align: center;
+    }
+    .home-hero::before {
+      content:''; position:absolute; inset:0;
+      background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 70%, rgba(206,17,38,.18) 0%, transparent 60%);
+      pointer-events:none;
+    }
+    .home-hero-inner {
+      position: relative; z-index: 1;
+      max-width: 900px; margin: 0 auto;
+    }
+    .home-hero img.logo-big {
+      width: 110px; height: 110px;
+      margin: 0 auto 20px;
+      display: block;
+      filter: drop-shadow(0 6px 24px rgba(0,0,0,.4));
+    }
+    .home-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 6vw, 50px);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -.5px;
+    }
+    .home-hero .subtitle {
+      font-size: clamp(15px, 2.4vw, 18px);
+      opacity: .9;
+      max-width: 720px;
+      margin: 0 auto 32px;
+      line-height: 1.65;
+    }
+    .home-hero .cta-row {
+      display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    }
+    .home-hero .cta-row a {
+      padding: 12px 26px;
+      border-radius: 8px;
+      font-weight: 700; font-size: 14px;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .home-hero .cta-row a:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+    .cta-white { background: var(--white); color: var(--green-dark); }
+    .cta-ghost { background: rgba(255,255,255,.12); color: var(--white); border: 1.5px solid rgba(255,255,255,.4); }
+
+    /* Bandeau mission */
+    .mission-bar {
+      max-width: 1200px;
+      margin: -32px auto 0;
+      padding: 0 16px;
+      position: relative; z-index: 2;
+    }
+    .mission-bar-inner {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 40px rgba(0,0,0,.12);
+      padding: 28px 24px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+    .mission-card { padding: 8px; }
+    .mission-card .ic {
+      width: 56px; height: 56px; margin: 0 auto 10px;
+      background: var(--green-light); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .mission-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--green-dark); }
+    .mission-card p  { font-size: 13px; color: var(--gray-600); line-height: 1.55; }
+
+    /* Section large */
+    .home-section { max-width: 1200px; margin: 64px auto 0; padding: 0 16px; }
+    .home-section-head { text-align: center; margin-bottom: 32px; }
+    .home-section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 4vw, 36px);
+      color: var(--green-dark);
+      margin-bottom: 8px;
+    }
+    .home-section-head .lead {
+      font-size: 15px; color: var(--gray-600);
+      max-width: 640px; margin: 0 auto;
+    }
+
+    /* Bloc Mot du président */
+    .president-block {
+      display: grid; grid-template-columns: 1fr;
+      gap: 24px; align-items: center;
+      background: linear-gradient(135deg, #f0fdf4 0%, #fef2f2 100%);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .president-block img.portrait {
+      width: 100%; max-width: 340px; margin: 0 auto;
+      border-radius: var(--radius);
+      object-fit: cover; aspect-ratio: 3/4;
+      box-shadow: 0 16px 40px rgba(0,0,0,.18);
+    }
+    .president-block .text { padding: 8px; }
+    .president-block .text .badge {
+      display: inline-block;
+      background: var(--red); color: var(--white);
+      font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 4px 10px; border-radius: 20px; margin-bottom: 10px;
+    }
+    .president-block .text h3 {
+      font-family: var(--font-display);
+      font-size: clamp(22px, 3.4vw, 30px);
+      color: var(--green-dark); margin-bottom: 14px;
+      line-height: 1.2;
+    }
+    .president-block .text blockquote {
+      font-style: italic;
+      font-size: 15px;
+      color: var(--gray-800);
+      border-left: 3px solid var(--green);
+      padding-left: 16px;
+      margin: 14px 0;
+      line-height: 1.7;
+    }
+    .president-block .text .signature {
+      font-weight: 700; color: var(--green-dark);
+      margin-top: 12px; text-align: right;
+    }
+    .president-block .text a.read-more {
+      display: inline-block; margin-top: 14px;
+      color: var(--green); font-weight: 600; font-size: 14px;
+    }
+
+    /* Stats Somaliland */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+      max-width: 1000px; margin: 0 auto;
+    }
+    .stat-tile {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border-top: 4px solid var(--green);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .stat-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .stat-tile .num {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 800;
+      color: var(--green-dark);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-tile .lbl { font-size: 13px; color: var(--gray-600); line-height: 1.4; }
+    .stat-tile:nth-child(2) { border-top-color: var(--red); }
+    .stat-tile:nth-child(2) .num { color: var(--red); }
+
+    /* Quote bar drapeau */
+    .flag-quote {
+      background: linear-gradient(90deg, var(--green) 0%, var(--green) 33%, var(--white) 33%, var(--white) 66%, var(--red) 66%, var(--red) 100%);
+      padding: 4px;
+      margin: 64px 0 0;
+    }
+    .flag-quote-inner {
+      background: var(--gray-900);
+      color: var(--white);
+      padding: 48px 16px;
+      text-align: center;
+    }
+    .flag-quote blockquote {
+      max-width: 760px; margin: 0 auto;
+      font-family: var(--font-display);
+      font-size: clamp(20px, 3vw, 30px);
+      line-height: 1.4;
+      font-style: italic;
+    }
+    .flag-quote .author {
+      margin-top: 16px;
+      font-family: var(--font-body); font-style: normal;
+      font-size: 13px; color: rgba(255,255,255,.6);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* CTA final */
+    .join-cta {
+      max-width: 1100px; margin: 64px auto 0;
+      padding: 0 16px;
+    }
+    .join-cta-inner {
+      background: linear-gradient(135deg, var(--green-dark) 0%, #004d2a 100%);
+      border-radius: var(--radius);
+      padding: 40px 28px; text-align: center;
+      color: var(--white);
+      position: relative; overflow: hidden;
+    }
+    .join-cta-inner::before {
+      content:''; position:absolute;
+      top:-80px; right:-80px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(206,17,38,.4) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .join-cta h2 {
+      position: relative;
+      font-family: var(--font-display);
+      font-size: clamp(22px, 4vw, 30px);
+      margin-bottom: 12px;
+    }
+    .join-cta p {
+      position: relative;
+      font-size: 14px; opacity: .9;
+      max-width: 520px; margin: 0 auto 24px;
+      line-height: 1.6;
+    }
+    .join-cta-buttons {
+      position: relative;
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    }
+    .join-cta-buttons a {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700; font-size: 14px;
+      text-decoration: none;
+    }
+
     /* Responsive */
     @media (min-width: 768px) {
       .hero-featured { grid-template-columns: 2fr 1fr; }
       .about-block { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .mission-bar-inner { grid-template-columns: repeat(4, 1fr); }
+      .president-block { grid-template-columns: 380px 1fr; gap: 40px; padding: 40px; }
+      .stats-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
     }
     @media (min-width: 1024px) {
       .hero-main { aspect-ratio: 16/9; }
@@ -807,7 +1048,7 @@
   <meta name="twitter:description" content="Association Somalilandaise de France : œuvre pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/comite_executif.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=8"></script>
+    <script src="slf-db.js?v=9"></script>
 </head>
 <body>
 
@@ -931,51 +1172,114 @@
     </div>
   </div>
 
-  <!-- HERO FEATURED (mise en avant style magazine) -->
-  <div class="hero-featured">
-    <!-- Carte principale : article admin le plus récent OU mission factuelle -->
-    <a class="hero-main" id="hero-main-link" href="qui-sommes-nous.html">
-      <img id="hero-main-img" src="images/diplomatie1.jpg" alt="Association Somalilandaise de France" />
-      <div class="hero-main-overlay"></div>
-      <div class="hero-main-content">
-        <span class="hero-main-cat" id="hero-main-cat">À LA UNE</span>
-        <h1 class="hero-main-title" id="hero-main-title">L'Association Somalilandaise de France œuvre pour la reconnaissance d'un peuple</h1>
-        <p class="hero-main-intro" id="hero-main-intro">
-          Créée par des femmes et des hommes de la communauté somalilandaise résidant en France, ASLF promeut la reconnaissance du peuple somalilandais auprès des Français et porte des projets humanitaires concrets.
-        </p>
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      HERO PRÉSENTATION ASLF                  ║
+       ╚═════════════════════════════════════════════╝ -->
+  <section class="home-hero">
+    <div class="home-hero-inner">
+      <img class="logo-big" src="images/logo-aslf.png" alt="Logo ASLF" />
+      <h1>L'Association Somalilandaise de France</h1>
+      <p class="subtitle">
+        Depuis 2004, l'ASLF œuvre pour la reconnaissance internationale du Somaliland
+        et pour l'amitié entre les peuples français et somalilandais. Une association
+        militante, à vocation humanitaire et culturelle, portée par sa diaspora et ses amis.
+      </p>
+      <div class="cta-row">
+        <a href="qui-sommes-nous.html" class="cta-white">Qui sommes-nous ?</a>
+        <a href="bulletin-adhesion.html" class="cta-ghost">✍️ Adhérer</a>
       </div>
-    </a>
+    </div>
+  </section>
 
-    <!-- Deux cartes secondaires : actions réalisées + connaître le pays -->
-    <div class="hero-side">
-      <a class="hero-side-card" id="hero-side-1" href="actions-realisees.html">
-        <img src="images/comite_executif.jpg" alt="Actions ASLF" />
-        <div class="hero-side-overlay"></div>
-        <div class="hero-side-content">
-          <span class="hero-side-cat">Actions</span>
-          <h3 class="hero-side-title">Matériel hospitalier livré à Hargeisa avec l'hôpital de Saint-Étienne</h3>
-        </div>
-      </a>
-      <a class="hero-side-card" id="hero-side-2" href="connaitre-somaliland.html">
-        <img src="images/map500.jpg" alt="Carte du Somaliland" />
-        <div class="hero-side-overlay"></div>
-        <div class="hero-side-content">
-          <span class="hero-side-cat" style="background:#1a56db;">Découvrir</span>
-          <h3 class="hero-side-title">Connaître le Somaliland : géographie, histoire et institutions</h3>
-        </div>
-      </a>
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      BARRE DES 4 MISSIONS                    ║
+       ╚═════════════════════════════════════════════╝ -->
+  <div class="mission-bar">
+    <div class="mission-bar-inner">
+      <div class="mission-card">
+        <div class="ic">🤝</div>
+        <h3>Solidarité</h3>
+        <p>Renforcer l'esprit d'échange et d'entraide au sein de la communauté somalilandaise en France.</p>
+      </div>
+      <div class="mission-card">
+        <div class="ic">🕊️</div>
+        <h3>Amitié franco-somalilandaise</h3>
+        <p>Promouvoir l'amitié entre les peuples français et somalilandais et défendre les valeurs républicaines.</p>
+      </div>
+      <div class="mission-card">
+        <div class="ic">📚</div>
+        <h3>Langue française</h3>
+        <p>Soutenir le développement du français au Somaliland à travers centres culturels et écoles.</p>
+      </div>
+      <div class="mission-card">
+        <div class="ic">🌍</div>
+        <h3>Reconnaissance internationale</h3>
+        <p>Sensibiliser collectivités et institutions à la cause du Somaliland, démocratie en attente de reconnaissance.</p>
+      </div>
     </div>
   </div>
 
-  <!-- DERNIÈRES ACTUALITÉS ASLF (articles admin) -->
-  <div class="section-title-wrap">
-    <div>
-      <h2>📰 Actualités ASLF</h2>
-      <div class="section-sub">Articles publiés par l'association</div>
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      MOT DU PRÉSIDENT                        ║
+       ╚═════════════════════════════════════════════╝ -->
+  <div class="home-section">
+    <div class="home-section-head">
+      <h2>Le mot du Président</h2>
+      <p class="lead">Une parole d'ouverture qui dit l'esprit de notre association.</p>
     </div>
-    <a href="news.html" class="section-more">Tout voir →</a>
+    <div class="president-block">
+      <img class="portrait" src="images/president-egal-omar.jpg" alt="Mr. EGAL Omar, Président de l'ASLF" />
+      <div class="text">
+        <span class="badge">Président</span>
+        <h3>« J'ai le grand plaisir de vous présenter l'ASLF »</h3>
+        <blockquote>
+          Dans la vie, il est essentiel de faire une pause, de regarder en arrière
+          et de constater ce que l'on a accompli. Cette réflexion offre une
+          perspective précieuse, et il est surprenant de voir à quel point cela
+          peut contribuer à comprendre le chemin parcouru.
+        </blockquote>
+        <p>
+          Notre association témoigne du dynamisme d'une communauté qui croit
+          aux valeurs de paix, de démocratie et de solidarité. Nos actions, nos
+          partenariats et nos collaborations institutionnelles ont un objectif
+          simple : porter haut les valeurs de l'ASLF et la cause du Somaliland.
+        </p>
+        <div class="signature">— Mr. EGAL Omar, Président</div>
+        <a class="read-more" href="article.html?id=art_president">Lire le mot du Président →</a>
+      </div>
+    </div>
   </div>
-  <div class="section" id="latest-section">
+
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      LE SOMALILAND EN CHIFFRES               ║
+       ╚═════════════════════════════════════════════╝ -->
+  <div class="home-section">
+    <div class="home-section-head">
+      <h2>Le Somaliland en quelques chiffres</h2>
+      <p class="lead">
+        Une démocratie africaine de fait, située dans la Corne de l'Afrique,
+        en attente de reconnaissance internationale depuis plus de 30 ans.
+      </p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-tile"><div class="num">1991</div><div class="lbl">Indépendance proclamée<br/>le 18 mai</div></div>
+      <div class="stat-tile"><div class="num">5 M</div><div class="lbl">d'habitants<br/>(2024)</div></div>
+      <div class="stat-tile"><div class="num">176 119</div><div class="lbl">km² de territoire<br/>aux portes de l'Aden</div></div>
+      <div class="stat-tile"><div class="num">30+</div><div class="lbl">années de stabilité<br/>démocratique</div></div>
+    </div>
+    <div style="text-align:center;margin-top:24px;">
+      <a href="connaitre-somaliland.html" class="btn-primary-link" style="padding:10px 22px;background:var(--green);color:var(--white);border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;">📍 Connaître le Somaliland →</a>
+    </div>
+  </div>
+
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      ACTUALITÉS DYNAMIQUES                   ║
+       ╚═════════════════════════════════════════════╝ -->
+  <div class="home-section">
+    <div class="home-section-head">
+      <h2>📰 Actualités de l'ASLF</h2>
+      <p class="lead">Articles, communiqués et reportages publiés par l'association.</p>
+    </div>
     <div class="news-grid" id="latest-news-grid">
       <div id="dynamic-latest-container" style="display:contents;"></div>
     </div>
@@ -984,64 +1288,39 @@
       <p>Aucun article publié pour le moment.<br/>
         <span style="font-size:12px;color:var(--gray-400);">Les actualités publiées via l'espace admin apparaîtront ici.</span></p>
     </div>
-  </div>
-
-  <!-- PRESSE EXTERNE (vraies sources de presse sur le Somaliland) -->
-  <div class="section-title-wrap" style="margin-top:48px;">
-    <div>
-      <h2>🌍 Le Somaliland dans la presse</h2>
-      <div class="section-sub">Articles de référence sur le Somaliland</div>
-    </div>
-    <a href="news.html" class="section-more">Plus →</a>
-  </div>
-  <div class="section">
-    <div class="news-grid">
-      <a href="https://www.jeuneafrique.com/111432/economie/le-somaliland-se-r-ve-en-hub-de-l-afrique-de-l-est/" target="_blank" rel="noopener" class="news-card">
-        <img class="news-card-img" src="images/diplomatie1.jpg" alt="Port de Berbera" />
-        <div class="news-card-body">
-          <span class="news-cat diplomatie">Jeune Afrique</span>
-          <h3 class="news-title">Le Somaliland se rêve en hub de l'Afrique de l'Est</h3>
-          <p class="news-excerpt">Malgré sa déclaration unilatérale d'indépendance de 1991, le Somaliland a un rêve : faire du pays le hub logistique de l'Afrique de l'Est.</p>
-          <div class="news-meta"><span>18 sept. 2013</span><span class="news-meta-dot"></span><span>jeuneafrique.com</span></div>
-        </div>
-      </a>
-      <a href="https://www.lemonde.fr/blog/somaliland/2013/05/17/somaliland-12-voyage-en-terre-inconnue/" target="_blank" rel="noopener" class="news-card">
-        <img class="news-card-img" src="images/map500.jpg" alt="Carte Somaliland" />
-        <div class="news-card-body">
-          <span class="news-cat culture">Le Monde</span>
-          <h3 class="news-title">Somaliland (1/2) : Voyage en terre inconnue</h3>
-          <p class="news-excerpt">Considérée comme un territoire fantôme, cette république autoproclamée se distingue pourtant par sa stabilité et ses orientations démocratiques.</p>
-          <div class="news-meta"><span>17 mai 2013</span><span class="news-meta-dot"></span><span>lemonde.fr</span></div>
-        </div>
-      </a>
-      <a href="https://www.lemonde.fr/blog/somaliland/2013/05/16/somaliland-22-leconomie-et-la-question-de-la-reconnaissance/" target="_blank" rel="noopener" class="news-card">
-        <img class="news-card-img" src="images/corne.gif" alt="Corne de l'Afrique" />
-        <div class="news-card-body">
-          <span class="news-cat culture">Le Monde</span>
-          <h3 class="news-title">Somaliland (2/2) : L'économie et la question de la reconnaissance</h3>
-          <p class="news-excerpt">L'économie du Somaliland repose sur l'agriculture, l'élevage et le soutien financier de la diaspora.</p>
-          <div class="news-meta"><span>16 mai 2013</span><span class="news-meta-dot"></span><span>lemonde.fr</span></div>
-        </div>
-      </a>
+    <div style="text-align:center;margin-top:24px;">
+      <a href="news.html" class="btn-primary-link" style="padding:10px 22px;background:var(--green);color:var(--white);border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;">Voir toutes les actualités →</a>
     </div>
   </div>
 
-  <!-- À PROPOS / MISSION (texte réel issu de qui-sommes-nous) -->
-  <div class="about-block">
-    <img class="about-img" src="images/comite_executif.jpg" alt="Comité exécutif ASLF" />
-    <div class="about-text">
-      <h2>Qui sommes-nous ?</h2>
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      CITATION DRAPEAU                        ║
+       ╚═════════════════════════════════════════════╝ -->
+  <div class="flag-quote">
+    <div class="flag-quote-inner">
+      <blockquote>
+        « Le Somaliland est une démocratie africaine en attente de reconnaissance.
+        Depuis 30 ans, ce pays cherche la reconnaissance diplomatique en tant que
+        bon voisin et en respectant les règles internationales. »
+      </blockquote>
+      <div class="author">Livret de bienvenue ASLF · 2024</div>
+    </div>
+  </div>
+
+  <!-- ╔═════════════════════════════════════════════╗
+       ║      CTA REJOINDRE                           ║
+       ╚═════════════════════════════════════════════╝ -->
+  <div class="join-cta">
+    <div class="join-cta-inner">
+      <h2>Rejoignez l'ASLF</h2>
       <p>
-        Notre association a été créée par des femmes et des hommes pour le besoin de la communauté
-        somalilandaise résidant en France.
+        Soutenez nos actions et participez à la vie de l'association.
+        Adhérer, faire un don ou simplement rester informé : il y a mille manières d'aider.
       </p>
-      <p>
-        Notre volonté première a été de promouvoir la reconnaissance du peuple somalilandais
-        par les Français, traditionnellement proches de nos idées de liberté et de démocratie.
-      </p>
-      <div class="btn-row">
-        <a href="qui-sommes-nous.html" class="btn-primary-link">En savoir plus</a>
-        <a href="notre-but.html" class="btn-outline-link">Notre but</a>
+      <div class="join-cta-buttons">
+        <a href="bulletin-adhesion.html" style="background:var(--white);color:var(--green-dark);">✍️ Bulletin d'adhésion</a>
+        <a href="appel-cotisation.html" style="background:rgba(255,255,255,.15);color:var(--white);border:1px solid rgba(255,255,255,.4);">💚 Soutenir</a>
+        <a href="contact.html" style="background:rgba(255,255,255,.15);color:var(--white);border:1px solid rgba(255,255,255,.4);">✉️ Nous contacter</a>
       </div>
     </div>
   </div>
@@ -1180,95 +1459,9 @@
         return card;
       }
 
-      // Remplace une <img> par un placeholder coloré quand pas de cover
-      // → évite de mélanger le titre d'un nouvel article avec l'image
-      // d'un ancien article statique.
-      function setMediaOrPlaceholder(imgEl, src, alt, icon) {
-        if (!imgEl) return;
-        if (src) {
-          // Si l'élément actuel n'est pas une <img> (placeholder), on le recrée
-          if (imgEl.tagName !== 'IMG') {
-            const newImg = document.createElement('img');
-            newImg.id = imgEl.id;
-            newImg.className = imgEl.className;
-            newImg.src = src;
-            newImg.alt = alt || '';
-            imgEl.replaceWith(newImg);
-          } else {
-            imgEl.src = src;
-            imgEl.alt = alt || '';
-          }
-        } else {
-          // Pas d'image → on remplace l'<img> par un div coloré
-          const ph = document.createElement('div');
-          ph.id = imgEl.id;
-          ph.className = imgEl.className;
-          ph.style.cssText = 'position:absolute;inset:0;background:linear-gradient(135deg,var(--green-dark) 0%,#004d2a 50%,#8B0000 100%);display:flex;align-items:center;justify-content:center;font-size:72px;opacity:.7;';
-          ph.textContent = icon || '📰';
-          imgEl.replaceWith(ph);
-        }
-      }
-
-      // ── Mise à jour du HERO principal avec l'article le plus récent ──────
-      if (published.length) {
-        const latest = published[0];
-        const link  = document.getElementById('hero-main-link');
-        const img   = document.getElementById('hero-main-img');
-        const cat   = document.getElementById('hero-main-cat');
-        const title = document.getElementById('hero-main-title');
-        const intro = document.getElementById('hero-main-intro');
-        const safeCover = safeUrl(latest.coverImage);
-        if (link)  link.href = 'article.html?id=' + encodeURIComponent(latest.id);
-        setMediaOrPlaceholder(img, safeCover, latest.title, '📰');
-        if (cat)   cat.textContent = (latest.categoryLabel || latest.sectionLabel || 'À LA UNE').toUpperCase();
-        if (title) title.textContent = latest.title || 'Sans titre';
-        if (intro) intro.textContent = latest.chapeau || '';
-      }
-      // Sinon le hero garde son contenu statique (mission ASLF) — pas de mix.
-
-      // ── Hero side cards ──────────────────────────────────────────────────
-      // On masque les side cards qui n'ont pas d'article correspondant
-      // (au lieu de garder les fallbacks statiques avec leur ancien texte).
-      function fillSideCard(cardId, art, sideIcon, defaultCatBg) {
-        const card = document.getElementById(cardId);
-        if (!card) return;
-        if (!art) { card.style.display = 'none'; return; }
-        card.style.display = '';
-        card.href = 'article.html?id=' + encodeURIComponent(art.id);
-        const img = card.querySelector('img, .hero-side-img-ph');
-        const safe = safeUrl(art.coverImage);
-        if (img) {
-          if (safe) {
-            if (img.tagName !== 'IMG') {
-              const ni = document.createElement('img');
-              ni.src = safe; ni.alt = art.title || '';
-              img.replaceWith(ni);
-            } else { img.src = safe; img.alt = art.title || ''; }
-          } else {
-            const ph = document.createElement('div');
-            ph.className = 'hero-side-img-ph';
-            ph.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;background:linear-gradient(135deg,var(--green-dark),#004d2a);display:flex;align-items:center;justify-content:center;font-size:42px;opacity:.7;';
-            ph.textContent = sideIcon || '📰';
-            img.replaceWith(ph);
-          }
-        }
-        const c = card.querySelector('.hero-side-cat');
-        if (c) {
-          c.textContent = art.categoryLabel || art.sectionLabel || 'Actualité';
-          if (defaultCatBg) c.style.background = defaultCatBg;
-        }
-        const t = card.querySelector('.hero-side-title');
-        if (t) t.textContent = art.title || '';
-      }
-      // Si pas assez d'articles, on masque les side cards (pas de mix
-      // entre titre d'article et image/texte statique).
-      fillSideCard('hero-side-1', published[1] || null, '🤝');
-      fillSideCard('hero-side-2', published[2] || null, '🌍', '#1a56db');
-
       // ── Injection dans "Actualités ASLF" (3 articles max) ─────────────────
       const container = document.getElementById('dynamic-latest-container');
       const empty     = document.getElementById('latest-empty');
-      // Vider le conteneur avant de re-remplir (cas d'un re-render via SSE)
       if (container) container.innerHTML = '';
 
       if (published.length) {
