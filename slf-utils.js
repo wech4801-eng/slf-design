@@ -34,12 +34,11 @@
   function sanitizeUrl(url) {
     if (!url) return '';
     const str = String(url).trim();
-    // URL relative ou ancrage = sûr
-    if (/^[^a-zA-Z]/.test(str) || /^[./?#]/.test(str)) return str;
     const lower = str.toLowerCase();
-    if (/^(https?:|mailto:|tel:|ftp:)/.test(lower)) return str;
-    if (/^data:(image|video)\//.test(lower))         return str;
-    // Cas non listés (javascript:, vbscript:, data:text/html …) → bloqué
+    if (/^https?:\/\//.test(lower)) return str;
+    if (/^(mailto|tel|ftp):/.test(lower)) return str;
+    if (/^data:(image|video)\//.test(lower)) return str;
+    if (!str.includes(':')) return str; // chemin relatif sûr
     return '#';
   }
 

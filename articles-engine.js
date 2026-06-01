@@ -84,14 +84,15 @@
   }
 
   // Filtre simple pour les URLs (évite javascript:, data:text/html, etc.)
-  function safeUrl(url) {
-    if (!url) return '';
-    const s = String(url).trim();
-    if (/^[./?#]/.test(s) || /^[^a-zA-Z]/.test(s)) return s;
-    if (/^(https?:|mailto:|tel:)/i.test(s)) return s;
-    if (/^data:image\//i.test(s))           return s;
-    return '';
-  }
+  function safeUrl(u) {
+        if (!u) return '';
+        const s = String(u).trim();
+        if (/^https?:\/\//i.test(s)) return s;
+        if (/^data:image\//i.test(s))   return s;
+        if (/^(mailto|tel):/i.test(s))  return s;
+        if (!s.includes(':'))           return s; // chemin relatif sûr
+        return '';
+      }
 
   function buildCard(art) {
     const catClass = CAT_CLASS[art.categoryKey] || 'culture';

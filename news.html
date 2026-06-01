@@ -127,7 +127,7 @@
   <meta name="twitter:description" content="Actualités de l'Association Somalilandaise de France et nouvelles du Somaliland." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/diplomatie1.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=7"></script>
+    <script src="slf-db.js?v=8"></script>
 </head>
 <body>
 
@@ -205,7 +205,7 @@
   <div class="page-content">
     <div class="page-header">
       <h1 class="page-title">News</h1>
-      <p class="page-subtitle">Suivez toute l'actualité du Somaliland et de l'association Somaliland-France.</p>
+      <p class="page-subtitle">Suivez toute l'actualité du Somaliland et de l'Association Somalilandaise de France.</p>
     </div>
 
     <div class="news-grid" id="news-grid">
@@ -332,9 +332,10 @@
       function safeUrl(u) {
         if (!u) return '';
         const s = String(u).trim();
-        if (/^[./?#]/.test(s) || /^[^a-zA-Z]/.test(s)) return s;
-        if (/^(https?:|mailto:|tel:)/i.test(s)) return s;
-        if (/^data:image\//i.test(s)) return s;
+        if (/^https?:\/\//i.test(s)) return s;
+        if (/^data:image\//i.test(s))   return s;
+        if (/^(mailto|tel):/i.test(s))  return s;
+        if (!s.includes(':'))           return s; // chemin relatif sûr
         return '';
       }
 

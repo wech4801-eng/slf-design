@@ -807,7 +807,7 @@
   <meta name="twitter:description" content="Association Somalilandaise de France : œuvre pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/comite_executif.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=7"></script>
+    <script src="slf-db.js?v=8"></script>
 </head>
 <body>
 
@@ -1119,9 +1119,10 @@
       function safeUrl(u) {
         if (!u) return '';
         const s = String(u).trim();
-        if (/^[./?#]/.test(s) || /^[^a-zA-Z]/.test(s)) return s;
-        if (/^(https?:|mailto:|tel:)/i.test(s)) return s;
-        if (/^data:image\//i.test(s)) return s;
+        if (/^https?:\/\//i.test(s)) return s;
+        if (/^data:image\//i.test(s))   return s;
+        if (/^(mailto|tel):/i.test(s))  return s;
+        if (!s.includes(':'))           return s; // chemin relatif sûr
         return '';
       }
       const CAT_CLASS = {
