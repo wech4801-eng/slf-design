@@ -152,6 +152,42 @@
     catch (e) { console.error('localStorage saturé:', e); return false; }
   }
 
+  // ── Migrations de schéma article ──────────────────────────────────────────
+  // Les images du livret ont été converties PNG → WebP (gain -89 %).
+  // Pour les utilisateurs avec un ancien localStorage / d'anciens articles
+  // référençant encore "livret/N.png", on réécrit à la volée vers ".webp".
+  // Sans effet si l'article est déjà à jour.
+  //
+  // Important : on évite les regex globales stateful (lastIndex interfère
+  // avec replace) en créant la regex à l'appel ou en utilisant un literal
+  // non-cached.
+  function migrateLivretUrl(s) {
+    if (typeof s !== 'string' || s.indexOf('livret/') === -1) return s;
+    return s.replace(/(images\/livret\/\d+)\.png/g, '$1.webp');
+  }
+  function migrateArticle(a) {
+    if (!a || typeof a !== 'object') return a;
+    const newCover = migrateLivretUrl(a.coverImage);
+    if (newCover !== a.coverImage) { a.coverImage = newCover; a.__migrated = true; }
+    const newContent = migrateLivretUrl(a.content);
+    if (newContent !== a.content) { a.content = newContent; a.__migrated = true; }
+    return a;
+  }
+  function migrateArticles(arr) {
+    if (!Array.isArray(arr)) return arr;
+    let anyChanged = false;
+    arr.forEach(a => {
+      const wasMig = !!a.__migrated;
+      migrateArticle(a);
+      if (a.__migrated && !wasMig) anyChanged = true;
+    });
+    // Persister le résultat migré pour éviter de refaire le travail à chaque lecture
+    if (anyChanged) {
+      try { lsSet('slf_articles', arr); } catch {}
+    }
+    return arr;
+  }
+
   // ── Seed initial : si localStorage est vide en mode démo, charge seed-articles.json
   let seedAttempted = false;
   async function maybeSeedFromFile() {
@@ -172,17 +208,24 @@
 
   // ── Articles ──────────────────────────────────────────────────────────────
   async function getArticles() {
-    if (await detectBackend()) return fetchJson(API + '/articles');
+    if (await detectBackend()) {
+      const arr = await fetchJson(API + '/articles');
+      return Array.isArray(arr) ? arr.map(migrateArticle) : arr;
+    }
     await maybeSeedFromFile();
-    return lsGet('slf_articles');
+    return migrateArticles(lsGet('slf_articles'));
   }
   async function getArticle(id) {
     if (!id) return null;
     if (await detectBackend()) {
-      try { return await fetchJson(API + '/articles/' + encodeURIComponent(id)); }
+      try {
+        const a = await fetchJson(API + '/articles/' + encodeURIComponent(id));
+        return migrateArticle(a);
+      }
       catch (e) { if (e.status === 404) return null; throw e; }
     }
-    return lsGet('slf_articles').find(a => a.id === id) || null;
+    const arr = migrateArticles(lsGet('slf_articles'));
+    return arr.find(a => a.id === id) || null;
   }
   async function saveArticle(article) {
     if (!article || !article.id) throw new Error('article.id requis');
