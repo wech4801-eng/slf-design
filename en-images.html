@@ -168,6 +168,27 @@
   <meta name="twitter:image" content="https://www.aslf-france.org/images/galerie/lyon_000.jpg" />
   <meta name="theme-color" content="#00843D" />
     <script src="slf-db.js?v=11"></script>
+<style>/* aslf-mobile-fix v1 */
+@media (max-width: 639px){
+  .header-inner{padding:0 12px !important;gap:8px !important;height:56px !important}
+  .logo{min-width:0;flex-shrink:1 !important}
+  .logo-img{width:38px !important;height:38px !important}
+  .logo-sub{display:none !important}
+  .logo-name{font-size:17px !important}
+  .header-actions{flex-shrink:0;gap:6px !important}
+  .btn-admin{padding:6px 10px !important}
+  .hamburger{padding:6px !important}
+  .mobile-menu{top:56px !important}
+  .mobile-menu-inner{max-height:calc(100vh - 56px);overflow-y:auto}
+  .breadcrumb{margin-top:14px !important}
+  .page-content{margin-top:18px !important;padding:0 12px 32px !important}
+  /* Sidebars admin : empêcher overflow horizontal */
+  .sidebar,.admin-sidebar{width:100% !important;position:relative !important;height:auto !important}
+}
+@media (max-width: 767px) and (min-width: 640px){
+  .logo-sub{font-size:9px !important}
+}
+</style>
 </head>
 <body>
   <div class="flag-stripe"><span class="s-green"></span><span class="s-white"></span><span class="s-red"></span></div>
