@@ -94,7 +94,7 @@
     .logo-flag .g { background: var(--green); }
     .logo-flag .w { background: var(--white); border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
     .logo-flag .r { background: var(--red); }
-    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+    .logo-img { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
 
     .logo-text {
       display: flex;
@@ -700,10 +700,16 @@
       max-width: 900px; margin: 0 auto;
     }
     .home-hero img.logo-big {
-      width: 110px; height: 110px;
-      margin: 0 auto 20px;
+      width: clamp(180px, 22vw, 240px);
+      height: auto;
+      margin: 0 auto 24px;
       display: block;
-      filter: drop-shadow(0 6px 24px rgba(0,0,0,.4));
+      filter: drop-shadow(0 10px 28px rgba(0,0,0,.45)) drop-shadow(0 0 12px rgba(255,255,255,.25));
+      animation: logo-pulse 4s ease-in-out infinite;
+    }
+    @keyframes logo-pulse {
+      0%,100% { transform: scale(1); filter: drop-shadow(0 10px 28px rgba(0,0,0,.45)) drop-shadow(0 0 12px rgba(255,255,255,.2)); }
+      50%     { transform: scale(1.02); filter: drop-shadow(0 12px 36px rgba(0,0,0,.5))  drop-shadow(0 0 24px rgba(255,255,255,.35)); }
     }
     .home-hero h1 {
       font-family: var(--font-display);
@@ -1010,7 +1016,7 @@
   <meta name="twitter:description" content="Association Somalilandaise de France : œuvre pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/comite_executif.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=10"></script>
+    <script src="slf-db.js?v=11"></script>
 </head>
 <body>
 

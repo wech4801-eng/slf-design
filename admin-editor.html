@@ -40,7 +40,7 @@
     .logo-flag { width: 32px; height: 20px; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
     .logo-flag span { flex: 1; }
     .logo-flag .g { background: var(--green); } .logo-flag .w { background: rgba(255,255,255,.6); } .logo-flag .r { background: var(--red); }
-    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+    .logo-img { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
     .sidebar-logo-name { font-size: 16px; font-weight: 800; color: var(--white); }
     .sidebar-badge { font-size: 10px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6); padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
     .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
@@ -290,7 +290,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="images/logo-aslf.png" />
   <link rel="apple-touch-icon" href="images/logo-aslf.png" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <script src="slf-db.js?v=10"></script>
+    <script src="slf-db.js?v=11"></script>
 </head>
 <body>
 <div class="app">
@@ -646,8 +646,8 @@
 <!-- Toast notification -->
 <div class="toast" id="toast">✅ Article sauvegardé !</div>
 
-<script src="admin-auth.js?v=10"></script>
-<script src="slf-utils.js?v=10"></script>
+<script src="admin-auth.js?v=11"></script>
+<script src="slf-utils.js?v=11"></script>
 <script>
   // ── Vérification d'authentification ──────────────────────────────────────
   if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }

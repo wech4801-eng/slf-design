@@ -76,7 +76,7 @@
     .logo-flag .g { background: var(--green); }
     .logo-flag .w { background: var(--white); }
     .logo-flag .r { background: var(--red); }
-    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+    .logo-img { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
     .login-site-name { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
     .login-tagline   { font-size: 12px; opacity: .7; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
     .login-badge {
@@ -239,8 +239,8 @@
     Retour au site public
   </a>
 
-  <script src="admin-auth.js?v=10"></script>
-  <script src="slf-db.js?v=10"></script>
+  <script src="admin-auth.js?v=11"></script>
+  <script src="slf-db.js?v=11"></script>
   <script>
     // Si déjà connecté, rediriger directement vers le dashboard
     if (SLFAuth.isAuthenticated()) {

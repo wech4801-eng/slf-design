@@ -38,7 +38,7 @@
     .logo-flag .g { background: var(--green); }
     .logo-flag .w { background: var(--white); border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
     .logo-flag .r { background: var(--red); }
-    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+    .logo-img { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
     .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
     .logo-name { font-weight: 800; font-size: 18px; color: var(--green-dark); letter-spacing: -.5px; }
     .logo-sub { font-size: 10px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; }
@@ -117,7 +117,7 @@
   <meta name="twitter:description" content="Le combat pour la reconnaissance diplomatique internationale du Somaliland." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/diplomatie1.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=10"></script>
+    <script src="slf-db.js?v=11"></script>
 </head>
 <body>
 
@@ -274,6 +274,6 @@
     function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
     function closeMenu(e) { if (e.target === e.currentTarget) document.getElementById('mobileMenu').classList.remove('open'); }
   </script>
-  <script src="articles-engine.js?v=10"></script>
+  <script src="articles-engine.js?v=11"></script>
 </body>
 </html>
