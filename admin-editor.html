@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Éditeur d'article · SLF Admin</title>
+  <title>Éditeur d'article · ASLF Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
   <style>
@@ -287,7 +287,7 @@
 
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <script src="slf-db.js?v=6"></script>
+    <script src="slf-db.js?v=7"></script>
 </head>
 <body>
 <div class="app">
@@ -299,7 +299,7 @@
     <div class="sidebar-header">
       <div class="sidebar-logo">
         <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
-        <span class="sidebar-logo-name">SLF Admin</span>
+        <span class="sidebar-logo-name">ASLF Admin</span>
       </div>
       <div class="sidebar-badge">Panneau de gestion</div>
     </div>
@@ -624,9 +624,9 @@
           <div class="settings-item">
             <select class="field-select" id="authorSelect">
               <option>Admin (vous)</option>
-              <option>Abdi Abdillahi Mohamed</option>
-              <option>Hassan Adan Mohamed</option>
-              <option>Rédaction SLF</option>
+              <option>Le Président</option>
+              <option>Le Bureau</option>
+              <option>Rédaction ASLF</option>
             </select>
           </div>
         </div>
@@ -643,8 +643,8 @@
 <!-- Toast notification -->
 <div class="toast" id="toast">✅ Article sauvegardé !</div>
 
-<script src="admin-auth.js?v=5"></script>
-<script src="slf-utils.js?v=3"></script>
+<script src="admin-auth.js?v=7"></script>
+<script src="slf-utils.js?v=7"></script>
 <script>
   // ── Vérification d'authentification ──────────────────────────────────────
   if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }

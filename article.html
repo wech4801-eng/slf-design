@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Article · SLF Somaliland France</title>
+  <title>Article · ASLF · Association Somalilandaise de France</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
   <style>
@@ -267,25 +267,25 @@
     }
   </style>
 
-  <meta name="description" content="Article publié par l'Association Somaliland-France." />
-  <meta name="author" content="Association Somaliland-France" />
-  <link rel="canonical" href="https://www.somalilandfrance.org/article.html" />
+  <meta name="description" content="Article publié par l'Association Somalilandaise de France." />
+  <meta name="author" content="Association Somalilandaise de France" />
+  <link rel="canonical" href="https://www.aslf-france.org/article.html" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.somalilandfrance.org/article.html" />
-  <meta property="og:title" content="Article · SLF" />
-  <meta property="og:description" content="Article publié par l'Association Somaliland-France." />
-  <meta property="og:image" content="https://www.somalilandfrance.org/images/diplomatie1.jpg" />
+  <meta property="og:url" content="https://www.aslf-france.org/article.html" />
+  <meta property="og:title" content="Article · ASLF" />
+  <meta property="og:description" content="Article publié par l'Association Somalilandaise de France." />
+  <meta property="og:image" content="https://www.aslf-france.org/images/diplomatie1.jpg" />
   <meta property="og:locale" content="fr_FR" />
-  <meta property="og:site_name" content="SLF · Somaliland France" />
+  <meta property="og:site_name" content="ASLF · Association Somalilandaise de France" />
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Article · SLF" />
-  <meta name="twitter:description" content="Article publié par l'Association Somaliland-France." />
-  <meta name="twitter:image" content="https://www.somalilandfrance.org/images/diplomatie1.jpg" />
+  <meta name="twitter:title" content="Article · ASLF" />
+  <meta name="twitter:description" content="Article publié par l'Association Somalilandaise de France." />
+  <meta name="twitter:image" content="https://www.aslf-france.org/images/diplomatie1.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=6"></script>
+    <script src="slf-db.js?v=7"></script>
 </head>
 <body>
 
@@ -296,8 +296,8 @@
       <a href="index.html" class="logo">
         <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
         <div>
-          <div class="logo-name">SLF</div>
-          <div class="logo-sub">Somaliland France</div>
+          <div class="logo-name">ASLF</div>
+          <div class="logo-sub">Association Somalilandaise de France</div>
         </div>
       </a>
       <nav class="nav-desktop">
@@ -369,8 +369,8 @@
         <div class="author">
           <div class="author-avatar" id="art-author-avatar">A</div>
           <div>
-            <div class="author-name" id="art-author-name">Rédaction SLF</div>
-            <div style="font-size:11px;color:var(--gray-400);">Association Somaliland France</div>
+            <div class="author-name" id="art-author-name">Rédaction ASLF</div>
+            <div style="font-size:11px;color:var(--gray-400);">Association Somalilandaise de France</div>
           </div>
         </div>
         <span class="meta-dot"></span>
@@ -412,12 +412,12 @@
 
   <footer>
     <div class="flag-stripe" style="max-width:200px;margin:0 auto 12px;height:3px;"></div>
-    © 2026 <a href="index.html">Association Somaliland-France (SLF)</a> · Tous droits réservés
+    © 2026 <a href="index.html">Association Somalilandaise de France (ASLF)</a> · Tous droits réservés
   </footer>
 
 
-<script src="admin-auth.js?v=5"></script>
-<script src="slf-utils.js?v=3"></script>
+<script src="admin-auth.js?v=7"></script>
+<script src="slf-utils.js?v=7"></script>
 <script>
 // ── Partage / copie de lien ───────────────────────────────────────────────────
 function shareOn(network) {
@@ -481,13 +481,13 @@ function copyArticleLink(btn) {
   const safeId  = encodeURIComponent(id);
 
   // Mise à jour du titre de la page
-  document.title = (art.title || 'Article') + ' · SLF Somaliland France';
+  document.title = (art.title || 'Article') + ' · ASLF · Association Somalilandaise de France';
 
   // Catégorie / Titre / Chapeau / Auteur (textContent = safe)
   setText('art-cat',          art.categoryLabel || art.sectionLabel || '📄 Article');
   setText('art-title',        art.title || 'Sans titre');
   setText('art-intro',        art.chapeau || '');
-  setText('art-author-name',  art.author || 'Rédaction SLF');
+  setText('art-author-name',  art.author || 'Rédaction ASLF');
 
   const avatarEl = document.getElementById('art-author-avatar');
   if (avatarEl) avatarEl.textContent = ((art.author || 'A').trim() || 'A')[0].toUpperCase();

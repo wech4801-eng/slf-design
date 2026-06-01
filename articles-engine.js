@@ -1,5 +1,5 @@
 /**
- * SLF Articles Engine
+ * ASLF Articles Engine
  * Injecte les articles publiés (stockés en localStorage) dans chaque page du site.
  * Auto-détecte la section en fonction du nom de fichier de la page.
  *
@@ -155,7 +155,7 @@
     meta.className = 'news-meta';
     const sDate = document.createElement('span'); sDate.textContent = fmtDate(art.updatedAt);
     const sep1  = document.createElement('span'); sep1.className = 'news-meta-dot';
-    const sAuth = document.createElement('span'); sAuth.textContent = art.author || 'Rédaction SLF';
+    const sAuth = document.createElement('span'); sAuth.textContent = art.author || 'Rédaction ASLF';
     const sep2  = document.createElement('span'); sep2.className = 'news-meta-dot';
     const sMin  = document.createElement('span'); sMin.textContent = mins + ' min';
     meta.appendChild(sDate); meta.appendChild(sep1);

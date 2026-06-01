@@ -2,5 +2,5 @@
   <rect width="32" height="11" fill="#00843D"/>
   <rect y="11" width="32" height="10" fill="#fff"/>
   <rect y="21" width="32" height="11" fill="#CE1126"/>
-  <text x="16" y="20" font-family="Arial,sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#212529">SLF</text>
+  <text x="16" y="20" font-family="Arial,sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#212529">ASLF</text>
 </svg>

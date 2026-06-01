@@ -1,10 +1,10 @@
-# Site SLF — Association Somaliland France
+# Site ASLF — Association Somalilandaise de France
 
-Site web officiel de l'**Association Somaliland-France (SLF)**, organisation à
+Site web officiel de l'**Association Somalilandaise de France (ASLF)**, organisation à
 vocation humanitaire et culturelle œuvrant pour la reconnaissance du Somaliland
 et l'amitié franco-somalilandaise.
 
-> 🌐 **Production** : https://www.somalilandfrance.org *(à mettre à jour)*
+> 🌐 **Production** : https://www.aslf-france.org *(à mettre à jour)*
 
 ## Pile technique
 
@@ -148,7 +148,7 @@ http://localhost:3456
 
 ### Avant de déployer
 
-1. ✅ Remplacer `https://www.somalilandfrance.org` par votre vrai domaine
+1. ✅ Remplacer `https://www.aslf-france.org` par votre vrai domaine
    dans `sitemap.xml` et `robots.txt`
 2. ✅ Vider votre `localStorage` local (DevTools) pour partir d'un état propre
 3. ✅ Changer le mot de passe admin (voir section ci-dessous)
@@ -217,10 +217,10 @@ Pour un site vraiment robuste en production, il faudra à terme :
 
 ## Licence
 
-© 2026 Association Somaliland-France (SLF) — Tous droits réservés.
+© 2026 Association Somalilandaise de France (ASLF) — Tous droits réservés.
 
 ## Contact
 
-📍 Association Somaliland-France
-13 Chemin d'Auguste Renoir, 69120 Vaulx-en-Velin (Lyon)
-✉️ aslf.lyon@gmail.com
+📍 Association Somalilandaise de France
+21 Robert Desnos, 69120 Vaulx-en-Velin France (Lyon)
+✉️ somalilande.france@gmail.com

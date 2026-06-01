@@ -1,5 +1,5 @@
 /**
- * SLF DB — Couche d'abstraction pour articles & membres.
+ * ASLF DB — Couche d'abstraction pour articles & membres.
  *
  * Backend : API REST du serveur Node.js auto-hébergé (server.js).
  * Temps réel : SSE via /api/stream (notifie tous les clients quand
@@ -152,9 +152,28 @@
     catch (e) { console.error('localStorage saturé:', e); return false; }
   }
 
+  // ── Seed initial : si localStorage est vide en mode démo, charge seed-articles.json
+  let seedAttempted = false;
+  async function maybeSeedFromFile() {
+    if (seedAttempted) return;
+    seedAttempted = true;
+    const existing = lsGet('slf_articles');
+    if (existing.length > 0) return;
+    try {
+      const r = await fetch('seed-articles.json', { cache: 'no-cache' });
+      if (!r.ok) return;
+      const arr = await r.json();
+      if (Array.isArray(arr) && arr.length) {
+        lsSet('slf_articles', arr);
+        console.info('[SLFDB] ' + arr.length + ' articles chargés depuis seed-articles.json');
+      }
+    } catch {}
+  }
+
   // ── Articles ──────────────────────────────────────────────────────────────
   async function getArticles() {
     if (await detectBackend()) return fetchJson(API + '/articles');
+    await maybeSeedFromFile();
     return lsGet('slf_articles');
   }
   async function getArticle(id) {

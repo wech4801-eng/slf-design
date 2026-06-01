@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Dashboard · SLF Admin</title>
+  <title>Dashboard · ASLF Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -167,7 +167,7 @@
 
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <script src="slf-db.js?v=6"></script>
+    <script src="slf-db.js?v=7"></script>
 </head>
 <body>
 <div class="app">
@@ -178,7 +178,7 @@
     <div class="sidebar-header">
       <div class="sidebar-logo">
         <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
-        <span class="sidebar-logo-name">SLF Admin</span>
+        <span class="sidebar-logo-name">ASLF Admin</span>
       </div>
       <div class="sidebar-badge">Panneau de gestion</div>
     </div>
@@ -216,7 +216,7 @@
         <div class="user-avatar">A</div>
         <div>
           <div class="user-name">Admin</div>
-          <div class="user-role">Administrateur SLF</div>
+          <div class="user-role">Administrateur ASLF</div>
         </div>
         <a href="#" class="logout-btn" title="Déconnexion" onclick="event.preventDefault();SLFAuth.logout()">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -321,8 +321,8 @@
 
 <div class="toast" id="toast" style="position:fixed;bottom:24px;right:24px;background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:9999;pointer-events:none;"></div>
 
-<script src="admin-auth.js?v=5"></script>
-<script src="slf-utils.js?v=3"></script>
+<script src="admin-auth.js?v=7"></script>
+<script src="slf-utils.js?v=7"></script>
 <script>
   // ── Vérification d'authentification ──────────────────────────────────────
   if (!SLFAuth.requireAuth()) { throw new Error('Not authenticated'); }

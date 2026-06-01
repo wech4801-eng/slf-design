@@ -100,7 +100,7 @@ le backend qui change selon l'hébergeur.
 
 ### Erreur 404 sur le site déployé
 - Vérifier que le workflow a réussi dans **Actions** (icône verte ✓)
-- L'URL est sensible à la casse : `slf-design` ≠ `SLF-Design`
+- L'URL est sensible à la casse : `slf-design` ≠ `ASLF-Design`
 - Attendre 2-3 minutes après le 1er déploiement (propagation CDN GitHub)
 
 ### Le déploiement échoue dans Actions

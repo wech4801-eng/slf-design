@@ -1,5 +1,5 @@
 /**
- * SLF — Serveur Node.js auto-hébergé.
+ * ASLF — Serveur Node.js auto-hébergé.
  *
  * Aucune dépendance externe (npm install non requis).
  * Sert :
@@ -42,9 +42,20 @@ const FILES = {
 
 async function ensureDataDir() {
   await fsp.mkdir(DATA_DIR, { recursive: true });
-  for (const f of Object.values(FILES)) {
+  for (const [name, f] of Object.entries(FILES)) {
     try { await fsp.access(f); }
-    catch { await fsp.writeFile(f, '[]'); }
+    catch {
+      // Au premier lancement : seeder articles.json depuis seed-articles.json si présent
+      if (name === 'articles') {
+        try {
+          const seed = await fsp.readFile(path.join(STATIC_DIR, 'seed-articles.json'), 'utf8');
+          await fsp.writeFile(f, seed);
+          console.log('[SEED] articles.json initialisé depuis seed-articles.json');
+          continue;
+        } catch {}
+      }
+      await fsp.writeFile(f, '[]');
+    }
   }
 }
 
@@ -309,7 +320,7 @@ async function handleApi(req, res, url) {
     }
   });
   server.listen(PORT, () => {
-    console.log(`SLF server prêt sur http://localhost:${PORT}`);
+    console.log(`ASLF server prêt sur http://localhost:${PORT}`);
     console.log(`  Données     : ${DATA_DIR}`);
     console.log(`  Auth admin  : POST /api/login { password: "..." }`);
     console.log(`  Temps réel  : GET /api/stream (SSE)`);

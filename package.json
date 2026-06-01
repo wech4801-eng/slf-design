@@ -1,7 +1,7 @@
 {
   "name": "slf-somaliland-france",
   "version": "1.0.0",
-  "description": "Site officiel de l'Association Somaliland-France (SLF). Serveur Node.js auto-hébergé sans dépendance externe.",
+  "description": "Site officiel de l'Association Somalilandaise de France (ASLF). Serveur Node.js auto-hébergé sans dépendance externe.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,5 +1,5 @@
 /**
- * SLF Utils — fonctions partagées pour échappement HTML, formatage, etc.
+ * ASLF Utils — fonctions partagées pour échappement HTML, formatage, etc.
  * Sans dépendance, à inclure avant tout script qui rend du HTML utilisateur.
  */
 (function (global) {

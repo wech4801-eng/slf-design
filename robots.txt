@@ -14,4 +14,4 @@ Disallow: /admin-parametres.html
 Disallow: /admin-auth.js
 Disallow: /slf-utils.js
 
-Sitemap: https://www.somalilandfrance.org/sitemap.xml
+Sitemap: https://www.aslf-france.org/sitemap.xml

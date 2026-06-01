@@ -1,5 +1,5 @@
 /**
- * SLF Admin Auth — client-side authentication helper.
+ * ASLF Admin Auth — client-side authentication helper.
  *
  * ⚠️  Note importante de sécurité ⚠️
  *  Ce site est entièrement statique : il n'existe aucun serveur pour vérifier

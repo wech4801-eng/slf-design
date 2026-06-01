@@ -1,6 +1,6 @@
 <?php
 /**
- * SLF — API REST pour Hostinger (shared hosting PHP).
+ * ASLF — API REST pour Hostinger (shared hosting PHP).
  *
  * Endpoints :
  *   POST /api/login                       { password }
@@ -40,7 +40,12 @@ if (!is_dir(DATA_DIR)) {
 foreach (['articles', 'members', 'tokens'] as $f) {
     $p = DATA_DIR . '/' . $f . '.json';
     if (!file_exists($p)) {
-        file_put_contents($p, $f === 'tokens' ? '{}' : '[]', LOCK_EX);
+        // Au premier lancement : seeder articles.json depuis seed-articles.json si présent
+        if ($f === 'articles' && file_exists(__DIR__ . '/seed-articles.json')) {
+            copy(__DIR__ . '/seed-articles.json', $p);
+        } else {
+            file_put_contents($p, $f === 'tokens' ? '{}' : '[]', LOCK_EX);
+        }
     }
 }
 // Touch un fichier "last-change" pour le polling
