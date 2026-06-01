@@ -26,6 +26,7 @@
     .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .logo-flag { width: 36px; height: 24px; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); }
     .logo-flag span { flex: 1; } .logo-flag .g { background: var(--green); } .logo-flag .w { background: var(--white); border-top: 1px solid #eee; border-bottom: 1px solid #eee; } .logo-flag .r { background: var(--red); }
+    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
     .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
     .logo-name { font-weight: 800; font-size: 18px; color: var(--green-dark); letter-spacing: -.5px; }
     .logo-sub { font-size: 10px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; }
@@ -98,7 +99,7 @@
   <meta name="twitter:description" content="Les objectifs de l'Association Somalilandaise de France." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/comite_executif.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=9"></script>
+    <script src="slf-db.js?v=10"></script>
 </head>
 <body>
 
@@ -107,7 +108,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="logo">
-        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <img class="logo-img" src="images/logo-aslf.png" alt="Logo ASLF" />
         <div class="logo-text"><span class="logo-name">ASLF</span><span class="logo-sub">Association Somalilandaise de France</span></div>
       </a>
       <nav class="nav-desktop">
@@ -204,7 +205,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="logo">
-          <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+          <img class="logo-img" src="images/logo-aslf.png" alt="Logo ASLF" />
           <div class="logo-text"><span class="logo-name">ASLF</span><span class="logo-sub" style="color:rgba(255,255,255,.5)">Association Somalilandaise de France</span></div>
         </div>
         <p>Organisation militante et à vocation humaine, œuvrant pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans.</p>
@@ -242,6 +243,6 @@
     function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
     function closeMenu(e) { if (e.target === e.currentTarget) document.getElementById('mobileMenu').classList.remove('open'); }
   </script>
-  <script src="articles-engine.js?v=9"></script>
+  <script src="articles-engine.js?v=10"></script>
 </body>
 </html>

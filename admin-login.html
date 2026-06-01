@@ -76,6 +76,7 @@
     .logo-flag .g { background: var(--green); }
     .logo-flag .w { background: var(--white); }
     .logo-flag .r { background: var(--red); }
+    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
     .login-site-name { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
     .login-tagline   { font-size: 12px; opacity: .7; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
     .login-badge {
@@ -178,7 +179,7 @@
 
     <div class="login-header">
       <div class="logo-wrap">
-        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <img class="logo-img" src="images/logo-aslf.png" alt="Logo ASLF" />
         <span class="login-site-name">ASLF</span>
       </div>
       <div class="login-tagline">Association Somalilandaise de France</div>
@@ -238,8 +239,8 @@
     Retour au site public
   </a>
 
-  <script src="admin-auth.js?v=9"></script>
-  <script src="slf-db.js?v=9"></script>
+  <script src="admin-auth.js?v=10"></script>
+  <script src="slf-db.js?v=10"></script>
   <script>
     // Si déjà connecté, rediriger directement vers le dashboard
     if (SLFAuth.isAuthenticated()) {

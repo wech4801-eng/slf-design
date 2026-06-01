@@ -41,6 +41,7 @@
     .logo-flag .g { background: var(--green); }
     .logo-flag .w { background: var(--white); border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
     .logo-flag .r { background: var(--red); }
+    .logo-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
     .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
     .logo-name { font-weight: 800; font-size: 18px; color: var(--green-dark); letter-spacing: -.5px; }
     .logo-sub  { font-size: 10px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 1px; }
@@ -337,7 +338,7 @@
   <meta name="twitter:description" content="Contactez l'Association Somalilandaise de France à Vaulx-en-Velin (Lyon)." />
   <meta name="twitter:image" content="https://www.aslf-france.org/images/comite_executif.jpg" />
   <meta name="theme-color" content="#00843D" />
-    <script src="slf-db.js?v=9"></script>
+    <script src="slf-db.js?v=10"></script>
 </head>
 <body>
 
@@ -347,7 +348,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="logo">
-        <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+        <img class="logo-img" src="images/logo-aslf.png" alt="Logo ASLF" />
         <div class="logo-text">
           <span class="logo-name">ASLF</span>
           <span class="logo-sub">Association Somalilandaise de France</span>
@@ -577,7 +578,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="logo">
-          <div class="logo-flag"><span class="g"></span><span class="w"></span><span class="r"></span></div>
+          <img class="logo-img" src="images/logo-aslf.png" alt="Logo ASLF" />
           <div class="logo-text">
             <span class="logo-name">ASLF</span>
             <span class="logo-sub" style="color:rgba(255,255,255,.5)">Association Somalilandaise de France</span>
@@ -647,6 +648,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>
-  <script src="articles-engine.js?v=9"></script>
+  <script src="articles-engine.js?v=10"></script>
 </body>
 </html>
