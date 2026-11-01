@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Réglages · Espace de gestion ASLF</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+</head>
+<body data-page="reglages">
+  <main class="page page-narrow">
+    <div class="page-head">
+      <div>
+        <h1>Réglages</h1>
+        <p>Le mot de passe, les sauvegardes et l’état du site.</p>
+      </div>
+    </div>
+
+    <section class="section" aria-labelledby="h-backup">
+      <h2 id="h-backup">Sauvegarde</h2>
+      <p class="lead">Le site fait tout seul une copie de sécurité chaque jour et garde les 30 derniers jours. Vous pouvez aussi télécharger une copie complète (articles, membres et photos) pour la garder sur votre ordinateur ou une clé USB.</p>
+      <p id="last-backup" class="hint" style="margin-bottom:16px"></p>
+      <a class="btn btn-primary" href="/api/admin/sauvegarde" download id="backup">
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#download"></use></svg>Télécharger une sauvegarde complète
+      </a>
+      <p class="hint">Conseil : faites-le une fois par mois. Le fichier peut prendre un peu de temps s’il y a beaucoup de photos.</p>
+    </section>
+
+    <section class="section" aria-labelledby="h-pw">
+      <h2 id="h-pw">Changer le mot de passe</h2>
+      <p class="lead">Après le changement, les autres appareils connectés devront se reconnecter avec le nouveau mot de passe.</p>
+      <form id="pw-form" novalidate style="max-width:460px">
+        <div class="notice notice-error" id="pw-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#triangle-alert"></use></svg><div id="pw-error-text"></div></div>
+        <label class="field"><span>Mot de passe actuel</span><input class="input pw" type="password" name="current" autocomplete="current-password" required></label>
+        <label class="field"><span>Nouveau mot de passe</span><input class="input pw" type="password" name="next" autocomplete="new-password" minlength="10" required>
+          <small class="hint">Au moins 10 caractères. Une petite phrase facile à retenir fonctionne très bien, par exemple « Hargeisa-Lyon-2026 ».</small></label>
+        <label class="field"><span>Retapez le nouveau mot de passe</span><input class="input pw" type="password" name="again" autocomplete="new-password" required></label>
+        <label class="check" style="display:flex;gap:10px;align-items:center;margin-bottom:20px;cursor:pointer"><input type="checkbox" id="show-pw" style="width:22px;height:22px;accent-color:var(--green)"><span>Afficher les mots de passe</span></label>
+        <button class="btn btn-primary" type="submit" id="pw-save">Changer le mot de passe</button>
+      </form>
+    </section>
+
+    <section class="section" aria-labelledby="h-state">
+      <h2 id="h-state">État du site</h2>
+      <p class="lead">Ces informations sont utiles si vous contactez la personne qui s’occupe de la partie technique du site.</p>
+      <dl class="facts" id="facts"><div><dt>Chargement…</dt><dd>&nbsp;</dd></div></dl>
+    </section>
+
+    <section class="section" aria-labelledby="h-help">
+      <h2 id="h-help">Besoin d’aide&nbsp;?</h2>
+      <ol class="steps-help">
+        <li><strong>Un article a disparu&nbsp;?</strong> Regardez dans l’onglet « Corbeille » de la page Articles : il y reste 30 jours.</li>
+        <li><strong>Une photo ne passe pas&nbsp;?</strong> Faites une capture d’écran de la photo, ou envoyez-la-vous par e-mail, puis réessayez.</li>
+        <li><strong>Vous avez fermé la page sans enregistrer&nbsp;?</strong> Rouvrez l’article : l’éditeur vous proposera de reprendre votre texte.</li>
+        <li><strong>Le site ne répond plus&nbsp;?</strong> Attendez une minute : il redémarre tout seul. Si le problème continue, prévenez le responsable technique.</li>
+      </ol>
+      <p style="margin-top:20px"><button class="btn btn-secondary" type="button" id="logout"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#log-out"></use></svg>Se déconnecter de cet appareil</button></p>
+    </section>
+  </main>
+
+  <script src="/admin/admin.js?v=1"></script>
+  <script>
+    (function () {
+      const { api, toast, esc, frDate, formatBytes, setBusy, logout, $ } = window.ASLF;
+      const form = $('#pw-form');
+
+      $('#show-pw').addEventListener('change', (e) => {
+        form.querySelectorAll('.pw').forEach((i) => { i.type = e.target.checked ? 'text' : 'password'; });
+      });
+      $('#logout').addEventListener('click', logout);
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = (m) => { $('#pw-error-text').textContent = m; $('#pw-error').hidden = false; };
+        $('#pw-error').hidden = true;
+        const { current, next, again } = Object.fromEntries(new FormData(form));
+        if (!current) return err('Écrivez votre mot de passe actuel.');
+        if (next.length < 10) return err('Le nouveau mot de passe doit faire au moins 10 caractères.');
+        if (next !== again) return err('Les deux nouveaux mots de passe ne sont pas identiques.');
+        const btn = $('#pw-save');
+        setBusy(btn, true, 'Enregistrement…');
+        try {
+          await api('POST', '/api/admin/mot-de-passe', { current, next });
+          form.reset();
+          toast('Mot de passe changé. Notez-le dans un endroit sûr.');
+        } catch (ex) { err(ex.message); }
+        finally { setBusy(btn, false); }
+      });
+
+      $('#backup').addEventListener('click', () => toast('La sauvegarde se prépare, le téléchargement va commencer…'));
+
+      (async () => {
+        try {
+          const s = await api('GET', '/api/admin/etat');
+          $('#last-backup').textContent = s.derniereSauvegarde
+            ? `Dernière sauvegarde automatique : ${frDate(s.derniereSauvegarde)}.`
+            : 'Aucune sauvegarde automatique pour l’instant.';
+          const facts = [
+            ['Articles en ligne', s.articles.enLigne],
+            ['Brouillons', s.articles.brouillons],
+            ['Dans la corbeille', s.articles.corbeille],
+            ['Membres', s.membres],
+            ['Photos', `${s.photos.nombre} (${formatBytes(s.photos.poids)})`],
+            ['Espace libre sur le serveur', formatBytes(s.disqueLibre)],
+            ['En marche depuis', frDate(s.demarrage, true)],
+            ['Version du site', s.version],
+          ];
+          $('#facts').innerHTML = facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+        } catch (e) {
+          $('#facts').innerHTML = `<div><dt>Erreur</dt><dd>${esc(e.message)}</dd></div>`;
+        }
+      })();
+    })();
+  </script>
+</body>
+</html>

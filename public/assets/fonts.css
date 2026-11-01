@@ -1,0 +1,4 @@
+/* Polices hébergées sur le site (aucun appel à Google) — sous-ensemble latin */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/inter-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-style: normal; font-weight: 700 800; font-display: swap; src: url(fonts/playfair-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-style: italic; font-weight: 700; font-display: swap; src: url(fonts/playfair-italic-latin.woff2) format('woff2'); }

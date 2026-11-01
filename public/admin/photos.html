@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Photos · Espace de gestion ASLF</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+</head>
+<body data-page="photos">
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <h1>Les photos</h1>
+        <p>Toutes les photos envoyées sur le site. Pour ajouter une photo à un article, passez plutôt par l’article lui-même.</p>
+      </div>
+      <button class="btn btn-secondary btn-big" type="button" id="add">
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#upload"></use></svg>Envoyer des photos
+      </button>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Filtrer les photos">
+      <button role="tab" aria-selected="true" data-tab="toutes">Toutes<span class="count" data-count="toutes"></span></button>
+      <button role="tab" aria-selected="false" data-tab="inutilisees">Pas utilisées<span class="count" data-count="inutilisees"></span></button>
+    </div>
+    <p class="hint" id="summary" style="margin:14px 0 22px"></p>
+    <div class="photo-grid" id="grid" aria-live="polite"></div>
+  </main>
+
+  <script src="/admin/admin.js?v=1"></script>
+  <script>
+    (function () {
+      const { api, toast, dialog, icon, esc, frDate, formatBytes, uploadPhoto, pickFiles, setBusy, $, $$ } = window.ASLF;
+      let photos = [];
+      let tab = 'toutes';
+
+      function render() {
+        const unused = photos.filter((p) => !p.usedBy.length);
+        $('[data-count="toutes"]').textContent = ` (${photos.length})`;
+        $('[data-count="inutilisees"]').textContent = ` (${unused.length})`;
+        const total = photos.reduce((n, p) => n + p.size, 0);
+        $('#summary').textContent = photos.length ? `${photos.length} photo${photos.length > 1 ? 's' : ''}, ${formatBytes(total)} en tout.` : '';
+        const list = tab === 'inutilisees' ? unused : photos;
+        if (!list.length) {
+          $('#grid').innerHTML = `<div class="empty-state" style="grid-column:1/-1">${icon('image')}<h2>${tab === 'inutilisees' ? 'Toutes les photos sont utilisées' : 'Aucune photo pour l’instant'}</h2><p>Les photos ajoutées dans vos articles apparaîtront ici.</p></div>`;
+          return;
+        }
+        $('#grid').innerHTML = list.map((p) => {
+          const used = p.usedBy.length
+            ? 'Dans : ' + p.usedBy.map((a) => `<a href="/admin/article.html?id=${encodeURIComponent(a.id)}">${esc(a.title)}</a>${a.deleted ? ' (corbeille)' : ''}`).join(', ')
+            : '<strong>Pas utilisée</strong>';
+          return `<figure>
+            <a href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="" loading="lazy" decoding="async"></a>
+            <figcaption>${used}<br>Envoyée ${esc(frDate(p.date))} · ${formatBytes(p.size)}</figcaption>
+            ${p.usedBy.length ? '' : `<button class="btn btn-ghost danger" type="button" data-del="${esc(p.url)}">${icon('trash')}Supprimer</button>`}
+          </figure>`;
+        }).join('');
+      }
+
+      async function load() {
+        try { photos = await api('GET', '/api/admin/photos'); render(); }
+        catch (e) { $('#grid').innerHTML = `<div class="notice notice-error">${icon('triangle-alert')}<div>${esc(e.message)}</div></div>`; }
+      }
+
+      $$('[data-tab]').forEach((b) => b.addEventListener('click', () => {
+        tab = b.dataset.tab;
+        $$('[data-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+        render();
+      }));
+
+      $('#grid').addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-del]');
+        if (!b) return;
+        const ok = await dialog({ title: 'Supprimer cette photo ?', text: 'Elle n’est utilisée dans aucun article. Elle sera effacée définitivement.', ok: 'Oui, supprimer', danger: true });
+        if (!ok) return;
+        try { await api('DELETE', '/api/admin/photos?url=' + encodeURIComponent(b.dataset.del)); toast('Photo supprimée.'); await load(); }
+        catch (ex) { toast(ex.message, 'error'); }
+      });
+
+      $('#add').addEventListener('click', async () => {
+        const files = await pickFiles({ multiple: true });
+        if (!files.length) return;
+        const btn = $('#add');
+        let ok = 0;
+        for (let i = 0; i < files.length; i++) {
+          setBusy(btn, true, `Envoi ${i + 1} sur ${files.length}…`);
+          try { await uploadPhoto(files[i]); ok++; } catch (ex) { toast(ex.message, 'error'); }
+        }
+        setBusy(btn, false);
+        if (ok) toast(ok > 1 ? `${ok} photos envoyées.` : 'Photo envoyée.');
+        await load();
+      });
+
+      load();
+    })();
+  </script>
+</body>
+</html>

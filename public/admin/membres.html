@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Membres · Espace de gestion ASLF</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+</head>
+<body data-page="membres">
+  <main class="page">
+    <div class="page-head">
+      <div>
+        <h1>Les membres</h1>
+        <p>La liste des adhérents de l’association. Elle n’est jamais visible sur le site public.</p>
+      </div>
+      <button class="btn btn-primary btn-big" type="button" id="add">
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#plus"></use></svg>Ajouter un membre
+      </button>
+    </div>
+
+    <div class="toolbar-row">
+      <label class="search">
+        <span class="sr-only">Chercher un membre</span>
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#search"></use></svg>
+        <input class="input" type="search" id="q" placeholder="Chercher par nom, ville, e-mail…" autocomplete="off">
+      </label>
+      <label class="sr-only" for="filter">Cotisation</label>
+      <select class="select" id="filter" style="width:auto">
+        <option value="">Toutes les cotisations</option>
+        <option value="À jour">Cotisation à jour</option>
+        <option value="En retard">Cotisation en retard</option>
+      </select>
+      <button class="btn btn-secondary" type="button" id="export">
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#download"></use></svg>Télécharger la liste (Excel)
+      </button>
+    </div>
+    <p class="hint" id="summary" aria-live="polite"></p>
+
+    <table class="table" id="table">
+      <thead><tr><th>Nom</th><th>Contact</th><th>Ville</th><th>Cotisation</th><th><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5"><div class="skeleton" style="height:48px"></div></td></tr></tbody>
+    </table>
+  </main>
+
+  <dialog id="dlg">
+    <form id="form" method="dialog" novalidate>
+      <div class="dlg-body">
+        <h2 id="dlg-title">Ajouter un membre</h2>
+        <div class="notice notice-error" id="form-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#triangle-alert"></use></svg><div id="form-error-text"></div></div>
+        <div class="grid-2">
+          <label class="field"><span>Prénom</span><input class="input" name="prenom" autocomplete="off" maxlength="80"></label>
+          <label class="field"><span>Nom</span><input class="input" name="nom" autocomplete="off" maxlength="80"></label>
+          <label class="field"><span>Téléphone</span><input class="input" name="telephone" type="tel" autocomplete="off" maxlength="40"></label>
+          <label class="field"><span>E-mail</span><input class="input" name="email" type="email" autocomplete="off" maxlength="160"></label>
+          <label class="field"><span>Ville</span><input class="input" name="ville" autocomplete="off" maxlength="80"></label>
+          <label class="field"><span>Date d’adhésion</span><input class="input" name="adhesion" type="date"></label>
+          <label class="field"><span>Rôle</span>
+            <select class="select" name="statut">
+              <option>Membre</option><option>Membre du bureau</option><option>Sympathisant</option><option>Ancien membre</option>
+            </select></label>
+          <label class="field"><span>Cotisation</span>
+            <select class="select" name="cotisation">
+              <option>À jour</option><option>En retard</option><option>Non concerné</option>
+            </select></label>
+        </div>
+        <label class="field"><span>Notes</span><textarea class="textarea" name="notes" rows="2" maxlength="2000"></textarea></label>
+      </div>
+      <div class="dlg-actions">
+        <button class="btn btn-secondary" type="button" id="cancel">Annuler</button>
+        <button class="btn btn-primary" type="submit" id="save">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/admin/admin.js?v=1"></script>
+  <script>
+    (function () {
+      const { api, toast, dialog, icon, esc, frDate, setBusy, $ } = window.ASLF;
+      let members = [];
+      let editing = null;
+      const dlg = $('#dlg');
+      const form = $('#form');
+      const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+      const fullName = (m) => [m.prenom, m.nom].filter(Boolean).join(' ') || '—';
+
+      function filtered() {
+        const q = norm($('#q').value.trim());
+        const f = $('#filter').value;
+        return members.filter((m) => (!f || m.cotisation === f) &&
+          (!q || norm([m.prenom, m.nom, m.email, m.telephone, m.ville, m.notes].join(' ')).includes(q)));
+      }
+
+      function render() {
+        const list = filtered();
+        const late = members.filter((m) => m.cotisation === 'En retard').length;
+        $('#summary').textContent = members.length
+          ? `${members.length} membre${members.length > 1 ? 's' : ''} au total${late ? `, dont ${late} avec une cotisation en retard` : ''}.`
+          : '';
+        if (!list.length) {
+          $('#rows').innerHTML = `<tr><td colspan="5"><div class="empty-state">${icon('users')}<h2>${members.length ? 'Aucun résultat' : 'Aucun membre pour l’instant'}</h2><p>${members.length ? 'Essayez un autre mot.' : 'Ajoutez le premier membre avec le bouton vert.'}</p></div></td></tr>`;
+          return;
+        }
+        $('#rows').innerHTML = list.map((m) => {
+          const pill = m.cotisation === 'À jour' ? 'pill-online' : m.cotisation === 'En retard' ? 'pill-scheduled' : 'pill-draft';
+          const contact = [
+            m.telephone && `<a href="tel:${esc(m.telephone.replace(/\s/g, ''))}">${esc(m.telephone)}</a>`,
+            m.email && `<a href="mailto:${esc(m.email)}">${esc(m.email)}</a>`,
+          ].filter(Boolean).join('<br>') || '<span class="muted">—</span>';
+          return `<tr>
+            <td><span class="name">${esc(fullName(m))}</span><br><span class="muted">${esc(m.statut || 'Membre')}${m.adhesion ? ` · adhésion ${esc(frDate(m.adhesion))}` : ''}</span></td>
+            <td>${contact}</td>
+            <td>${esc(m.ville) || '<span class="muted">—</span>'}</td>
+            <td><span class="pill ${pill}">${esc(m.cotisation || '—')}</span></td>
+            <td class="actions">
+              <button class="btn btn-ghost" type="button" data-edit="${esc(m.id)}">${icon('file-pen')}Modifier</button>
+              <button class="btn btn-ghost danger" type="button" data-del="${esc(m.id)}">${icon('trash')}Supprimer</button>
+            </td></tr>`;
+        }).join('');
+      }
+
+      async function load() {
+        try { members = await api('GET', '/api/admin/membres'); render(); }
+        catch (e) { $('#rows').innerHTML = `<tr><td colspan="5"><div class="notice notice-error">${icon('triangle-alert')}<div>${esc(e.message)}</div></div></td></tr>`; }
+      }
+
+      function open(m) {
+        editing = m || null;
+        form.reset();
+        $('#form-error').hidden = true;
+        $('#dlg-title').textContent = m ? `Modifier : ${fullName(m)}` : 'Ajouter un membre';
+        if (m) for (const [k, v] of Object.entries(m)) if (form.elements[k]) form.elements[k].value = v || '';
+        dlg.showModal();
+        form.elements.prenom.focus();
+      }
+      $('#add').addEventListener('click', () => open(null));
+      $('#cancel').addEventListener('click', () => dlg.close());
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form));
+        const btn = $('#save');
+        setBusy(btn, true, 'Enregistrement…');
+        try {
+          if (editing) await api('PUT', `/api/admin/membres/${encodeURIComponent(editing.id)}`, data);
+          else await api('POST', '/api/admin/membres', data);
+          dlg.close();
+          toast(editing ? 'Fiche du membre enregistrée.' : 'Membre ajouté.');
+          await load();
+        } catch (ex) {
+          $('#form-error-text').textContent = ex.message;
+          $('#form-error').hidden = false;
+        } finally { setBusy(btn, false); }
+      });
+
+      $('#rows').addEventListener('click', async (e) => {
+        const ed = e.target.closest('[data-edit]');
+        if (ed) return open(members.find((m) => m.id === ed.dataset.edit));
+        const del = e.target.closest('[data-del]');
+        if (!del) return;
+        const m = members.find((x) => x.id === del.dataset.del);
+        const ok = await dialog({ title: 'Supprimer ce membre ?', text: `La fiche de ${fullName(m)} sera effacée définitivement.`, ok: 'Oui, supprimer', danger: true });
+        if (!ok) return;
+        try { await api('DELETE', `/api/admin/membres/${encodeURIComponent(m.id)}`); toast('Membre supprimé.'); await load(); }
+        catch (ex) { toast(ex.message, 'error'); }
+      });
+
+      $('#q').addEventListener('input', render);
+      $('#filter').addEventListener('change', render);
+
+      // Fichier CSV lisible directement par Excel (séparateur « ; », accents conservés)
+      $('#export').addEventListener('click', () => {
+        if (!members.length) { toast('La liste est vide.', 'error'); return; }
+        const cols = [['prenom', 'Prénom'], ['nom', 'Nom'], ['telephone', 'Téléphone'], ['email', 'E-mail'], ['ville', 'Ville'], ['statut', 'Rôle'], ['cotisation', 'Cotisation'], ['adhesion', 'Adhésion'], ['notes', 'Notes']];
+        const cell = (v) => {
+          let s = String(v == null ? '' : v);
+          if (/^[=+\-@]/.test(s)) s = "'" + s; // empêche Excel d'interpréter une formule
+          return '"' + s.replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
+        };
+        const lines = [cols.map((c) => cell(c[1])).join(';'), ...filtered().map((m) => cols.map((c) => cell(m[c[0]])).join(';'))];
+        const blob = new Blob([String.fromCharCode(0xfeff) + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `membres-aslf-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      });
+
+      load();
+    })();
+  </script>
+</body>
+</html>
