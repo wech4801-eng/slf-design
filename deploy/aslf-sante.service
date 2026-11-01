@@ -1,0 +1,7 @@
+# Vérifie que le site répond ; sinon le redémarre (lancé toutes les 5 minutes par aslf-sante.timer).
+[Unit]
+Description=Vérification de santé du site ASLF
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'curl -fsS --max-time 10 http://127.0.0.1:3456/api/health >/dev/null || (echo "Le site ne répond plus : redémarrage" && systemctl restart aslf)'

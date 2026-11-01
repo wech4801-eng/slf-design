@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Article · Espace de gestion ASLF</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+</head>
+<body data-page="articles">
+  <main class="page page-narrow page-editor" id="editor" hidden>
+    <a class="btn btn-ghost" href="/admin/" style="margin-left:-12px;margin-bottom:12px">
+      <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#arrow-left"></use></svg>Retour aux articles
+    </a>
+    <div class="page-head">
+      <div>
+        <h1 id="page-title">Nouvel article</h1>
+        <p>Remplissez les étapes dans l’ordre. Rien n’apparaît sur le site tant que vous n’avez pas cliqué sur « Publier ».</p>
+      </div>
+    </div>
+
+    <div class="notice notice-warn" id="recover" hidden>
+      <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#rotate-ccw"></use></svg>
+      <div>
+        <strong>Nous avons retrouvé un texte que vous n’aviez pas enregistré</strong>
+        <span id="recover-when"></span>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" id="recover-yes">Reprendre ce texte</button>
+          <button class="btn btn-secondary" type="button" id="recover-no">Non, l’effacer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1 · Titre -->
+    <section class="step" aria-labelledby="s1">
+      <div class="step-num" aria-hidden="true">1</div>
+      <div class="step-body">
+        <h2 id="s1">Le titre</h2>
+        <p class="lead">Une phrase courte qui donne envie de lire.</p>
+        <label class="sr-only" for="title">Titre de l’article</label>
+        <textarea class="title-input" id="title" rows="1" maxlength="200" placeholder="Par exemple : Fête de l’indépendance à Lyon"></textarea>
+        <p class="hint" id="title-error" role="alert" hidden style="color:var(--red);font-weight:600">Écrivez un titre pour pouvoir enregistrer.</p>
+      </div>
+    </section>
+
+    <!-- 2 · Résumé -->
+    <section class="step" aria-labelledby="s2">
+      <div class="step-num" aria-hidden="true">2</div>
+      <div class="step-body">
+        <h2 id="s2">Le résumé</h2>
+        <p class="lead">Deux ou trois phrases. Elles s’affichent sous le titre et sur la page d’accueil.</p>
+        <label class="field" for="chapeau">
+          <span class="sr-only">Résumé</span>
+          <textarea class="textarea" id="chapeau" rows="3" maxlength="600" placeholder="De quoi parle cet article, en quelques mots ?"></textarea>
+          <small class="hint"><span class="counter" id="chapeau-count"></span>Conseil : moins de 300 caractères.</small>
+        </label>
+      </div>
+    </section>
+
+    <!-- 3 · Photo principale -->
+    <section class="step" aria-labelledby="s3" id="step-photo">
+      <div class="step-num" aria-hidden="true">3</div>
+      <div class="step-body">
+        <h2 id="s3">La photo principale</h2>
+        <p class="lead">Elle apparaît en grand en haut de l’article et dans la liste des actualités.</p>
+        <div class="drop" id="cover-drop">
+          <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#image-plus"></use></svg>
+          <button class="btn btn-primary" type="button" id="cover-pick">Choisir une photo</button>
+          <span id="cover-drop-text">ou faites glisser une photo ici</span>
+          <div class="progress" id="cover-progress" hidden><span></span></div>
+        </div>
+        <div class="cover-preview" id="cover-preview" hidden>
+          <img id="cover-img" alt="Aperçu de la photo principale">
+          <div class="cover-actions">
+            <button class="btn btn-secondary" type="button" id="cover-change">Changer la photo</button>
+            <button class="btn btn-ghost danger" type="button" id="cover-remove">
+              <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#x"></use></svg>Retirer la photo
+            </button>
+          </div>
+          <label class="field" for="cover-alt" style="margin-top:16px">
+            <span>Que montre la photo&nbsp;? <small class="hint" style="display:inline">(facultatif)</small></span>
+            <input class="input" id="cover-alt" maxlength="200" placeholder="Par exemple : les membres du bureau devant la mairie">
+            <small class="hint">Cette description aide les personnes malvoyantes.</small>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · Texte -->
+    <section class="step" aria-labelledby="s4">
+      <div class="step-num" aria-hidden="true">4</div>
+      <div class="step-body">
+        <h2 id="s4">Le texte de l’article</h2>
+        <p class="lead">Écrivez ou collez votre texte (depuis Word ou un e-mail, la mise en forme est nettoyée automatiquement).</p>
+        <div class="rte-bar" role="toolbar" aria-label="Mise en forme du texte" id="rte-bar">
+          <button type="button" data-cmd="bold" aria-pressed="false" title="Mettre en gras (Ctrl+B)"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#bold"></use></svg>Gras</button>
+          <button type="button" data-cmd="italic" aria-pressed="false" title="Mettre en italique (Ctrl+I)"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#italic"></use></svg>Italique</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-block="h2" aria-pressed="false" title="Transformer la ligne en intertitre"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#heading-2"></use></svg>Intertitre</button>
+          <button type="button" data-cmd="insertUnorderedList" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#list"></use></svg>Liste</button>
+          <button type="button" data-cmd="insertOrderedList" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#list-ordered"></use></svg>Liste numérotée</button>
+          <button type="button" data-block="blockquote" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#quote"></use></svg>Citation</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-action="link"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#link"></use></svg>Lien</button>
+          <button type="button" data-action="photo"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#image-plus"></use></svg>Photo</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button type="button" data-cmd="undo" title="Annuler la dernière modification (Ctrl+Z)"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#undo-2"></use></svg>Annuler</button>
+          <button type="button" data-cmd="redo" title="Rétablir"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#redo-2"></use></svg>Rétablir</button>
+        </div>
+        <div class="rte is-empty" id="content" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="s4"
+             data-placeholder="Commencez à écrire ici…" spellcheck="true" lang="fr"></div>
+        <p class="words" id="words" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- 5 · Rubrique -->
+    <section class="step" aria-labelledby="s5">
+      <div class="step-num" aria-hidden="true">5</div>
+      <div class="step-body">
+        <h2 id="s5">Où ranger l’article&nbsp;?</h2>
+        <p class="lead">Tous les articles apparaissent sur la page d’accueil et dans « Actualités ». Choisissez en plus la page du site qui lui correspond le mieux. Dans le doute, gardez « Actualités ».</p>
+        <div class="choices" id="sections" role="radiogroup" aria-labelledby="s5"></div>
+      </div>
+    </section>
+
+    <!-- 6 · Compléments -->
+    <section class="step step-optional" aria-labelledby="s6">
+      <div class="step-num" aria-hidden="true">6</div>
+      <div class="step-body">
+        <h2 id="s6">En plus <small class="hint" style="display:inline;font-family:var(--font);font-size:16px">(facultatif)</small></h2>
+        <p class="lead">Ouvrez une ligne seulement si vous en avez besoin.</p>
+
+        <details class="more" id="more-gallery">
+          <summary><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#image"></use></svg>D’autres photos <small id="gallery-count"></small><svg class="i chev" aria-hidden="true"><use href="/admin/icons.svg?v=1#chevron-down"></use></svg></summary>
+          <div class="more-body">
+            <p class="hint" style="margin:0 0 14px">Elles s’affichent en galerie à la fin de l’article. Vous pouvez en choisir plusieurs à la fois.</p>
+            <div class="gallery" id="gallery"></div>
+            <button class="btn btn-secondary" type="button" id="gallery-add"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#plus"></use></svg>Ajouter des photos</button>
+            <span class="hint" id="gallery-status" aria-live="polite"></span>
+          </div>
+        </details>
+
+        <details class="more" id="more-video">
+          <summary><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#video"></use></svg>Une vidéo YouTube <small id="video-count"></small><svg class="i chev" aria-hidden="true"><use href="/admin/icons.svg?v=1#chevron-down"></use></svg></summary>
+          <div class="more-body">
+            <p class="hint" style="margin:0 0 14px">Sur YouTube, cliquez sur « Partager » sous la vidéo, puis « Copier », et collez le lien ici.</p>
+            <div id="videos"></div>
+            <form class="inline-form" id="video-form" style="margin-top:12px">
+              <label class="sr-only" for="video-url">Lien de la vidéo</label>
+              <input class="input" id="video-url" type="url" inputmode="url" placeholder="https://youtu.be/…">
+              <button class="btn btn-secondary" type="submit">Ajouter la vidéo</button>
+            </form>
+          </div>
+        </details>
+
+        <details class="more">
+          <summary><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#pen-line"></use></svg>Signature et thème<svg class="i chev" aria-hidden="true"><use href="/admin/icons.svg?v=1#chevron-down"></use></svg></summary>
+          <div class="more-body grid-2">
+            <label class="field" for="author"><span>Signé par</span>
+              <input class="input" id="author" list="authors" maxlength="80" placeholder="Rédaction ASLF">
+              <datalist id="authors"><option value="Rédaction ASLF"><option value="Le Bureau de l’ASLF"><option value="Le Président de l’ASLF"></datalist>
+            </label>
+            <label class="field" for="category"><span>Thème</span>
+              <select class="select" id="category"><option value="">Aucun thème particulier</option></select>
+              <small class="hint">Affiché en petite étiquette de couleur.</small>
+            </label>
+          </div>
+        </details>
+
+        <details class="more" id="more-schedule">
+          <summary><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#calendar-clock"></use></svg>Publier plus tard<svg class="i chev" aria-hidden="true"><use href="/admin/icons.svg?v=1#chevron-down"></use></svg></summary>
+          <div class="more-body">
+            <label class="field" for="publish-at"><span>Date et heure de mise en ligne</span>
+              <input class="input" id="publish-at" type="datetime-local" style="max-width:320px">
+              <small class="hint">L’article apparaîtra tout seul sur le site à cette date. Laissez vide pour publier tout de suite.</small>
+            </label>
+          </div>
+        </details>
+
+        <details class="more">
+          <summary><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#search"></use></svg>Pour Google<svg class="i chev" aria-hidden="true"><use href="/admin/icons.svg?v=1#chevron-down"></use></svg></summary>
+          <div class="more-body">
+            <p class="hint" style="margin:0 0 14px">Inutile en général : le titre et le résumé sont utilisés automatiquement.</p>
+            <label class="field" for="seo-title"><span>Titre dans Google</span><input class="input" id="seo-title" maxlength="80"></label>
+            <label class="field" for="meta-desc"><span>Description dans Google</span><textarea class="textarea" id="meta-desc" maxlength="220" rows="2"></textarea></label>
+            <label class="field" for="slug"><span>Adresse de la page</span><input class="input" id="slug" maxlength="80" placeholder="fete-de-l-independance-a-lyon">
+              <small class="hint" id="slug-hint"></small></label>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <main class="page page-narrow" id="loading">
+    <div class="skeleton" style="height:60px;margin-bottom:24px"></div>
+    <div class="skeleton"></div><div class="skeleton"></div>
+  </main>
+
+  <main class="page page-narrow" id="done" hidden>
+    <div class="success" tabindex="-1" id="done-box">
+      <div class="seal"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#check"></use></svg></div>
+      <h1 id="done-title">C’est en ligne&nbsp;!</h1>
+      <p id="done-text">Votre article est maintenant visible par tous les visiteurs du site.</p>
+      <div class="actions">
+        <a class="btn btn-primary btn-big" id="done-view" target="_blank" rel="noopener">
+          <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#eye"></use></svg>Voir l’article sur le site
+        </a>
+        <a class="btn btn-secondary btn-big" href="/admin/article.html">Écrire un autre article</a>
+        <a class="btn btn-ghost" href="/admin/">Retour à la liste des articles</a>
+      </div>
+    </div>
+  </main>
+
+  <div class="actionbar" id="actionbar" hidden>
+    <div class="actionbar-inner">
+      <p class="state" aria-live="polite"><span class="dot" id="state-dot"></span><span id="state-text"></span></p>
+      <button class="btn btn-secondary" type="button" id="btn-preview"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#eye"></use></svg>Aperçu</button>
+      <button class="btn btn-secondary" type="button" id="btn-secondary"></button>
+      <button class="btn btn-primary" type="button" id="btn-primary"></button>
+    </div>
+  </div>
+
+  <script src="/assets/config.js?v=1"></script>
+  <script src="/assets/sanitize.js?v=1"></script>
+  <script src="/admin/admin.js?v=1"></script>
+  <script src="/admin/editeur.js?v=1"></script>
+</body>
+</html>

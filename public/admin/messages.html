@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Messages · Espace de gestion ASLF</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <style>
+    .msg { padding: 22px 0; border-bottom: 1px solid var(--rule); }
+    .msg-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin-bottom: 8px; }
+    .msg-head strong { font: 700 19px/1.3 var(--display); }
+    .msg-head .hint { margin: 0; }
+    .msg.unread .msg-head strong::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--flag-red); margin-right: 10px; vertical-align: 2px; }
+    .msg-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; background: var(--surface); border-left: 3px solid var(--rule-strong); padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0; }
+    .msg-actions { display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0 0 -12px; }
+  </style>
+</head>
+<body data-page="messages">
+  <main class="page page-narrow">
+    <div class="page-head">
+      <div>
+        <h1>Les messages</h1>
+        <p>Les messages envoyés par les visiteurs avec le formulaire de la page Contact. Pour répondre, cliquez sur « Répondre par e-mail ».</p>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Filtrer les messages">
+      <button role="tab" aria-selected="true" data-tab="nonlus">À lire<span class="count" data-count="nonlus"></span></button>
+      <button role="tab" aria-selected="false" data-tab="tous">Tous<span class="count" data-count="tous"></span></button>
+    </div>
+    <div id="list" aria-live="polite"><div class="skeleton"></div></div>
+  </main>
+
+  <script src="/admin/admin.js?v=1"></script>
+  <script>
+    (function () {
+      const { api, toast, dialog, icon, esc, frDate, refreshUnread, $, $$ } = window.ASLF;
+      let messages = [];
+      let tab = 'nonlus';
+
+      function render() {
+        const unread = messages.filter((m) => !m.lu);
+        $('[data-count="nonlus"]').textContent = ` (${unread.length})`;
+        $('[data-count="tous"]').textContent = ` (${messages.length})`;
+        const list = tab === 'nonlus' ? unread : messages;
+        if (!list.length) {
+          const text = tab === 'nonlus' && messages.length
+            ? 'Vous avez tout lu. Les anciens messages sont dans l’onglet « Tous ».'
+            : 'Les messages envoyés depuis la page Contact du site arriveront ici.';
+          $('#list').innerHTML = `<div class="empty-state">${icon('mail-open')}<h2>${tab === 'nonlus' ? 'Aucun nouveau message' : 'Aucun message pour l’instant'}</h2><p>${text}</p></div>`;
+          return;
+        }
+        $('#list').innerHTML = list.map((m) => {
+          const subject = encodeURIComponent(`Réponse à votre message (${m.sujetLabel}) — ASLF`);
+          return `<article class="msg${m.lu ? '' : ' unread'}">
+            <div class="msg-head"><strong>${esc(m.nom)}</strong><span class="pill pill-draft">${esc(m.sujetLabel)}</span><span class="hint">reçu ${esc(frDate(m.createdAt, true))}</span></div>
+            <p class="hint" style="margin:0 0 10px">${esc(m.email)}${m.telephone ? ` · ${esc(m.telephone)}` : ''}</p>
+            <div class="msg-text">${esc(m.message)}</div>
+            <div class="msg-actions">
+              <a class="btn btn-ghost" href="mailto:${esc(m.email)}?subject=${subject}">${icon('reply')}Répondre par e-mail</a>
+              ${m.telephone ? `<a class="btn btn-ghost" href="tel:${esc(m.telephone.replace(/\s/g, ''))}">${icon('phone')}Appeler</a>` : ''}
+              <button class="btn btn-ghost" type="button" data-read="${esc(m.id)}" data-value="${m.lu ? '0' : '1'}">${icon(m.lu ? 'mail' : 'mail-open')}${m.lu ? 'Marquer comme non lu' : 'Marquer comme lu'}</button>
+              <button class="btn btn-ghost danger" type="button" data-del="${esc(m.id)}">${icon('trash')}Supprimer</button>
+            </div>
+          </article>`;
+        }).join('');
+      }
+
+      async function load() {
+        try { messages = await api('GET', '/api/admin/messages'); render(); refreshUnread(); }
+        catch (e) { $('#list').innerHTML = `<div class="notice notice-error">${icon('triangle-alert')}<div>${esc(e.message)}</div></div>`; }
+      }
+
+      $$('[data-tab]').forEach((b) => b.addEventListener('click', () => {
+        tab = b.dataset.tab;
+        $$('[data-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+        render();
+      }));
+
+      $('#list').addEventListener('click', async (e) => {
+        const r = e.target.closest('[data-read]');
+        const d = e.target.closest('[data-del]');
+        try {
+          if (r) {
+            await api('PUT', `/api/admin/messages/${encodeURIComponent(r.dataset.read)}`, { lu: r.dataset.value === '1' });
+            await load();
+          } else if (d) {
+            const ok = await dialog({ title: 'Supprimer ce message ?', text: 'Il sera effacé définitivement.', ok: 'Oui, supprimer', danger: true });
+            if (!ok) return;
+            await api('DELETE', `/api/admin/messages/${encodeURIComponent(d.dataset.del)}`);
+            toast('Message supprimé.');
+            await load();
+          }
+        } catch (ex) { toast(ex.message, 'error'); }
+      });
+
+      load();
+    })();
+  </script>
+</body>
+</html>

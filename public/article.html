@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Article · ASLF · Association Somalilandaise de France</title>
+  <link rel="preload" href="assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="assets/fonts.css?v=1" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #00843D; --green-dark: #006830; --green-light: #e8f5ee;
+      --red: #CE1126; --red-light: #fdecea;
+      --white: #FFFFFF;
+      --gray-50: #f8f9fa; --gray-100: #f1f3f5; --gray-200: #e9ecef;
+      --gray-400: #adb5bd; --gray-600: #6c757d; --gray-800: #343a40; --gray-900: #212529;
+      --font-body: 'Inter', sans-serif; --font-display: 'Playfair Display', serif;
+      --radius: 12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08); --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); color: var(--gray-900); background: var(--gray-50); line-height: 1.6; }
+    img  { max-width: 100%; display: block; }
+    a    { text-decoration: none; color: inherit; }
+
+    .flag-stripe { display:flex; height:4px; width:100%; }
+    .flag-stripe .s-green { flex:1; background:var(--green); }
+    .flag-stripe .s-white { flex:1; background:var(--white); border-top:1px solid var(--gray-200); border-bottom:1px solid var(--gray-200); }
+    .flag-stripe .s-red   { flex:1; background:var(--red); }
+
+    /* Header */
+    .site-header { position:sticky; top:0; z-index:100; background:var(--white); box-shadow:var(--shadow-sm); }
+    .header-inner {
+      max-width:1200px; margin:0 auto; padding:0 16px;
+      height:60px; display:flex; align-items:center; justify-content:space-between; gap:16px;
+    }
+    .logo { display:flex; align-items:center; gap:10px; }
+    .logo-flag { width:36px; height:24px; border-radius:4px; overflow:hidden; display:flex; flex-direction:column; box-shadow:var(--shadow-sm); }
+    .logo-flag span { flex:1; }
+    .logo-flag .g { background:var(--green); }
+    .logo-flag .w { background:var(--white); border-top:1px solid #eee; border-bottom:1px solid #eee; }
+    .logo-flag .r { background:var(--red); }
+    .logo-img { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,.15)); }
+    .logo-name { font-weight:800; font-size:18px; color:var(--green-dark); letter-spacing:-.5px; }
+    .logo-sub  { font-size:10px; color:var(--gray-600); text-transform:uppercase; letter-spacing:1px; }
+
+    .nav-desktop { display:none; gap:2px; align-items:center; }
+    .nav-desktop a { padding:6px 12px; border-radius:8px; font-size:13px; font-weight:500; color:var(--gray-800); transition:background .15s, color .15s; white-space:nowrap; }
+    .nav-desktop a:hover { background:var(--green-light); color:var(--green-dark); }
+    .nav-item-drop { position:relative; }
+    .nav-item-drop > .nav-drop-trigger { display:flex; align-items:center; gap:3px; padding:6px 12px; border-radius:8px; font-size:13px; font-weight:500; color:var(--gray-800); cursor:pointer; transition:background .15s, color .15s; white-space:nowrap; user-select:none; }
+    .nav-item-drop > .nav-drop-trigger:hover { background:var(--green-light); color:var(--green-dark); }
+    .nav-item-drop > .nav-drop-trigger svg { transition:transform .2s; }
+    .nav-item-drop:hover > .nav-drop-trigger svg { transform:rotate(180deg); }
+    .nav-dropdown { visibility:hidden; opacity:0; pointer-events:none; transform:translateY(-4px); position:absolute; top:calc(100% + 6px); left:0; background:var(--white); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12); padding:6px; min-width:200px; z-index:200; border:1px solid var(--gray-100); transition:visibility 0s linear 250ms,opacity .15s ease 100ms,transform .15s ease 100ms; }
+    .nav-dropdown::before { content:''; position:absolute; top:-10px; left:0; right:0; height:10px; }
+    .nav-item-drop:hover .nav-dropdown { visibility:visible; opacity:1; pointer-events:auto; transform:translateY(0); transition:visibility 0s linear 0ms,opacity .15s ease 0ms,transform .15s ease 0ms; }
+    .nav-dropdown a { display:block; padding:8px 12px; border-radius:6px; font-size:13px; color:var(--gray-800); font-weight:500; transition:background .12s; white-space:nowrap; }
+    .nav-dropdown a:hover { background:var(--green-light); color:var(--green-dark); }
+    .nav-dropdown .drop-sep { height:1px; background:var(--gray-100); margin:4px 0; }
+
+    .btn-admin {
+      display:flex; align-items:center; gap:6px;
+      padding:7px 14px; background:var(--green); color:var(--white);
+      border-radius:8px; font-size:13px; font-weight:600; transition:background .15s; white-space:nowrap;
+    }
+    .btn-admin:hover { background:var(--green-dark); }
+    .btn-admin svg { width:14px; height:14px; }
+
+    .hamburger { display:flex; flex-direction:column; gap:5px; cursor:pointer; padding:4px; border:none; background:none; }
+    .hamburger span { display:block; width:22px; height:2px; background:var(--gray-800); border-radius:2px; }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      max-width:800px; margin:20px auto 0; padding:0 16px;
+      display:flex; align-items:center; gap:6px; font-size:12px; color:var(--gray-400);
+    }
+    .breadcrumb a { color:var(--green); }
+    .breadcrumb a:hover { text-decoration:underline; }
+
+    /* Article layout */
+    .article-wrap {
+      max-width:800px; margin:0 auto; padding:0 16px 48px;
+    }
+
+    /* Article header */
+    .article-header { padding: 20px 0 24px; }
+    .article-cat {
+      display:inline-flex; align-items:center; gap:6px;
+      background:var(--green-light); color:var(--green-dark);
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+      padding:5px 12px; border-radius:20px; margin-bottom:16px;
+    }
+    .article-title {
+      font-family:var(--font-display);
+      font-size:clamp(24px, 6vw, 40px);
+      line-height:1.2;
+      color:var(--gray-900);
+      margin-bottom:16px;
+    }
+    .article-intro {
+      font-size:17px;
+      color:var(--gray-600);
+      line-height:1.7;
+      margin-bottom:20px;
+      font-style:italic;
+      border-left:3px solid var(--green);
+      padding-left:16px;
+    }
+    .article-meta {
+      display:flex; flex-wrap:wrap; align-items:center; gap:12px;
+      font-size:13px; color:var(--gray-400);
+      padding-bottom:20px;
+      border-bottom:1px solid var(--gray-200);
+    }
+    .author {
+      display:flex; align-items:center; gap:8px;
+    }
+    .author-avatar {
+      width:32px; height:32px; border-radius:50%;
+      background:linear-gradient(135deg, var(--green), var(--green-dark));
+      display:flex; align-items:center; justify-content:center;
+      font-size:14px; color:var(--white); font-weight:700;
+    }
+    .author-name { font-weight:600; color:var(--gray-800); font-size:13px; }
+    .meta-dot { width:3px; height:3px; border-radius:50%; background:var(--gray-400); }
+
+    /* Share bar */
+    .share-bar {
+      display:flex; align-items:center; gap:8px; margin-bottom:24px; flex-wrap:wrap;
+    }
+    .share-label { font-size:12px; font-weight:600; color:var(--gray-600); text-transform:uppercase; letter-spacing:1px; margin-right:4px; }
+    .share-btn {
+      display:flex; align-items:center; gap:6px;
+      padding:7px 14px; border-radius:20px; font-size:12px; font-weight:600;
+      border:none; cursor:pointer; font-family:var(--font-body); transition:transform .1s;
+    }
+    .share-btn:hover { transform:translateY(-1px); }
+    .share-fb  { background:#1877f2; color:#fff; }
+    .share-tw  { background:#1da1f2; color:#fff; }
+    .share-wa  { background:#25d366; color:#fff; }
+    .share-cp  { background:var(--gray-100); color:var(--gray-800); }
+
+    /* Hero image */
+    .article-hero-img {
+      width:100%; border-radius:var(--radius);
+      aspect-ratio:16/9; object-fit:cover;
+      margin-bottom:8px;
+    }
+    .article-hero-placeholder {
+      width:100%; border-radius:var(--radius);
+      aspect-ratio:16/9;
+      background:linear-gradient(135deg, var(--green-dark) 0%, #004d2a 40%, #8B0000 100%);
+      display:flex; align-items:center; justify-content:center;
+      font-size:64px; margin-bottom:8px;
+    }
+    .img-caption { font-size:12px; color:var(--gray-400); text-align:center; margin-bottom:28px; }
+
+    /* Article body */
+    .article-body { font-size:17px; line-height:1.8; color:var(--gray-900); }
+    .article-body h2 {
+      font-family:var(--font-display);
+      font-size:24px; color:var(--green-dark);
+      margin:32px 0 12px;
+      padding-top:8px;
+    }
+    .article-body h3 {
+      font-size:18px; font-weight:700;
+      margin:24px 0 10px; color:var(--gray-800);
+    }
+    .article-body p { margin-bottom:18px; }
+    .article-body blockquote {
+      margin:24px 0;
+      padding:16px 20px;
+      background:var(--green-light);
+      border-left:4px solid var(--green);
+      border-radius:0 8px 8px 0;
+      font-style:italic;
+      color:var(--green-dark);
+      font-size:16px;
+    }
+    .article-body .inline-img {
+      width:100%; border-radius:var(--radius);
+      margin:24px 0 8px;
+    }
+    .article-body .inline-img-placeholder {
+      width:100%; border-radius:var(--radius);
+      height:220px;
+      background:linear-gradient(135deg,#e8f5ee,#d1fae5);
+      display:flex; align-items:center; justify-content:center;
+      font-size:40px; margin:24px 0 8px;
+    }
+
+    /* Video embed */
+    .video-wrap {
+      margin:24px 0;
+      border-radius:var(--radius);
+      overflow:hidden;
+      aspect-ratio:16/9;
+      background:var(--gray-900);
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .video-placeholder { text-align:center; color:rgba(255,255,255,.7); }
+    .video-placeholder span { font-size:56px; display:block; margin-bottom:8px; }
+    .video-placeholder p { font-size:13px; }
+    .play-btn {
+      position:absolute;
+      width:64px; height:64px; border-radius:50%;
+      background:rgba(255,255,255,.15);
+      border:3px solid rgba(255,255,255,.6);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:background .15s;
+    }
+    .play-btn:hover { background:rgba(255,255,255,.25); }
+    .play-btn svg { width:24px; height:24px; fill:white; margin-left:4px; }
+
+    /* Tags */
+    .tags { display:flex; flex-wrap:wrap; gap:8px; margin:32px 0; }
+    .tag {
+      padding:6px 14px; background:var(--gray-100); border-radius:20px;
+      font-size:13px; color:var(--gray-600); cursor:pointer; transition:all .15s;
+    }
+    .tag:hover { background:var(--green-light); color:var(--green-dark); }
+
+    /* Related articles */
+    .related { margin-top:40px; padding-top:24px; border-top:2px solid var(--green); }
+    .related-title { font-family:var(--font-display); font-size:22px; color:var(--green-dark); margin-bottom:16px; }
+    .related-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+    .related-card {
+      display:flex; gap:12px; background:var(--white);
+      border-radius:var(--radius); padding:12px; box-shadow:var(--shadow-sm);
+      transition:transform .2s;
+    }
+    .related-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+    .related-img {
+      width:80px; height:80px; border-radius:8px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:28px;
+    }
+    .related-body h4 { font-size:14px; font-weight:700; line-height:1.3; margin-bottom:6px; }
+    .related-meta { font-size:11px; color:var(--gray-400); }
+
+    /* Back to top */
+    .back-top {
+      position:fixed; bottom:24px; right:20px;
+      width:44px; height:44px; border-radius:50%;
+      background:var(--green); color:var(--white);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:var(--shadow-md); cursor:pointer;
+      font-size:20px; z-index:50;
+      transition:transform .2s, opacity .2s;
+    }
+    .back-top:hover { transform:translateY(-3px); }
+
+    /* Footer minimal */
+    footer { background:var(--gray-900); color:rgba(255,255,255,.5); text-align:center; padding:24px 16px; font-size:12px; margin-top:48px; }
+    footer a { color:var(--green); }
+
+    @media (min-width:768px) {
+      .nav-desktop { display:flex; }
+      .hamburger   { display:none; }
+      .article-hero-placeholder { font-size:80px; }
+      .related-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+
+  <meta name="description" content="Article publié par l'Association Somalilandaise de France." />
+  <meta name="author" content="Association Somalilandaise de France" />
+  <link rel="canonical" href="https://www.aslf-france.org/article.html" />
+  <link rel="icon" type="image/png" sizes="192x192" href="images/logo-aslf-192.png?v=3" />
+  <link rel="apple-touch-icon" href="images/logo-aslf-192.png?v=3" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.aslf-france.org/article.html" />
+  <meta property="og:title" content="Article · ASLF" />
+  <meta property="og:description" content="Article publié par l'Association Somalilandaise de France." />
+  <meta property="og:image" content="https://www.aslf-france.org/images/diplomatie1.jpg" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:site_name" content="ASLF · Association Somalilandaise de France" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Article · ASLF" />
+  <meta name="twitter:description" content="Article publié par l'Association Somalilandaise de France." />
+  <meta name="twitter:image" content="https://www.aslf-france.org/images/diplomatie1.jpg" />
+  <meta name="theme-color" content="#00843D" />
+<style>/* aslf-mobile-fix v1 */
+@media (max-width: 639px){
+  .header-inner{padding:0 12px !important;gap:8px !important;height:56px !important}
+  .logo{min-width:0;flex-shrink:1 !important}
+  .logo-img{width:38px !important;height:38px !important}
+  .logo-sub{display:none !important}
+  .logo-name{font-size:17px !important}
+  .header-actions{flex-shrink:0;gap:6px !important}
+  .btn-admin{padding:6px 10px !important}
+  .hamburger{padding:6px !important}
+  .mobile-menu{top:56px !important}
+  .mobile-menu-inner{max-height:calc(100vh - 56px);overflow-y:auto}
+  .breadcrumb{margin-top:14px !important}
+  .page-content{margin-top:18px !important;padding:0 12px 32px !important}
+  /* Sidebars admin : empêcher overflow horizontal */
+  .sidebar,.admin-sidebar{width:100% !important;position:relative !important;height:auto !important}
+}
+@media (max-width: 767px) and (min-width: 640px){
+  .logo-sub{font-size:9px !important}
+}
+</style>
+  <script src="assets/site.js?v=1" defer></script>
+</head>
+<body>
+
+  <div class="flag-stripe"><span class="s-green"></span><span class="s-white"></span><span class="s-red"></span></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <img decoding="async" class="logo-img" src="images/logo-aslf-128.webp?v=3" alt="Logo ASLF" />
+        <div>
+          <div class="logo-name">ASLF</div>
+          <div class="logo-sub">Association Somalilandaise de France</div>
+        </div>
+      </a>
+      <nav class="nav-desktop">
+        <a href="index.html">Accueil</a>
+        <a href="news.html">News</a>
+        <a href="diplomatie.html">Diplomatie</a>
+        <div class="nav-item-drop">
+          <div class="nav-drop-trigger">L'association
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div class="nav-dropdown">
+            <a href="qui-sommes-nous.html">Qui sommes-nous ?</a>
+            <a href="notre-but.html">Notre but</a>
+            <a href="actions-realisees.html">Actions réalisées</a>
+            <div class="drop-sep"></div>
+            <a href="bulletin-adhesion.html">Bulletin d'adhésion</a>
+            <a href="appel-cotisation.html">Appel à cotisation</a>
+            <div class="drop-sep"></div>
+            <a href="en-images.html">En images</a>
+          </div>
+        </div>
+        <div class="nav-item-drop">
+          <div class="nav-drop-trigger">Médias
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div class="nav-dropdown">
+            <a href="radios.html">Radios</a>
+            <a href="videos.html">Vidéos</a>
+          </div>
+        </div>
+        <a href="liens-utiles.html">Liens utiles</a>
+        <a href="connaitre-somaliland.html">Connaître le Somaliland</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a href="admin/" class="btn-admin" title="Admin" aria-label="Admin">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb">
+    <a href="index.html">Accueil</a>
+    <span>›</span>
+    <a href="news.html">News</a>
+    <span>›</span>
+    <span id="bc-title">Article</span>
+  </div>
+
+  <!-- Empty state quand pas d'article -->
+  <div id="article-empty" class="article-wrap" style="display:none;text-align:center;padding:80px 20px;">
+    <div style="font-size:64px;margin-bottom:16px;">📰</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:28px;color:var(--green-dark);margin-bottom:12px;">Article introuvable</h1>
+    <p style="color:var(--gray-600);margin-bottom:24px;max-width:480px;margin-left:auto;margin-right:auto;">
+      Cet article n'existe pas ou n'a pas encore été publié.
+    </p>
+    <a href="news.html" style="display:inline-block;padding:10px 20px;background:var(--green);color:#fff;border-radius:8px;font-weight:600;text-decoration:none;">← Retour aux actualités</a>
+  </div>
+
+  <!-- ARTICLE (rempli dynamiquement, masqué par défaut) -->
+  <div class="article-wrap" id="article-wrap" style="display:none;">
+    <div class="article-header">
+      <span class="article-cat" id="art-cat">Article</span>
+      <h1 class="article-title" id="art-title">Sans titre</h1>
+      <p class="article-intro" id="art-intro"></p>
+      <div class="article-meta">
+        <div class="author">
+          <div class="author-avatar" id="art-author-avatar">A</div>
+          <div>
+            <div class="author-name" id="art-author-name">Rédaction ASLF</div>
+            <div style="font-size:11px;color:var(--gray-400);">Association Somalilandaise de France</div>
+          </div>
+        </div>
+        <span class="meta-dot"></span>
+        <span id="art-date">📅 —</span>
+        <span class="meta-dot"></span>
+        <span id="art-readtime">⏱ — min</span>
+        <span class="meta-dot"></span>
+        <span id="art-views">👁 0 vue</span>
+      </div>
+    </div>
+
+    <!-- Share -->
+    <div class="share-bar">
+      <span class="share-label">Partager</span>
+      <button class="share-btn share-fb" onclick="shareOn('facebook')">📘 Facebook</button>
+      <button class="share-btn share-tw" onclick="shareOn('twitter')">🐦 Twitter</button>
+      <button class="share-btn share-wa" onclick="shareOn('whatsapp')">💬 WhatsApp</button>
+      <button class="share-btn share-cp" onclick="copyArticleLink(this)">🔗 Copier</button>
+    </div>
+
+    <!-- Hero image -->
+    <img decoding="async" class="article-hero-img" id="art-hero-img" src="" alt="" style="display:none;" />
+    <p class="img-caption" id="art-hero-caption" style="display:none;"></p>
+
+    <!-- Body -->
+    <div class="article-body" id="art-body"></div>
+
+    <!-- Tags (remplies dynamiquement) -->
+    <div class="tags" style="display:none;"></div>
+
+    <!-- Related (rempli dynamiquement, masqué si aucun) -->
+    <div class="related" style="display:none;">
+      <h3 class="related-title">Articles liés</h3>
+      <div class="related-grid"></div>
+    </div>
+  </div>
+
+  <div class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+  <footer>
+    <div class="flag-stripe" style="max-width:200px;margin:0 auto 12px;height:3px;"></div>
+    © 2026 <a href="index.html">Association Somalilandaise de France (ASLF)</a> · Tous droits réservés
+  </footer>
+</body>
+</html>

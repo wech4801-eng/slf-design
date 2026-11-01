@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Articles · Espace de gestion ASLF</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+</head>
+<body data-page="articles">
+  <main class="page" id="main">
+    <div class="page-head">
+      <div>
+        <h1>Les articles</h1>
+        <p>Tout ce qui est publié sur le site de l’association. Cliquez sur un titre pour le modifier.</p>
+      </div>
+      <a class="btn btn-primary btn-big" href="/admin/article.html">
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#pen-line"></use></svg>
+        Écrire un nouvel article
+      </a>
+    </div>
+
+    <div class="notice notice-info" id="help" hidden>
+      <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#info"></use></svg>
+      <div>
+        <strong>Publier un article, en 3 étapes</strong>
+        <ol class="steps-help">
+          <li>Cliquez sur le bouton vert « Écrire un nouvel article ».</li>
+          <li>Remplissez les cases dans l’ordre : le titre, un court résumé, une photo, puis le texte.</li>
+          <li>Cliquez sur « Publier sur le site ». C’est tout&nbsp;! Vous pourrez toujours le modifier ensuite.</li>
+        </ol>
+        <div class="actions"><button class="btn btn-secondary" type="button" id="help-close">J’ai compris</button></div>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Filtrer les articles">
+      <button role="tab" aria-selected="true" data-tab="tous">Tous<span class="count" data-count="tous"></span></button>
+      <button role="tab" aria-selected="false" data-tab="enligne">En ligne<span class="count" data-count="enligne"></span></button>
+      <button role="tab" aria-selected="false" data-tab="attente">Pas encore publiés<span class="count" data-count="attente"></span></button>
+      <button role="tab" aria-selected="false" data-tab="corbeille">Corbeille<span class="count" data-count="corbeille"></span></button>
+    </div>
+    <div class="toolbar-row">
+      <label class="search">
+        <span class="sr-only">Chercher un article</span>
+        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#search"></use></svg>
+        <input class="input" type="search" id="q" placeholder="Chercher un article par son titre…" autocomplete="off">
+      </label>
+    </div>
+    <p class="hint" id="trash-hint" hidden>Les articles de la corbeille ne sont plus visibles sur le site. Ils sont effacés automatiquement au bout de 30 jours.</p>
+
+    <ul class="rows" id="list" aria-live="polite">
+      <li class="skeleton"></li><li class="skeleton"></li><li class="skeleton"></li>
+    </ul>
+  </main>
+
+  <script src="/admin/admin.js?v=1"></script>
+  <script>
+    (function () {
+      const { api, toast, dialog, icon, esc, frDate, $, $$ } = window.ASLF;
+      let all = [];
+      let tab = 'tous';
+      const list = $('#list');
+      const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+
+      // Aide affichée tant qu'elle n'a pas été fermée
+      try { if (!localStorage.getItem('aslf_aide_vue')) $('#help').hidden = false; } catch {}
+      $('#help-close').addEventListener('click', () => {
+        $('#help').hidden = true;
+        try { localStorage.setItem('aslf_aide_vue', '1'); } catch {}
+      });
+
+      function status(a) {
+        if (a.deletedAt) return '<span class="pill pill-trash">Dans la corbeille</span>';
+        if (a.isPublic) return '<span class="pill pill-online">En ligne</span>';
+        if (a.status === 'planifié') return `<span class="pill pill-scheduled">Sera publié ${esc(frDate(a.publishAt, true))}</span>`;
+        return '<span class="pill pill-draft">Brouillon, pas visible</span>';
+      }
+
+      function matches(a) {
+        if (tab === 'corbeille') return !!a.deletedAt;
+        if (a.deletedAt) return false;
+        if (tab === 'enligne') return a.isPublic;
+        if (tab === 'attente') return !a.isPublic;
+        return true;
+      }
+
+      function row(a) {
+        const edit = `/admin/article.html?id=${encodeURIComponent(a.id)}`;
+        const thumb = a.coverThumb
+          ? `<img class="row-thumb" src="${esc(a.coverThumb)}" alt="" loading="lazy" decoding="async">`
+          : `<div class="row-thumb empty">${icon('image')}</div>`;
+        const views = a.views ? `<span>${a.views.toLocaleString('fr-FR')} lecture${a.views > 1 ? 's' : ''}</span>` : '';
+        const actions = a.deletedAt
+          ? `<button class="btn btn-ghost" data-restore="${esc(a.id)}">${icon('archive-restore')}Remettre</button>
+             <button class="btn btn-ghost danger" data-destroy="${esc(a.id)}">${icon('trash')}Effacer pour toujours</button>`
+          : `<a class="btn btn-ghost" href="${edit}">${icon('file-pen')}Modifier</a>
+             ${a.isPublic ? `<a class="btn btn-ghost" href="/article.html?id=${encodeURIComponent(a.slug)}" target="_blank" rel="noopener">${icon('eye')}Voir</a>` : ''}
+             <button class="btn btn-ghost danger" data-trash="${esc(a.id)}">${icon('trash')}Supprimer</button>`;
+        return `<li class="row">
+          ${thumb}
+          <div>
+            ${a.deletedAt ? `<span class="row-title">${esc(a.title)}</span>` : `<a class="row-title" href="${edit}">${esc(a.title)}</a>`}
+            <div class="row-meta">${status(a)}<span>${esc(a.sectionLabel)}</span><span>modifié ${esc(frDate(a.updatedAt))}</span>${views}</div>
+          </div>
+          <div class="row-actions">${actions}</div>
+        </li>`;
+      }
+
+      function render() {
+        const q = norm($('#q').value.trim());
+        const shown = all.filter(matches).filter((a) => !q || norm(a.title).includes(q) || norm(a.chapeau).includes(q));
+        const counts = {
+          tous: all.filter((a) => !a.deletedAt).length,
+          enligne: all.filter((a) => !a.deletedAt && a.isPublic).length,
+          attente: all.filter((a) => !a.deletedAt && !a.isPublic).length,
+          corbeille: all.filter((a) => a.deletedAt).length,
+        };
+        for (const [k, n] of Object.entries(counts)) $(`[data-count="${k}"]`).textContent = ` (${n})`;
+        $('#trash-hint').hidden = tab !== 'corbeille';
+
+        if (!shown.length) {
+          let msg = '<h2>Aucun article ici</h2><p>Commencez par écrire votre premier article.</p><a class="btn btn-primary" href="/admin/article.html">Écrire un article</a>';
+          if (q) msg = `<h2>Aucun résultat</h2><p>Aucun article ne contient « ${esc($('#q').value)} ».</p>`;
+          else if (tab === 'corbeille') msg = '<h2>La corbeille est vide</h2><p>Les articles supprimés apparaîtront ici pendant 30 jours.</p>';
+          else if (tab === 'attente') msg = '<h2>Aucun brouillon</h2><p>Tous vos articles sont en ligne.</p>';
+          list.innerHTML = `<li class="empty-state">${icon('file-text')}${msg}</li>`;
+          return;
+        }
+        list.innerHTML = shown.map(row).join('');
+      }
+
+      async function load() {
+        try {
+          all = await api('GET', '/api/admin/articles');
+          render();
+        } catch (e) {
+          list.innerHTML = `<li class="notice notice-error">${icon('triangle-alert')}<div><strong>Impossible d’afficher les articles</strong>${esc(e.message)}<div class="actions"><button class="btn btn-secondary" type="button" data-reload>Réessayer</button></div></div></li>`;
+        }
+      }
+
+      $$('[data-tab]').forEach((b) => b.addEventListener('click', () => {
+        tab = b.dataset.tab;
+        $$('[data-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+        render();
+      }));
+      $('#q').addEventListener('input', render);
+
+      list.addEventListener('click', async (e) => {
+        if (e.target.closest('[data-reload]')) return load();
+        const btn = e.target.closest('[data-trash],[data-restore],[data-destroy]');
+        if (!btn) return;
+        const id = btn.dataset.trash || btn.dataset.restore || btn.dataset.destroy;
+        const a = all.find((x) => x.id === id);
+        try {
+          if (btn.dataset.trash) {
+            const ok = await dialog({
+              title: 'Supprimer cet article ?',
+              text: `« ${a.title} » sera retiré du site et placé dans la corbeille. Vous pourrez le remettre pendant 30 jours.`,
+              ok: 'Oui, supprimer', danger: true,
+            });
+            if (!ok) return;
+            await api('DELETE', `/api/admin/articles/${encodeURIComponent(id)}`);
+            toast('Article placé dans la corbeille.');
+          } else if (btn.dataset.restore) {
+            await api('POST', `/api/admin/articles/${encodeURIComponent(id)}/restaurer`);
+            toast(a.status === 'publié' ? 'Article remis en ligne.' : 'Article remis dans vos brouillons.');
+          } else {
+            const ok = await dialog({
+              title: 'Effacer pour toujours ?',
+              text: `« ${a.title} » sera effacé définitivement. Cette action ne peut pas être annulée.`,
+              ok: 'Effacer définitivement', danger: true,
+            });
+            if (!ok) return;
+            await api('DELETE', `/api/admin/articles/${encodeURIComponent(id)}?definitif=1`);
+            toast('Article effacé.');
+          }
+          await load();
+        } catch (ex) { toast(ex.message, 'error'); }
+      });
+
+      const wanted = new URLSearchParams(location.search).get('onglet');
+      const wantedTab = wanted && $(`[data-tab="${wanted}"]`);
+      if (wantedTab) wantedTab.click();
+      load();
+    })();
+  </script>
+</body>
+</html>
