@@ -1,7 +1,7 @@
 /* ASLF — Espace de gestion
    Carnet de l'association : papier chaud, encre, vert ASLF pour agir, rouge pour supprimer.
    Un seul arrondi (6px), des filets plutôt que des boîtes, ombres réservées à ce qui flotte. */
-@import url('/assets/fonts.css');
+@import url('../assets/fonts.css');
 
 :root {
   --paper: #f3f6f4;

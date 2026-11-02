@@ -5,7 +5,13 @@
 (function () {
   'use strict';
 
-  const ICONS = '/admin/icons.svg';
+  const ICONS = 'icons.svg';
+  // Hébergement sans serveur (GitHub Pages) : les données passent par Supabase
+  const DB = window.SLFSupabase && window.SLFSupabase.ACTIVE ? window.SLFSupabase : null;
+  const BASE = DB ? DB.BASE : '';
+  /** Adresse affichable d'une image du site (« /images/… » → sous-dossier GitHub si besoin). */
+  const src = (u) => (u && u.startsWith('/') && !u.startsWith('//') ? BASE + u : u || '');
+  const herePage = () => (location.pathname.split('/').pop() || '') + location.search;
   const icon = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="${ICONS}#${name}"></use></svg>`;
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -14,11 +20,11 @@
 
   // ── En-tête, menu et barre du bas ─────────────────────────────────────────
   const NAV = [
-    { key: 'articles', href: '/admin/', label: 'Articles', icon: 'file-text' },
-    { key: 'messages', href: '/admin/messages.html', label: 'Messages', icon: 'mail' },
-    { key: 'membres', href: '/admin/membres.html', label: 'Membres', icon: 'users' },
-    { key: 'photos', href: '/admin/photos.html', label: 'Photos', icon: 'image' },
-    { key: 'reglages', href: '/admin/reglages.html', label: 'Réglages', icon: 'settings' },
+    { key: 'articles', href: './', label: 'Articles', icon: 'file-text' },
+    { key: 'messages', href: 'messages.html', label: 'Messages', icon: 'mail' },
+    { key: 'membres', href: 'membres.html', label: 'Membres', icon: 'users' },
+    { key: 'photos', href: 'photos.html', label: 'Photos', icon: 'image' },
+    { key: 'reglages', href: 'reglages.html', label: 'Réglages', icon: 'settings' },
   ];
 
   function renderChrome() {
@@ -30,13 +36,13 @@
     header.innerHTML = `
       <div class="flag" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="top-inner">
-        <a class="brand" href="/admin/">
-          <img src="/images/logo-aslf-128.webp" alt="" width="44" height="44">
+        <a class="brand" href="./">
+          <img src="../images/logo-aslf-128.webp" alt="" width="44" height="44">
           <span><strong>ASLF</strong><small>Espace de gestion du site</small></span>
         </a>
         <nav class="nav" aria-label="Menu principal">${links}</nav>
         <div class="top-actions">
-          <a class="link-btn" href="/" target="_blank" rel="noopener">${icon('external-link')}<span>Voir le site</span></a>
+          <a class="link-btn" href="../" target="_blank" rel="noopener">${icon('external-link')}<span>Voir le site</span></a>
           <button class="link-btn hide-sm" type="button" data-logout>${icon('log-out')}<span>Se déconnecter</span></button>
         </div>
       </div>`;
@@ -54,7 +60,7 @@
   async function refreshUnread() {
     let n = 0;
     try { n = (await api('GET', '/api/admin/messages')).filter((m) => !m.lu).length; } catch { return; }
-    document.querySelectorAll('a[href="/admin/messages.html"]').forEach((a) => {
+    document.querySelectorAll('a[href="messages.html"]').forEach((a) => {
       let b = a.querySelector('.badge');
       if (!n) { if (b) b.remove(); return; }
       if (!b) { b = document.createElement('span'); b.className = 'badge'; a.append(b); }
@@ -65,13 +71,22 @@
 
   async function logout() {
     try { await api('POST', '/api/logout'); } catch {}
-    location.href = '/admin/connexion.html';
+    location.href = 'connexion.html';
   }
 
   // ── Appels au serveur ─────────────────────────────────────────────────────
   class ApiError extends Error {}
 
   async function api(method, url, body, opts = {}) {
+    if (DB) {
+      try { return await DB.api(method, url, body); }
+      catch (e) {
+        if (e.status === 401 && !url.endsWith('/api/login')) {
+          location.href = 'connexion.html?suite=' + encodeURIComponent(herePage());
+        }
+        throw new ApiError(e.message || 'Une erreur est survenue. Réessayez dans un instant.');
+      }
+    }
     const headers = { 'X-Requested-With': 'ASLF' };
     let payload = body;
     if (body !== undefined && !(body instanceof Blob)) {
@@ -91,7 +106,7 @@
     if (res.status === 401 && !url.endsWith('/api/login')) {
       if (opts.onExpired) opts.onExpired();
       // Session expirée : on revient sur cette page après la reconnexion
-      location.href = '/admin/connexion.html?suite=' + encodeURIComponent(location.pathname + location.search);
+      location.href = 'connexion.html?suite=' + encodeURIComponent(herePage());
       throw new ApiError('Votre session a expiré : reconnectez-vous.');
     }
     if (!res.ok) throw new ApiError((data && data.error) || 'Une erreur est survenue. Réessayez dans un instant.');
@@ -277,7 +292,16 @@
     return `${(n / 1073741824).toFixed(1).replace('.', ',')} Go`;
   }
 
-  window.ASLF = { refreshUnread, api, ApiError, toast, dialog, icon, esc, $, $$, frDate, uploadPhoto, pickFiles, checkImageFile, setBusy, formatBytes, logout };
+  window.ASLF = { src, DB, refreshUnread, api, ApiError, toast, dialog, icon, esc, $, $$, frDate, uploadPhoto, pickFiles, checkImageFile, setBusy, formatBytes, logout };
+
+  // Sans serveur, la protection des pages se fait ici : pas de session, retour à la connexion
+  (async () => {
+    if (!DB) return;
+    const connected = !!(await DB.token());
+    const onLogin = /connexion[.]html$/.test(location.pathname);
+    if (onLogin && connected) location.replace('./');
+    else if (!onLogin && !connected) location.replace('connexion.html?suite=' + encodeURIComponent(herePage()));
+  })();
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderChrome);
   else renderChrome();

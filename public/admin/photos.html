@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Photos · Espace de gestion ASLF</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="admin.css?v=1">
 </head>
 <body data-page="photos">
   <main class="page">
@@ -17,7 +17,7 @@
         <p>Toutes les photos envoyées sur le site. Pour ajouter une photo à un article, passez plutôt par l’article lui-même.</p>
       </div>
       <button class="btn btn-secondary btn-big" type="button" id="add">
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#upload"></use></svg>Envoyer des photos
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#upload"></use></svg>Envoyer des photos
       </button>
     </div>
     <div class="tabs" role="tablist" aria-label="Filtrer les photos">
@@ -28,10 +28,12 @@
     <div class="photo-grid" id="grid" aria-live="polite"></div>
   </main>
 
-  <script src="/admin/admin.js?v=1"></script>
+  <script src="../assets/supabase.js?v=1"></script>
+
+  <script src="admin.js?v=1"></script>
   <script>
     (function () {
-      const { api, toast, dialog, icon, esc, frDate, formatBytes, uploadPhoto, pickFiles, setBusy, $, $$ } = window.ASLF;
+      const { api, toast, dialog, icon, esc, frDate, formatBytes, uploadPhoto, pickFiles, setBusy, src, $, $$ } = window.ASLF;
       let photos = [];
       let tab = 'toutes';
 
@@ -48,10 +50,10 @@
         }
         $('#grid').innerHTML = list.map((p) => {
           const used = p.usedBy.length
-            ? 'Dans : ' + p.usedBy.map((a) => `<a href="/admin/article.html?id=${encodeURIComponent(a.id)}">${esc(a.title)}</a>${a.deleted ? ' (corbeille)' : ''}`).join(', ')
+            ? 'Dans : ' + p.usedBy.map((a) => `<a href="article.html?id=${encodeURIComponent(a.id)}">${esc(a.title)}</a>${a.deleted ? ' (corbeille)' : ''}`).join(', ')
             : '<strong>Pas utilisée</strong>';
           return `<figure>
-            <a href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="" loading="lazy" decoding="async"></a>
+            <a href="${esc(src(p.url))}" target="_blank" rel="noopener"><img src="${esc(src(p.url))}" alt="" loading="lazy" decoding="async"></a>
             <figcaption>${used}<br>Envoyée ${esc(frDate(p.date))} · ${formatBytes(p.size)}</figcaption>
             ${p.usedBy.length ? '' : `<button class="btn btn-ghost danger" type="button" data-del="${esc(p.url)}">${icon('trash')}Supprimer</button>`}
           </figure>`;

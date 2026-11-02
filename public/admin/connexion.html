@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Connexion · Espace de gestion ASLF</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="admin.css?v=1">
 </head>
 <body class="login" data-page="connexion">
   <div class="flag" aria-hidden="true"><span></span><span></span><span></span></div>
   <main>
     <div class="login-box">
-      <a class="brand" href="/">
-        <img src="/images/logo-aslf-128.webp" alt="" width="64" height="64">
+      <a class="brand" href="../">
+        <img src="../images/logo-aslf-128.webp" alt="" width="64" height="64">
         <span><strong>ASLF</strong><small>Association Somalilandaise de France</small></span>
       </a>
       <h1>Bonjour&nbsp;!</h1>
@@ -22,7 +22,7 @@
 
       <form id="form" novalidate>
         <div class="notice notice-error" id="error" role="alert" hidden>
-          <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#triangle-alert"></use></svg>
+          <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#triangle-alert"></use></svg>
           <div id="error-text"></div>
         </div>
         <div class="field">
@@ -30,7 +30,7 @@
           <div class="pw-wrap">
             <input class="input" id="password" name="password" type="password" autocomplete="current-password" required autofocus aria-describedby="pw-hint">
             <button class="btn btn-ghost" type="button" id="toggle" aria-controls="password" aria-pressed="false">
-              <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#eye"></use></svg><span>Afficher</span>
+              <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#eye"></use></svg><span>Afficher</span>
             </button>
           </div>
           <small class="hint" id="pw-hint">Attention aux majuscules. Vous resterez connecté sur cet appareil pendant 30 jours.</small>
@@ -39,9 +39,11 @@
       </form>
     </div>
   </main>
-  <p class="login-foot">Mot de passe oublié&nbsp;? Demandez-le à la personne qui s’occupe du site.<br><a href="/">Retour au site de l’association</a></p>
+  <p class="login-foot">Mot de passe oublié&nbsp;? Demandez-le à la personne qui s’occupe du site.<br><a href="../">Retour au site de l’association</a></p>
 
-  <script src="/admin/admin.js?v=1"></script>
+  <script src="../assets/supabase.js?v=1"></script>
+
+  <script src="admin.js?v=1"></script>
   <script>
     (function () {
       const { api, setBusy } = window.ASLF;
@@ -55,7 +57,7 @@
         pw.type = show ? 'text' : 'password';
         toggle.setAttribute('aria-pressed', String(show));
         toggle.querySelector('span').textContent = show ? 'Masquer' : 'Afficher';
-        toggle.querySelector('use').setAttribute('href', '/admin/icons.svg?v=1#' + (show ? 'eye-off' : 'eye'));
+        toggle.querySelector('use').setAttribute('href', 'icons.svg?v=1#' + (show ? 'eye-off' : 'eye'));
         pw.focus();
       });
 
@@ -74,8 +76,8 @@
         try {
           await api('POST', '/api/login', { password: pw.value });
           const next = new URLSearchParams(location.search).get('suite') || '';
-          // Retour uniquement vers une page de l'administration
-          location.href = /^\/admin\/[\w\-./?=&%]*$/.test(next) && !next.startsWith('/admin/connexion') ? next : '/admin/';
+          // Retour uniquement vers une page de l'administration (nom de page simple, sans chemin)
+          location.href = /^[\w-]+\.html(\?[\w\-=&%.]*)?$/.test(next) && !next.startsWith('connexion') ? next : './';
         } catch (ex) {
           setBusy(btn, false);
           showError(ex.message);

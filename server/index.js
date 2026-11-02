@@ -300,7 +300,8 @@ function servePage(req, res, entry, rel, query, admin) {
 
 async function notFound(req, res) {
   const entry = await loadFile(path.join(env.PUBLIC_DIR, '404.html'));
-  if (entry && entry.raw) return sendHtml(req, res, 404, versionAssets(entry.raw.toString('utf8'), '/404.html'), 'no-cache');
+  // <base> : les chemins relatifs de la page d'erreur fonctionnent quelle que soit l'adresse demandée
+  if (entry && entry.raw) return sendHtml(req, res, 404, versionAssets(entry.raw.toString('utf8'), '/404.html').replace('<head>', '<head><base href="/">'), 'no-cache');
   return sendText(req, res, 404, 'Page introuvable');
 }
 
@@ -580,7 +581,7 @@ async function handle(req, res) {
     if (rel === '/admin/connexion.html') {
       if (admin) return redirect(res, '/admin/');
     } else if (!admin) {
-      return redirect(res, '/admin/connexion.html?suite=' + encodeURIComponent(pathname + url.search));
+      return redirect(res, '/admin/connexion.html?suite=' + encodeURIComponent(path.posix.basename(rel) + url.search));
     }
     return sendHtml(req, res, 200, versionAssets(entry.raw.toString('utf8'), rel), 'no-store');
   }

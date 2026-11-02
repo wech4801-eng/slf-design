@@ -5,7 +5,7 @@
  */
 (function () {
   'use strict';
-  const { api, toast, dialog, icon, esc, frDate, uploadPhoto, pickFiles, setBusy, $ } = window.ASLF;
+  const { api, toast, dialog, icon, esc, frDate, uploadPhoto, pickFiles, setBusy, src, $ } = window.ASLF;
   const CFG = window.SLFConfig;
   const SAN = window.SLFSanitize;
 
@@ -116,7 +116,7 @@
     const has = !!state.coverImage;
     $('#cover-drop').hidden = has;
     $('#cover-preview').hidden = !has;
-    if (has) $('#cover-img').src = state.coverImage;
+    if (has) $('#cover-img').src = src(state.coverImage);
   }
 
   async function setCover(file) {
@@ -295,7 +295,7 @@
   // ── 6. Galerie et vidéos ──────────────────────────────────────────────────
   function renderGallery() {
     $('#gallery').innerHTML = state.gallery.map((u, i) => `
-      <figure><img src="${esc(u)}" alt="" loading="lazy">
+      <figure><img src="${esc(src(u))}" alt="" loading="lazy">
         <button type="button" data-remove-photo="${i}" aria-label="Retirer la photo ${i + 1}">${icon('x')}</button></figure>`).join('');
     $('#gallery-count').textContent = state.gallery.length ? `(${state.gallery.length})` : '';
   }
@@ -354,7 +354,7 @@
 
   function slugHint() {
     const s = el.slug.value.trim() || slugify(el.title.value);
-    $('#slug-hint').textContent = s ? `L’article sera à l’adresse : ${location.origin}/article.html?id=${s}` : '';
+    $('#slug-hint').textContent = s ? `L’article sera à l’adresse : ${new URL('../article.html?id=' + s, location.href).href}` : '';
   }
   el.slug.addEventListener('input', slugHint);
 
@@ -490,7 +490,7 @@
       server = res;
       id = res.id;
       clearLocal(previousKey);
-      history.replaceState(null, '', `/admin/article.html?id=${encodeURIComponent(id)}`);
+      history.replaceState(null, '', `article.html?id=${encodeURIComponent(id)}`);
       el.slug.value = res.slug;
       savedSnapshot = snapshot();
       clearLocal();
@@ -519,7 +519,7 @@
       $('#done-text').textContent = `Votre article sera publié automatiquement ${frDate(a.publishAt, true)}.`;
       $('#done-view').hidden = true;
     }
-    $('#done-view').href = `/article.html?id=${encodeURIComponent(a.slug)}`;
+    $('#done-view').href = `../article.html?id=${encodeURIComponent(a.slug)}`;
     window.scrollTo(0, 0);
     $('#done-box').focus();
   }
@@ -551,7 +551,7 @@
     };
     try { localStorage.setItem('aslf_apercu', JSON.stringify(preview)); }
     catch { toast('Impossible d’afficher l’aperçu sur cet appareil.', 'error'); return; }
-    window.open('/article.html?apercu=1', '_blank');
+    window.open('../article.html?apercu=1', '_blank');
   });
 
   window.addEventListener('beforeunload', (e) => {

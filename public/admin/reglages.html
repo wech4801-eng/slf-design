@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Réglages · Espace de gestion ASLF</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="admin.css?v=1">
 </head>
 <body data-page="reglages">
   <main class="page page-narrow">
@@ -20,10 +20,10 @@
 
     <section class="section" aria-labelledby="h-backup">
       <h2 id="h-backup">Sauvegarde</h2>
-      <p class="lead">Le site fait tout seul une copie de sécurité chaque jour et garde les 30 derniers jours. Vous pouvez aussi télécharger une copie complète (articles, membres et photos) pour la garder sur votre ordinateur ou une clé USB.</p>
+      <p class="lead" id="backup-lead">Le site fait tout seul une copie de sécurité chaque jour et garde les 30 derniers jours. Vous pouvez aussi télécharger une copie complète (articles, membres et photos) pour la garder sur votre ordinateur ou une clé USB.</p>
       <p id="last-backup" class="hint" style="margin-bottom:16px"></p>
       <a class="btn btn-primary" href="/api/admin/sauvegarde" download id="backup">
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#download"></use></svg>Télécharger une sauvegarde complète
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#download"></use></svg>Télécharger une sauvegarde complète
       </a>
       <p class="hint">Conseil : faites-le une fois par mois. Le fichier peut prendre un peu de temps s’il y a beaucoup de photos.</p>
     </section>
@@ -32,7 +32,7 @@
       <h2 id="h-pw">Changer le mot de passe</h2>
       <p class="lead">Après le changement, les autres appareils connectés devront se reconnecter avec le nouveau mot de passe.</p>
       <form id="pw-form" novalidate style="max-width:460px">
-        <div class="notice notice-error" id="pw-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#triangle-alert"></use></svg><div id="pw-error-text"></div></div>
+        <div class="notice notice-error" id="pw-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#triangle-alert"></use></svg><div id="pw-error-text"></div></div>
         <label class="field"><span>Mot de passe actuel</span><input class="input pw" type="password" name="current" autocomplete="current-password" required></label>
         <label class="field"><span>Nouveau mot de passe</span><input class="input pw" type="password" name="next" autocomplete="new-password" minlength="10" required>
           <small class="hint">Au moins 10 caractères. Une petite phrase facile à retenir fonctionne très bien, par exemple « Hargeisa-Lyon-2026 ».</small></label>
@@ -56,14 +56,16 @@
         <li><strong>Vous avez fermé la page sans enregistrer&nbsp;?</strong> Rouvrez l’article : l’éditeur vous proposera de reprendre votre texte.</li>
         <li><strong>Le site ne répond plus&nbsp;?</strong> Attendez une minute : il redémarre tout seul. Si le problème continue, prévenez le responsable technique.</li>
       </ol>
-      <p style="margin-top:20px"><button class="btn btn-secondary" type="button" id="logout"><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#log-out"></use></svg>Se déconnecter de cet appareil</button></p>
+      <p style="margin-top:20px"><button class="btn btn-secondary" type="button" id="logout"><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#log-out"></use></svg>Se déconnecter de cet appareil</button></p>
     </section>
   </main>
 
-  <script src="/admin/admin.js?v=1"></script>
+  <script src="../assets/supabase.js?v=1"></script>
+
+  <script src="admin.js?v=1"></script>
   <script>
     (function () {
-      const { api, toast, esc, frDate, formatBytes, setBusy, logout, $ } = window.ASLF;
+      const { api, toast, esc, frDate, formatBytes, setBusy, logout, DB, $ } = window.ASLF;
       const form = $('#pw-form');
 
       $('#show-pw').addEventListener('change', (e) => {
@@ -89,12 +91,29 @@
         finally { setBusy(btn, false); }
       });
 
-      $('#backup').addEventListener('click', () => toast('La sauvegarde se prépare, le téléchargement va commencer…'));
+      $('#backup').addEventListener('click', async (e) => {
+        toast('La sauvegarde se prépare, le téléchargement va commencer…');
+        if (!DB) return;
+        // Sans serveur : la sauvegarde (articles, membres, messages) est créée dans le navigateur
+        e.preventDefault();
+        try {
+          const blob = await api('GET', '/api/admin/sauvegarde');
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'sauvegarde-aslf-' + new Date().toISOString().slice(0, 10) + '.json';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        } catch (ex) { toast(ex.message, 'error'); }
+      });
 
       (async () => {
         try {
           const s = await api('GET', '/api/admin/etat');
-          $('#last-backup').textContent = s.derniereSauvegarde
+          if (DB) {
+            $('#backup-lead').textContent = 'Les articles, les membres et les messages sont enregistrés dans une base de données en ligne. Par sécurité, téléchargez une sauvegarde une fois par mois et gardez-la sur votre ordinateur ou une clé USB.';
+            $('#backup').lastChild.textContent = 'Télécharger une sauvegarde';
+          }
+          $('#last-backup').textContent = DB ? '' : s.derniereSauvegarde
             ? `Dernière sauvegarde automatique : ${frDate(s.derniereSauvegarde)}.`
             : 'Aucune sauvegarde automatique pour l’instant.';
           const facts = [
