@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Membres · Espace de gestion ASLF</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="admin.css?v=1">
 </head>
 <body data-page="membres">
   <main class="page">
@@ -17,14 +17,14 @@
         <p>La liste des adhérents de l’association. Elle n’est jamais visible sur le site public.</p>
       </div>
       <button class="btn btn-primary btn-big" type="button" id="add">
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#plus"></use></svg>Ajouter un membre
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#plus"></use></svg>Ajouter un membre
       </button>
     </div>
 
     <div class="toolbar-row">
       <label class="search">
         <span class="sr-only">Chercher un membre</span>
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#search"></use></svg>
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#search"></use></svg>
         <input class="input" type="search" id="q" placeholder="Chercher par nom, ville, e-mail…" autocomplete="off">
       </label>
       <label class="sr-only" for="filter">Cotisation</label>
@@ -34,7 +34,7 @@
         <option value="En retard">Cotisation en retard</option>
       </select>
       <button class="btn btn-secondary" type="button" id="export">
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#download"></use></svg>Télécharger la liste (Excel)
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#download"></use></svg>Télécharger la liste (Excel)
       </button>
     </div>
     <p class="hint" id="summary" aria-live="polite"></p>
@@ -49,7 +49,7 @@
     <form id="form" method="dialog" novalidate>
       <div class="dlg-body">
         <h2 id="dlg-title">Ajouter un membre</h2>
-        <div class="notice notice-error" id="form-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#triangle-alert"></use></svg><div id="form-error-text"></div></div>
+        <div class="notice notice-error" id="form-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#triangle-alert"></use></svg><div id="form-error-text"></div></div>
         <div class="grid-2">
           <label class="field"><span>Prénom</span><input class="input" name="prenom" autocomplete="off" maxlength="80"></label>
           <label class="field"><span>Nom</span><input class="input" name="nom" autocomplete="off" maxlength="80"></label>
@@ -75,7 +75,9 @@
     </form>
   </dialog>
 
-  <script src="/admin/admin.js?v=1"></script>
+  <script src="../assets/supabase.js?v=1"></script>
+
+  <script src="admin.js?v=1"></script>
   <script>
     (function () {
       const { api, toast, dialog, icon, esc, frDate, setBusy, $ } = window.ASLF;

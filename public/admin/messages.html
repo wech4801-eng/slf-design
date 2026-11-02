@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Messages · Espace de gestion ASLF</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="admin.css?v=1">
   <style>
     .msg { padding: 22px 0; border-bottom: 1px solid var(--rule); }
     .msg-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin-bottom: 8px; }
@@ -33,7 +33,9 @@
     <div id="list" aria-live="polite"><div class="skeleton"></div></div>
   </main>
 
-  <script src="/admin/admin.js?v=1"></script>
+  <script src="../assets/supabase.js?v=1"></script>
+
+  <script src="admin.js?v=1"></script>
   <script>
     (function () {
       const { api, toast, dialog, icon, esc, frDate, refreshUnread, $, $$ } = window.ASLF;

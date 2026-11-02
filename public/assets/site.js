@@ -25,7 +25,11 @@
 
   // Démo sur GitHub Pages : le site vit dans un sous-dossier (/nom-du-depot/)
   const BASE = /\.github\.io$/i.test(location.hostname) ? '/' + location.pathname.split('/')[1] : '';
-  const STATIC = !!BASE || location.protocol === 'file:';
+  // Sans serveur : GitHub Pages, fichier ouvert directement, ou test local avec « ?base=supabase »
+  const STATIC = !!BASE || location.protocol === 'file:' || (() => {
+    try { return sessionStorage.getItem('aslf_base') === 'supabase' || new URLSearchParams(location.search).get('base') === 'supabase'; }
+    catch { return false; }
+  })();
   const url = (u) => (u && u.startsWith('/') && !u.startsWith('//') ? BASE + u : u || '');
   const articleUrl = (a) => 'article.html?id=' + encodeURIComponent(a.slug || a.id);
 
@@ -35,12 +39,36 @@
     try { return JSON.parse(el.textContent); } catch { return null; }
   }
 
-  // Secours pour l'hébergement statique (aucun serveur)
+  // Hébergement sans serveur (GitHub Pages) : les articles viennent de la base Supabase
+  let dbPromise = null;
+  function db() {
+    if (!dbPromise) {
+      dbPromise = new Promise((resolve, reject) => {
+        if (window.SLFSupabase) return resolve(window.SLFSupabase);
+        const s = document.createElement('script');
+        s.src = BASE + '/assets/supabase.js?v=2';
+        s.onload = () => resolve(window.SLFSupabase);
+        s.onerror = reject;
+        document.head.append(s);
+      });
+    }
+    return dbPromise;
+  }
+
   let seedPromise = null;
   function seedArticles() {
-    if (!seedPromise) {
+    if (!seedPromise && STATIC) {
+      seedPromise = db().then((d) => d.publicArticles()).catch(() => { seedPromise = null; return fileArticles(); });
+    }
+    return seedPromise || fileArticles();
+  }
+
+  // Dernier secours : le fichier d'articles livré avec le site
+  let filePromise = null;
+  function fileArticles() {
+    if (!filePromise) {
       const abs = (u) => (u ? '/' + String(u).replace(/^\/+/, '') : '');
-      seedPromise = fetch(BASE + '/seed-articles.json').then((r) => (r.ok ? r.json() : []))
+      filePromise = fetch(BASE + '/seed-articles.json').then((r) => (r.ok ? r.json() : []))
         .then((list) => list.filter((a) => a.status === 'publié').map((a) => ({
           ...a,
           slug: a.id,
@@ -52,7 +80,7 @@
         })).sort((x, y) => Date.parse(y.date) - Date.parse(x.date)))
         .catch(() => []);
     }
-    return seedPromise;
+    return filePromise;
   }
 
   const fmtDate = (iso) => {
@@ -219,6 +247,16 @@
     if (preview) {
       try { a = JSON.parse(localStorage.getItem('aslf_apercu') || 'null'); } catch { a = null; }
       if (a) a.content = (await loadSanitizer()).sanitize(a.content || '');
+    } else if (!data && params.get('id') && STATIC) {
+      const found = await db().then((d) => d.publicArticle(params.get('id'))).catch(() => undefined);
+      if (found !== undefined) {
+        a = found ? found.article : null;
+        related = found ? found.related : [];
+      } else {
+        const list = await fileArticles();
+        a = list.find((x) => x.id === params.get('id') || x.slug === params.get('id')) || null;
+        if (a) related = list.filter((x) => x.id !== a.id && x.section === a.section).slice(0, 3);
+      }
     } else if (!data && params.get('id')) {
       const list = await seedArticles();
       a = list.find((x) => x.id === params.get('id') || x.slug === params.get('id')) || null;
@@ -350,6 +388,8 @@
         ? 'Aperçu : voici à quoi ressemblera l’article. Il n’est ni enregistré ni publié. Fermez cet onglet pour revenir à l’éditeur.'
         : 'Brouillon : cet article n’est visible que par vous, car vous êtes connecté à l’espace de gestion.';
       document.body.prepend(bar);
+    } else if (STATIC && a.id) {
+      db().then((d) => d.countView(a.id)).then((n) => { if (typeof n === 'number') showViews(n); }).catch(() => {});
     } else if (!STATIC && a.id && !(data && data.admin)) {
       fetch(`/api/articles/${encodeURIComponent(a.id)}/vue`, { method: 'POST' })
         .then((r) => r.json()).then((j) => { if (j && j.views) showViews(j.views); }).catch(() => {});
@@ -390,12 +430,19 @@
     if (!v('nom') || !v('email') || !v('sujet') || !v('message')) return fail('Merci de remplir tous les champs marqués d’une étoile.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) return fail('L’adresse e-mail ne semble pas correcte.');
     if (form.elements.consent && !form.elements.consent.checked) return fail('Merci de cocher la case d’accord pour que nous puissions vous répondre.');
-    if (STATIC) return fail('Le formulaire fonctionne uniquement sur le site officiel. Écrivez-nous à somalilande.france@gmail.com.');
     const btn = form.querySelector('[type="submit"]');
     const label = btn ? btn.innerHTML : '';
     if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours…'; }
     msg.style.display = 'none';
     try {
+      if (STATIC) {
+        // Champ piège invisible : rempli uniquement par les robots
+        if (!v('site')) await (await db()).sendMessage({ nom: v('nom'), email: v('email'), telephone: v('telephone'), sujet: v('sujet'), message: v('message') });
+        form.style.display = 'none';
+        const okBox = document.getElementById('formSuccess');
+        if (okBox) { okBox.style.display = 'block'; okBox.setAttribute('tabindex', '-1'); okBox.focus(); }
+        return;
+      }
       const r = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'ASLF' },

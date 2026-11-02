@@ -29,10 +29,10 @@ jobs:
         with:
           enablement: true
 
-      - name: Préparer le contenu (site public seul, sans administration)
+      - name: Préparer le contenu (site public et administration)
         run: |
           mkdir -p _site
-          rsync -a --exclude='admin' public/ _site/
+          rsync -a public/ _site/
           touch _site/.nojekyll
 
       - name: Upload artefact

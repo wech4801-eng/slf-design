@@ -48,10 +48,16 @@ tests/                 Tests de bout en bout : `npm test`
 Les données vivent hors du code, dans `data/` en local et dans `/var/lib/aslf` sur le serveur :
 `articles.json`, `members.json`, `messages.json`, `uploads/` (photos), `backups/` (30 jours).
 
-## Démo GitHub Pages
+## Version en ligne sur GitHub Pages (avec Supabase)
 
-Chaque envoi sur `main` publie une démo statique du site public (sans administration ni
-formulaire de contact) : <https://wech4801-eng.github.io/slf-design/>.
+Chaque envoi sur `main` publie le site sur <https://wech4801-eng.github.io/slf-design/>.
+GitHub Pages ne fait tourner aucun serveur : sur cette adresse, les articles, photos, membres
+et messages sont stockés dans le projet Supabase **aslf-site** (Paris), via `public/assets/supabase.js`.
+L’espace de gestion fonctionne normalement : <https://wech4801-eng.github.io/slf-design/admin/>.
+
+- Sécurité assurée dans la base (Row Level Security) : le public lit seulement les articles publiés
+  et peut envoyer un message ; seul le compte inscrit dans la table `admins` peut écrire.
+- Sur un VPS (serveur Node), ce mode est désactivé automatiquement et l’API du serveur est utilisée.
 
 ## Licence
 

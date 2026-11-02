@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Articles · Espace de gestion ASLF</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="admin.css?v=1">
 </head>
 <body data-page="articles">
   <main class="page" id="main">
@@ -16,14 +16,14 @@
         <h1>Les articles</h1>
         <p>Tout ce qui est publié sur le site de l’association. Cliquez sur un titre pour le modifier.</p>
       </div>
-      <a class="btn btn-primary btn-big" href="/admin/article.html">
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#pen-line"></use></svg>
+      <a class="btn btn-primary btn-big" href="article.html">
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#pen-line"></use></svg>
         Écrire un nouvel article
       </a>
     </div>
 
     <div class="notice notice-info" id="help" hidden>
-      <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#info"></use></svg>
+      <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#info"></use></svg>
       <div>
         <strong>Publier un article, en 3 étapes</strong>
         <ol class="steps-help">
@@ -44,7 +44,7 @@
     <div class="toolbar-row">
       <label class="search">
         <span class="sr-only">Chercher un article</span>
-        <svg class="i" aria-hidden="true"><use href="/admin/icons.svg?v=1#search"></use></svg>
+        <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#search"></use></svg>
         <input class="input" type="search" id="q" placeholder="Chercher un article par son titre…" autocomplete="off">
       </label>
     </div>
@@ -55,10 +55,12 @@
     </ul>
   </main>
 
-  <script src="/admin/admin.js?v=1"></script>
+  <script src="../assets/supabase.js?v=1"></script>
+
+  <script src="admin.js?v=1"></script>
   <script>
     (function () {
-      const { api, toast, dialog, icon, esc, frDate, $, $$ } = window.ASLF;
+      const { api, toast, dialog, icon, esc, frDate, src, $, $$ } = window.ASLF;
       let all = [];
       let tab = 'tous';
       const list = $('#list');
@@ -87,16 +89,16 @@
       }
 
       function row(a) {
-        const edit = `/admin/article.html?id=${encodeURIComponent(a.id)}`;
+        const edit = `article.html?id=${encodeURIComponent(a.id)}`;
         const thumb = a.coverThumb
-          ? `<img class="row-thumb" src="${esc(a.coverThumb)}" alt="" loading="lazy" decoding="async">`
+          ? `<img class="row-thumb" src="${esc(src(a.coverThumb))}" alt="" loading="lazy" decoding="async">`
           : `<div class="row-thumb empty">${icon('image')}</div>`;
         const views = a.views ? `<span>${a.views.toLocaleString('fr-FR')} lecture${a.views > 1 ? 's' : ''}</span>` : '';
         const actions = a.deletedAt
           ? `<button class="btn btn-ghost" data-restore="${esc(a.id)}">${icon('archive-restore')}Remettre</button>
              <button class="btn btn-ghost danger" data-destroy="${esc(a.id)}">${icon('trash')}Effacer pour toujours</button>`
           : `<a class="btn btn-ghost" href="${edit}">${icon('file-pen')}Modifier</a>
-             ${a.isPublic ? `<a class="btn btn-ghost" href="/article.html?id=${encodeURIComponent(a.slug)}" target="_blank" rel="noopener">${icon('eye')}Voir</a>` : ''}
+             ${a.isPublic ? `<a class="btn btn-ghost" href="../article.html?id=${encodeURIComponent(a.slug)}" target="_blank" rel="noopener">${icon('eye')}Voir</a>` : ''}
              <button class="btn btn-ghost danger" data-trash="${esc(a.id)}">${icon('trash')}Supprimer</button>`;
         return `<li class="row">
           ${thumb}
@@ -121,7 +123,7 @@
         $('#trash-hint').hidden = tab !== 'corbeille';
 
         if (!shown.length) {
-          let msg = '<h2>Aucun article ici</h2><p>Commencez par écrire votre premier article.</p><a class="btn btn-primary" href="/admin/article.html">Écrire un article</a>';
+          let msg = '<h2>Aucun article ici</h2><p>Commencez par écrire votre premier article.</p><a class="btn btn-primary" href="article.html">Écrire un article</a>';
           if (q) msg = `<h2>Aucun résultat</h2><p>Aucun article ne contient « ${esc($('#q').value)} ».</p>`;
           else if (tab === 'corbeille') msg = '<h2>La corbeille est vide</h2><p>Les articles supprimés apparaîtront ici pendant 30 jours.</p>';
           else if (tab === 'attente') msg = '<h2>Aucun brouillon</h2><p>Tous vos articles sont en ligne.</p>';
