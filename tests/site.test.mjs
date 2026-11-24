@@ -196,13 +196,18 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   const savedCookie2 = cookie;
   cookie = '';
   const sent = await req('POST', '/api/contact', { body: { nom: 'Test automatique', email: 'test@example.org', sujet: 'information', message: 'Message de test automatique.' } });
-  assert.equal(sent.status, 201, JSON.stringify(sent.data));
   cookie = savedCookie2;
-  const msgs = (await req('GET', '/api/admin/messages')).data;
-  const msg = msgs.find((x) => x.nom === 'Test automatique');
-  assert.ok(msg && msg.lu === false && msg.sujetLabel === 'Demande d’information');
-  assert.equal((await req('PUT', '/api/admin/messages/' + msg.id, { body: { lu: true } })).status, 200);
-  assert.equal((await req('DELETE', '/api/admin/messages/' + msg.id)).status, 200);
+  if (sent.status === 429) {
+    // Anti-spam : 5 messages par heure et par adresse IP (tests lancés plusieurs fois de suite)
+    assert.match(sent.data.error, /plusieurs messages/);
+  } else {
+    assert.equal(sent.status, 201, JSON.stringify(sent.data));
+    const msgs = (await req('GET', '/api/admin/messages')).data;
+    const msg = msgs.find((x) => x.nom === 'Test automatique');
+    assert.ok(msg && msg.lu === false && msg.sujetLabel === 'Demande d’information');
+    assert.equal((await req('PUT', '/api/admin/messages/' + msg.id, { body: { lu: true } })).status, 200);
+    assert.equal((await req('DELETE', '/api/admin/messages/' + msg.id)).status, 200);
+  }
 
   // État, sauvegarde, mot de passe
   const etat = (await req('GET', '/api/admin/etat')).data;
