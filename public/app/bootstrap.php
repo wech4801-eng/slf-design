@@ -16,6 +16,8 @@ define('DATA_DIR', rtrim((string) (getenv('ASLF_DATA_DIR') ?: dirname(PUBLIC_DIR
 define('UPLOADS_DIR', DATA_DIR . '/uploads');
 define('BACKUPS_DIR', DATA_DIR . '/sauvegardes');
 define('DB_FILE', DATA_DIR . '/aslf.sqlite');
+// Photos et vidéos des événements (envoyées à part, trop lourdes pour l'archive du site)
+define('MEDIA_DIR', dirname(PUBLIC_DIR) . '/medias');
 // Domaine écrit dans les pages HTML ; remplacé à la volée par l'adresse réelle du site
 const ORIGINAL_SITE_URL = 'https://www.asso-slf.org';
 const TRASH_DAYS = 30;

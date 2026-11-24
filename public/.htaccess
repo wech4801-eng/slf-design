@@ -26,7 +26,7 @@ AddDefaultCharset utf-8
   RewriteRule \.(sqlite|log|md|sh|bak)$ - [F,L]
 
   # API, photos envoyées, sitemap et robots : gérés par index.php
-  RewriteRule ^(api/|uploads/|sitemap\.xml$|robots\.txt$) index.php [L,QSA]
+  RewriteRule ^(api/|uploads/|medias/|sitemap\.xml$|robots\.txt$) index.php [L,QSA]
 
   # Pages : index.php y intègre les articles (et protège /admin/)
   RewriteCond %{REQUEST_URI} \.html$ [OR]
@@ -52,6 +52,8 @@ AddDefaultCharset utf-8
   ExpiresByType image/gif "access plus 30 days"
   ExpiresByType image/svg+xml "access plus 30 days"
   ExpiresByType image/x-icon "access plus 30 days"
+  ExpiresByType video/mp4 "access plus 30 days"
+  ExpiresByType application/pdf "access plus 30 days"
   ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType text/css "access plus 7 days"
   ExpiresByType text/javascript "access plus 7 days"
@@ -64,3 +66,4 @@ AddDefaultCharset utf-8
 
 AddType image/webp .webp
 AddType font/woff2 .woff2
+AddType video/mp4 .mp4

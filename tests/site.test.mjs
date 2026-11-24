@@ -82,6 +82,47 @@ test('sécurité : code serveur et données jamais servis', { skip }, async () =
   assert.equal(home.headers.get('x-content-type-options'), 'nosniff');
 });
 
+// Recette du brief « Intégration des photos et vidéos » (livraison du 31/10/2026)
+test('contenus livrés : galerie, films, actualités, livre', { skip }, async () => {
+  const page = (await req('GET', '/en-images.html')).data;
+  const base = /id="aslf-galerie"[^>]*data-base="([^"]+)"/.exec(page)[1];
+  const files = [...page.matchAll(/"(?:fichier|miniature|apercu)": "([^"]+)"/g)].map((m) => m[1]);
+  const count = (re) => files.filter((f) => re.test(f)).length;
+  assert.equal(count(/\/videos\/film-/), 6, '6 films');
+  assert.equal(count(/\/photos\//), 84, '84 photos');
+  assert.equal(count(/\/videos\/(?!film-)/), 28, '28 vidéos');
+  assert.ok(!/recu_sur_whatsapp/.test(page), 'date de réception WhatsApp jamais affichée');
+  const missing = [];
+  for (let i = 0; i < files.length; i += 12) {
+    await Promise.all(files.slice(i, i + 12).map(async (f) => {
+      const r = await fetch(BASE + base + f, { method: 'HEAD' });
+      if (r.status !== 200) missing.push(`${r.status} ${f}`);
+    }));
+  }
+  assert.deepEqual(missing, [], 'tous les médias sont en ligne');
+  const film = files.find((f) => f.endsWith('film-fete-nationale-somaliland.mp4'));
+  const part = await fetch(BASE + base + film, { headers: { Range: 'bytes=0-1023' } });
+  assert.equal(part.status, 206, 'lecture par morceaux (avance rapide, iPhone)');
+  assert.equal(part.headers.get('content-type'), 'video/mp4');
+
+  const home = (await req('GET', '/')).data;
+  assert.match(home, /film-fete-nationale-somaliland\.mp4/, 'film souvenir en vidéo d’accueil');
+  for (const html of [home, page]) {
+    for (const tag of html.match(/<video[^>]*>/g) || []) {
+      assert.match(tag, /preload="none"/, 'aucune vidéo téléchargée avant le clic');
+      assert.ok(!/autoplay/.test(tag), 'pas de lecture automatique');
+    }
+  }
+  const news = (await req('GET', '/news.html')).data;
+  assert.match(news, /id="slf-actus"/);
+  assert.equal((news.match(/<article data-cat=/g) || []).length, 15, '15 actualités du Somaliland');
+  const histoire = (await req('GET', '/connaitre-somaliland.html')).data;
+  assert.match(histoire, /documents\/somaliland-histoire-et-memoire\.pdf/);
+  const pdf = await fetch(BASE + '/documents/somaliland-histoire-et-memoire.pdf', { method: 'HEAD' });
+  assert.equal(pdf.status, 200);
+  assert.equal(pdf.headers.get('content-type'), 'application/pdf');
+});
+
 test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_DE_PASSE non défini') }, async () => {
   const bad = await req('POST', '/api/login', { body: { password: 'mauvais-mot-de-passe' } });
   assert.equal(bad.status, 401);

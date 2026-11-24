@@ -53,7 +53,10 @@ domains/<domaine>/aslf-data/
   erreurs.log            Journal des erreurs serveur
 ```
 
-Ce dossier est en dehors de `public_html` : il n’est pas accessible depuis le web et un nouveau
+Les photos et vidéos des événements (388 Mo) sont à part, dans `domains/<domaine>/medias/`
+(dossier local `medias/`, hors Git, envoyé avec `scripts/envoyer-medias.py`).
+
+Ces dossiers sont en dehors de `public_html` : il n’est pas accessible depuis le web et un nouveau
 déploiement du site ne l’efface pas.
 
 ## Tests

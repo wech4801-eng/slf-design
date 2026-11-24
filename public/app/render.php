@@ -173,6 +173,69 @@ function serve_upload(string $path): never
     exit;
 }
 
+/**
+ * Médias des événements (photos, vidéos, films) : dossier « medias » à côté de public_html,
+ * jamais effacé par un déploiement. Servis par PHP (Hostinger désactive symlink()), avec lecture
+ * par morceaux (Range), indispensable pour avancer dans une vidéo et pour les iPhone ;
+ * le CDN d'Hostinger les garde ensuite en cache (Cache-Control public).
+ */
+function serve_media(string $path): never
+{
+    $rel = substr($path, strlen('/medias/'));
+    if (!preg_match('~^[\w-]+(/[\w.-]+)*\.(jpe?g|png|webp|mp4|pdf)$~i', $rel) || str_contains($rel, '..')) not_found();
+    $root = realpath(MEDIA_DIR);
+    $file = $root ? realpath($root . '/' . $rel) : false;
+    if (!$file || !is_file($file) || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)) not_found();
+
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $types = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'mp4' => 'video/mp4', 'pdf' => 'application/pdf'];
+    $size = (int) filesize($file);
+    $mtime = (int) filemtime($file);
+    $etag = '"' . base_convert((string) $size, 10, 36) . '-' . base_convert((string) $mtime, 10, 36) . '"';
+    header('Content-Type: ' . $types[$ext]);
+    header('Accept-Ranges: bytes');
+    header('Cache-Control: public, max-age=2592000');
+    header('ETag: ' . $etag);
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $mtime) . ' GMT');
+    if (trim(header_value('If-None-Match')) === $etag) { http_response_code(304); exit; }
+
+    $start = 0;
+    $end = $size - 1;
+    $range = header_value('Range');
+    if ($range !== '') {
+        if (!preg_match('/^bytes=(\d*)-(\d*)$/', trim($range), $m) || ($m[1] === '' && $m[2] === '')) {
+            http_response_code(416);
+            header("Content-Range: bytes */$size");
+            exit;
+        }
+        if ($m[1] === '') { $start = max(0, $size - (int) $m[2]); }
+        else { $start = (int) $m[1]; if ($m[2] !== '') $end = min((int) $m[2], $size - 1); }
+        if ($start > $end || $start >= $size) {
+            http_response_code(416);
+            header("Content-Range: bytes */$size");
+            exit;
+        }
+        http_response_code(206);
+        header("Content-Range: bytes $start-$end/$size");
+    }
+    $length = $end - $start + 1;
+    header('Content-Length: ' . $length);
+    if (request_method() === 'HEAD') exit;
+    @set_time_limit(0);
+    while (ob_get_level()) ob_end_clean();
+    $fh = fopen($file, 'rb');
+    fseek($fh, $start);
+    while ($length > 0 && !feof($fh) && !connection_aborted()) {
+        $chunk = fread($fh, (int) min(1048576, $length));
+        if ($chunk === false) break;
+        echo $chunk;
+        flush();
+        $length -= strlen($chunk);
+    }
+    fclose($fh);
+    exit;
+}
+
 function sitemap(): string
 {
     $urls = [];
@@ -211,6 +274,7 @@ function handle_page(): never
     if ($path === '/admin') redirect('/admin/' . $qs, 301);
     if ($path === '/index.html') redirect('/' . $qs, 301);
     if (str_starts_with($path, '/uploads/')) serve_upload($path);
+    if (str_starts_with($path, '/medias/')) serve_media($path);
 
     $rel = str_ends_with($path, '/') ? $path . 'index.html' : $path;
     if (pathinfo($rel, PATHINFO_EXTENSION) === '') $rel .= '.html';

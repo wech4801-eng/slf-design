@@ -10,6 +10,7 @@ Cette offre n’exécute pas Node.js : c’est pour cela que le serveur est écr
 | Compte d’hébergement | `u758983045`, data center France |
 | Dossier du site | `domains/<domaine>/public_html` |
 | Données | `domains/<domaine>/aslf-data` (hors de `public_html`, jamais effacé par un déploiement) |
+| Photos et vidéos des événements | `domains/<domaine>/medias/ASLF-medias` (hors de `public_html`, servies à l’adresse `/medias/…`) |
 | Espace de gestion | `https://<domaine>/admin/` |
 
 ## Mettre à jour le site
@@ -32,6 +33,31 @@ Cette offre n’exécute pas Node.js : c’est pour cela que le serveur est écr
 
 Mode mise au point : `python scripts/paquet-hostinger.py --debug` ajoute le détail technique aux messages
 d’erreur. Ne jamais le laisser en production.
+
+## Photos et vidéos des événements
+
+Livrées le 31/10/2026 (`ASLF-livraison-developpeur.zip`, brief `BRIEF-DEVELOPPEUR.md`) et intégrées ainsi :
+
+| Contenu | Page | Détail |
+|---|---|---|
+| Galerie « Nos événements en images » | `en-images.html` | Composant `galerie-a-coller.html` fourni, `data-base="/medias/ASLF-medias/"`, un onglet par album, film en tête de chaque album |
+| Film souvenir de la Fête nationale | `index.html` (section « Retour en images ») | Vidéo d’accueil, lecture au clic, `preload="none"` |
+| Actualités du Somaliland (15 articles, 27/10/2026) | `news.html` | Bloc `#slf-actus` fourni, sous les articles de l’association |
+| Livre « Somaliland — Histoire d’une nation, mémoire d’un génocide » | `connaitre-somaliland.html` | `documents/somaliland-histoire-et-memoire.pdf`, bouton « Télécharger le livre » |
+
+Les médias (388 Mo, 236 fichiers) ne sont **pas** dans Git ni dans l’archive du site : ils sont dans le dossier
+local `medias/` (gitignoré) et envoyés une fois sur Hostinger, dans `domains/<domaine>/medias/`, avec :
+```powershell
+$env:HOSTINGER_TUS_URL = "…/api/tus/public_html"; $env:HOSTINGER_X_AUTH = "…"; $env:HOSTINGER_X_AUTH_REST = "…"
+python scripts/envoyer-medias.py
+```
+(identifiants donnés par `hosting_files_generate-upload-url`). PHP les sert avec la lecture par morceaux (Range)
+nécessaire aux vidéos ; le CDN d’Hostinger les met en cache 30 jours. Hostinger désactive `symlink()`,
+d’où ce relais PHP.
+
+**Dates encore à fournir par l’association** (rien n’est affiché en attendant) : la soirée de la Fête nationale
+(probablement le 31 mai 2025), la cérémonie à l’Arc de Triomphe, le jour de la célébration de janvier 2026.
+Pour les ajouter : modifier le champ `sous_titre` de l’album dans `public/en-images.html`, puis redéployer.
 
 ## Brancher le domaine asso-slf.org
 

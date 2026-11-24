@@ -264,6 +264,871 @@
     <h1 class="page-title">En images</h1>
     <div class="page-divider"></div>
 
+    <!-- Galerie des événements (photos, vidéos et films) : médias servis depuis /medias/ASLF-medias/ -->
+<section id="aslf-galerie" lang="fr" data-base="/medias/ASLF-medias/">
+<style>
+  #aslf-galerie {
+    --g-vert: #1d7a3e; --g-rouge: #c8102e; --g-encre: #1a1a1a; --g-gris: #5c5c5c;
+    --g-bord: #e3e3e3; --g-fond: #ffffff; --g-doux: #f6f8f6;
+    max-width: 1100px; margin: 0 auto 40px; padding: 8px 0 24px; box-sizing: border-box;
+    font-family: inherit; color: var(--g-encre); line-height: 1.5;
+  }
+  #aslf-galerie *, #aslf-galerie *::before, #aslf-galerie *::after { box-sizing: border-box; }
+  #aslf-galerie .g-bandeau { height: 6px; border-radius: 3px; margin-bottom: 18px; box-shadow: 0 0 0 1px var(--g-bord);
+    background: linear-gradient(to bottom, var(--g-vert) 0 33%, #fff 33% 66%, var(--g-rouge) 66% 100%); }
+  #aslf-galerie h2 { font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.2; margin: 0 0 18px; }
+  #aslf-galerie .g-onglets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  #aslf-galerie .g-onglets button { font: inherit; font-size: .92rem; cursor: pointer; padding: 7px 15px;
+    border-radius: 999px; border: 1px solid var(--g-bord); background: var(--g-fond); color: var(--g-encre); }
+  #aslf-galerie .g-onglets button[aria-selected="true"] { background: var(--g-vert); border-color: var(--g-vert); color: #fff; }
+  #aslf-galerie .g-onglets button:focus-visible, #aslf-galerie .g-vignette:focus-visible { outline: 3px solid var(--g-rouge); outline-offset: 2px; }
+  #aslf-galerie .g-titre { font-size: 1.25rem; margin: 0; }
+  #aslf-galerie .g-sous { color: var(--g-gris); margin: 2px 0 8px; font-size: .95rem; }
+  #aslf-galerie .g-intro { margin: 0 0 16px; max-width: 70ch; }
+  #aslf-galerie .g-section { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--g-gris);
+    font-weight: 600; margin: 18px 0 8px; }
+  #aslf-galerie .g-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+  #aslf-galerie .g-vignette { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; padding: 0; border: 0;
+    border-radius: 6px; overflow: hidden; cursor: pointer; background: var(--g-doux); }
+  #aslf-galerie .g-vignette img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s; }
+  #aslf-galerie .g-vignette:hover img { transform: scale(1.04); }
+  #aslf-galerie .g-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #aslf-galerie .g-play span { width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,.55);
+    display: flex; align-items: center; justify-content: center; }
+  #aslf-galerie .g-play span::before { content: ""; border-style: solid; border-width: 9px 0 9px 15px;
+    border-color: transparent transparent transparent #fff; margin-left: 4px; }
+  #aslf-galerie .g-duree { position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,.7); color: #fff;
+    font-size: .75rem; padding: 1px 6px; border-radius: 4px; }
+  #aslf-galerie [hidden] { display: none !important; }
+  #aslf-galerie .g-vedette { max-width: 900px; border-radius: 8px; overflow: hidden; background: #000; }
+  #aslf-galerie .g-film-legende { color: var(--g-gris); font-size: .9rem; margin: 6px 0 4px; }
+  #aslf-galerie .g-vedette video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #000; }
+  /* Visionneuse */
+  #aslf-galerie .g-visio { position: fixed; inset: 0; z-index: 99999; background: rgba(10,10,10,.94);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 56px 16px; }
+  #aslf-galerie .g-visio-media { max-width: 100%; max-height: calc(100vh - 130px); display: flex; align-items: center; justify-content: center; }
+  #aslf-galerie .g-visio-media img, #aslf-galerie .g-visio-media video { max-width: 100%; max-height: calc(100vh - 130px);
+    border-radius: 4px; background: #000; }
+  #aslf-galerie .g-visio-legende { color: #eee; text-align: center; margin-top: 10px; font-size: .95rem; max-width: 70ch; }
+  #aslf-galerie .g-visio-compteur { color: #aaa; font-size: .8rem; }
+  #aslf-galerie .g-visio button { position: absolute; font: inherit; background: rgba(255,255,255,.12); color: #fff; border: 0;
+    border-radius: 50%; width: 44px; height: 44px; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  #aslf-galerie .g-visio button:hover { background: rgba(255,255,255,.25); }
+  #aslf-galerie .g-fermer { top: 10px; right: 12px; }
+  #aslf-galerie .g-prec { left: 8px; top: 50%; transform: translateY(-50%); }
+  #aslf-galerie .g-suiv { right: 8px; top: 50%; transform: translateY(-50%); }
+  @media (max-width: 600px) {
+    #aslf-galerie .g-grille { grid-template-columns: repeat(2, 1fr); }
+    #aslf-galerie .g-visio { padding: 52px 8px 12px; }
+    #aslf-galerie .g-prec, #aslf-galerie .g-suiv { top: auto; bottom: 14px; transform: none; }
+  }
+</style>
+
+  <div class="g-bandeau" aria-hidden="true"></div>
+  <h2>Nos événements en images</h2>
+  <div class="g-onglets" role="tablist" aria-label="Choisir un événement"></div>
+  <div class="g-albums"></div>
+
+  <div class="g-visio" hidden role="dialog" aria-modal="true" aria-label="Visionneuse">
+    <button type="button" class="g-fermer" aria-label="Fermer">&#x2715;</button>
+    <button type="button" class="g-prec" aria-label="Précédent">&#x2039;</button>
+    <div class="g-visio-media"></div>
+    <div class="g-visio-legende"></div>
+    <div class="g-visio-compteur"></div>
+    <button type="button" class="g-suiv" aria-label="Suivant">&#x203A;</button>
+  </div>
+
+<script>
+(function () {
+  var DATA = [
+ {
+  "id": "film",
+  "titre": "Retour en images",
+  "sous_titre": "Fête nationale du Somaliland : retour en images",
+  "intro": "Les meilleurs moments du tournoi de football, de la soirée de la Fête nationale et du rassemblement de Genève, en 1 minute 40. Chaque événement a aussi son propre film, dans son onglet.",
+  "film": {
+   "fichier": "00-film-souvenir/videos/film-fete-nationale-somaliland.mp4",
+   "apercu": "00-film-souvenir/miniatures/film-fete-nationale-somaliland.jpg",
+   "legende": "Film souvenir : la Fête nationale du Somaliland en images",
+   "duree": 99.0
+  },
+  "photos": [],
+  "videos": []
+ },
+ {
+  "id": "tournoi",
+  "titre": "Fête nationale 2025 : le tournoi de football",
+  "sous_titre": "Besançon, 31 mai 2025",
+  "intro": "Pour célébrer le 18 mai, jour de la restauration de l'indépendance du Somaliland, l'association a organisé un tournoi de football suivi d'une remise des trophées.",
+  "film": {
+   "fichier": "01-tournoi-football-2025-05-31/videos/film-tournoi-football-2025-05-31.mp4",
+   "apercu": "01-tournoi-football-2025-05-31/miniatures/film-tournoi-football-2025-05-31.jpg",
+   "legende": "Le film du tournoi de football (1 min 44)",
+   "duree": 103.7
+  },
+  "photos": [
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-01.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-01.jpg",
+    "legende": "La banderole de la Fête nationale du Somaliland et les trophées du tournoi"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-02.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-02.jpg",
+    "legende": "Photo de groupe des équipes du tournoi"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-03.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-03.jpg",
+    "legende": "Les joueurs réunis sur la pelouse avant les matchs"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-04.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-04.jpg",
+    "legende": "Une équipe en maillots bleus pose pour la photo"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-05.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-05.jpg",
+    "legende": "Les équipes au complet sur le terrain"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-06.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-06.jpg",
+    "legende": "Photo de groupe des participants"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-07.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-07.jpg",
+    "legende": "Les équipes réunies sur la pelouse"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-08.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-08.jpg",
+    "legende": "Les participants du tournoi rassemblés"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-09.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-09.jpg",
+    "legende": "Un match du tournoi"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-10.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-10.jpg",
+    "legende": "Les vainqueurs brandissent le trophée"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-11.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-11.jpg",
+    "legende": "La joie des joueurs et des supporters après la finale"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-12.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-12.jpg",
+    "legende": "Célébration de la victoire sur le terrain"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-13.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-13.jpg",
+    "legende": "Les vainqueurs en fête"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-14.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-14.jpg",
+    "legende": "Sauts de joie après la victoire"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-15.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-15.jpg",
+    "legende": "Les joueurs célèbrent le trophée"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-16.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-16.jpg",
+    "legende": "Photo de groupe en fin de tournoi"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-17.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-17.jpg",
+    "legende": "Les drapeaux du Somaliland et de la France brandis par les joueurs"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-18.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-18.jpg",
+    "legende": "Célébration avec les drapeaux du Somaliland et de la France"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-19.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-19.jpg",
+    "legende": "Joie collective, drapeaux déployés"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-20.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-20.jpg",
+    "legende": "Trophées et médailles prêts pour la remise des prix"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-21.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-21.jpg",
+    "legende": "La remise des trophées"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-22.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-22.jpg",
+    "legende": "Remise des trophées aux équipes"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-23.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-23.jpg",
+    "legende": "Photo de groupe avec la banderole de la Fête nationale"
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/photos/2025-05-31_tournoi-football_photo-24.jpg",
+    "miniature": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_photo-24.jpg",
+    "legende": "Les vainqueurs posent avec la banderole et les trophées"
+   }
+  ],
+  "videos": [
+   {
+    "fichier": "01-tournoi-football-2025-05-31/videos/2025-05-31_tournoi-football_video-01.mp4",
+    "apercu": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_video-01.jpg",
+    "legende": "La remise des trophées et la fête sur le terrain",
+    "duree": 96.4
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/videos/2025-05-31_tournoi-football_video-02.mp4",
+    "apercu": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_video-02.jpg",
+    "legende": "Remise d'un trophée",
+    "duree": 10.5
+   },
+   {
+    "fichier": "01-tournoi-football-2025-05-31/videos/2025-05-31_tournoi-football_video-03.mp4",
+    "apercu": "01-tournoi-football-2025-05-31/miniatures/2025-05-31_tournoi-football_video-03.jpg",
+    "legende": "Remise des médailles",
+    "duree": 3.6
+   }
+  ]
+ },
+ {
+  "id": "soiree",
+  "titre": "Fête nationale : la soirée",
+  "sous_titre": "Discours, chants et danses",
+  "intro": "La Fête nationale s'est poursuivie en salle avec des discours, des chants, des danses traditionnelles et la remise d'un trophée.",
+  "film": {
+   "fichier": "02-fete-nationale-soiree/videos/film-soiree-fete-nationale.mp4",
+   "apercu": "02-fete-nationale-soiree/miniatures/film-soiree-fete-nationale.jpg",
+   "legende": "Le film de la soirée de la Fête nationale (1 min 53)",
+   "duree": 113.0
+  },
+  "photos": [
+   {
+    "fichier": "02-fete-nationale-soiree/photos/fete-nationale_soiree_photo-01.jpg",
+    "miniature": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_photo-01.jpg",
+    "legende": "Remise d'un trophée lors de la soirée de la Fête nationale"
+   }
+  ],
+  "videos": [
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-01.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-01.jpg",
+    "legende": "Discours et remise du trophée",
+    "duree": 52.3
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-02.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-02.jpg",
+    "legende": "Prise de parole et chants au micro",
+    "duree": 113.1
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-03.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-03.jpg",
+    "legende": "Une chanteuse au micro",
+    "duree": 14.2
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-04.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-04.jpg",
+    "legende": "Chants au micro, en tenue traditionnelle",
+    "duree": 37.6
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-05.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-05.jpg",
+    "legende": "Danse traditionnelle",
+    "duree": 14.5
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-06.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-06.jpg",
+    "legende": "Danses et invités de la soirée",
+    "duree": 14.2
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-07.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-07.jpg",
+    "legende": "La salle danse aux couleurs du Somaliland",
+    "duree": 15.6
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-08.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-08.jpg",
+    "legende": "Ambiance au micro, drapeau levé",
+    "duree": 14.9
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-09.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-09.jpg",
+    "legende": "La foule sous les lumières",
+    "duree": 6.6
+   },
+   {
+    "fichier": "02-fete-nationale-soiree/videos/fete-nationale_soiree_video-10.mp4",
+    "apercu": "02-fete-nationale-soiree/miniatures/fete-nationale_soiree_video-10.jpg",
+    "legende": "Danse avec le drapeau du Somaliland",
+    "duree": 4.3
+   }
+  ]
+ },
+ {
+  "id": "geneve",
+  "titre": "Rassemblement devant l'ONU à Genève",
+  "sous_titre": "Genève, place des Nations, 26 juin 2025",
+  "intro": "Pour le 65e anniversaire de l'indépendance du Somaliland (26 juin 1960), des membres de la diaspora se sont rassemblés devant le Palais des Nations, à Genève, pour demander la reconnaissance du pays.",
+  "film": {
+   "fichier": "03-rassemblement-geneve-onu-2025-06-26/videos/film-rassemblement-geneve-2025-06-26.mp4",
+   "apercu": "03-rassemblement-geneve-onu-2025-06-26/miniatures/film-rassemblement-geneve-2025-06-26.jpg",
+   "legende": "Le film du rassemblement de Genève (1 min 14)",
+   "duree": 74.1
+  },
+  "photos": [],
+  "videos": [
+   {
+    "fichier": "03-rassemblement-geneve-onu-2025-06-26/videos/2025-06-26_geneve-rassemblement-onu_video-01.mp4",
+    "apercu": "03-rassemblement-geneve-onu-2025-06-26/miniatures/2025-06-26_geneve-rassemblement-onu_video-01.jpg",
+    "legende": "Le rassemblement sur la place des Nations, au pied de la Chaise cassée",
+    "duree": 41.6
+   },
+   {
+    "fichier": "03-rassemblement-geneve-onu-2025-06-26/videos/2025-06-26_geneve-rassemblement-onu_video-02.mp4",
+    "apercu": "03-rassemblement-geneve-onu-2025-06-26/miniatures/2025-06-26_geneve-rassemblement-onu_video-02.jpg",
+    "legende": "Le voyage à Genève, du lac Léman à la place des Nations (montage de l'association)",
+    "duree": 43.0
+   },
+   {
+    "fichier": "03-rassemblement-geneve-onu-2025-06-26/videos/2025-06-26_geneve-rassemblement-onu_video-03.mp4",
+    "apercu": "03-rassemblement-geneve-onu-2025-06-26/miniatures/2025-06-26_geneve-rassemblement-onu_video-03.jpg",
+    "legende": "Devant l'emblème des Nations unies",
+    "duree": 6.4
+   }
+  ]
+ },
+ {
+  "id": "paris",
+  "titre": "Cérémonie à l'Arc de Triomphe",
+  "sous_titre": "Paris · Ravivage de la flamme sur la tombe du Soldat inconnu",
+  "intro": "Drapeau en tête, des membres de la communauté somalilandaise ont remonté les Champs-Élysées avec les porte-drapeaux des associations d'anciens combattants, puis ont assisté au ravivage de la flamme sur la tombe du Soldat inconnu, sous l'Arc de Triomphe.",
+  "film": {
+   "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/film-ceremonie-arc-de-triomphe-paris.mp4",
+   "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/film-ceremonie-arc-de-triomphe-paris.jpg",
+   "legende": "Le film de la cérémonie à l'Arc de Triomphe",
+   "duree": 102.8
+  },
+  "photos": [
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-01.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-01.jpg",
+    "legende": "Les porte-drapeaux rassemblés sur les Champs-Élysées avant la cérémonie"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-02.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-02.jpg",
+    "legende": "Le drapeau du Somaliland aux côtés des drapeaux des anciens combattants"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-03.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-03.jpg",
+    "legende": "Les porte-drapeaux se préparent à remonter l'avenue"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-04.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-04.jpg",
+    "legende": "Le porte-drapeau du Somaliland dans le cortège"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-05.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-05.jpg",
+    "legende": "Le porte-drapeau du Somaliland aux côtés d'une élue ceinte de l'écharpe tricolore"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-06.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-06.jpg",
+    "legende": "Le porte-drapeau du Somaliland, médaillé, avec les drapeaux des associations"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-07.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-07.jpg",
+    "legende": "Le porte-drapeau du Somaliland et une participante"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-08.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-08.jpg",
+    "legende": "Le porte-drapeau du Somaliland et un membre de la communauté"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-09.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-09.jpg",
+    "legende": "Le porte-drapeau du Somaliland et un jeune participant"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-10.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-10.jpg",
+    "legende": "Le drapeau du Somaliland parmi les porte-drapeaux, sous l'Arc de Triomphe"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-11.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-11.jpg",
+    "legende": "Les porte-drapeaux alignés sous l'Arc de Triomphe"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-12.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-12.jpg",
+    "legende": "Les drapeaux sous l'Arc de Triomphe pendant la cérémonie"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-13.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-13.jpg",
+    "legende": "La communauté somalilandaise réunie sous l'Arc de Triomphe"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-14.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-14.jpg",
+    "legende": "Photo de groupe sous l'Arc de Triomphe"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-15.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-15.jpg",
+    "legende": "La communauté réunie autour du drapeau du Somaliland"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-16.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-16.jpg",
+    "legende": "Photo de groupe avec le drapeau du Somaliland"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-17.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-17.jpg",
+    "legende": "Photo de groupe, l'Arc de Triomphe en arrière-plan"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-18.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-18.jpg",
+    "legende": "Le drapeau du Somaliland au premier plan de la photo de groupe"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-19.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-19.jpg",
+    "legende": "Photo de famille autour du drapeau"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-20.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-20.jpg",
+    "legende": "Toute la délégation réunie autour du drapeau"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-21.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-21.jpg",
+    "legende": "La délégation sous l'Arc de Triomphe"
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/photos/paris_arc-de-triomphe_photo-22.jpg",
+    "miniature": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_photo-22.jpg",
+    "legende": "Fin de cérémonie : la délégation sous l'Arc de Triomphe"
+   }
+  ],
+  "videos": [
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-01.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-01.jpg",
+    "legende": "En marche vers l'Arc de Triomphe",
+    "duree": 22.6
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-02.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-02.jpg",
+    "legende": "La montée des Champs-Élysées avec les porte-drapeaux",
+    "duree": 119.7
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-03.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-03.jpg",
+    "legende": "Les porte-drapeaux sur les Champs-Élysées",
+    "duree": 9.5
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-04.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-04.jpg",
+    "legende": "Le drapeau du Somaliland parmi les porte-drapeaux, sous l'Arc",
+    "duree": 31.9
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-05.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-05.jpg",
+    "legende": "Le drapeau du Somaliland pendant la cérémonie",
+    "duree": 27.5
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-06.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-06.jpg",
+    "legende": "Les drapeaux sous l'Arc de Triomphe",
+    "duree": 62.9
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-07.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-07.jpg",
+    "legende": "Les porte-drapeaux et les musiciens militaires",
+    "duree": 19.2
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-08.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-08.jpg",
+    "legende": "Le drapeau du Somaliland au milieu de l'assistance",
+    "duree": 28.5
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-09.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-09.jpg",
+    "legende": "L'assistance autour de la tombe du Soldat inconnu",
+    "duree": 47.9
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-10.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-10.jpg",
+    "legende": "Le ravivage de la flamme sur la tombe du Soldat inconnu",
+    "duree": 74.9
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-11.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-11.jpg",
+    "legende": "La fin de la cérémonie sous l'Arc de Triomphe",
+    "duree": 69.7
+   },
+   {
+    "fichier": "04-ceremonie-arc-de-triomphe-paris/videos/paris_arc-de-triomphe_video-12.mp4",
+    "apercu": "04-ceremonie-arc-de-triomphe-paris/miniatures/paris_arc-de-triomphe_video-12.jpg",
+    "legende": "Photo de groupe de la délégation sous l'Arc de Triomphe",
+    "duree": 5.6
+   }
+  ]
+ },
+ {
+  "id": "reconnaissance",
+  "titre": "Célébration de la reconnaissance par Israël",
+  "sous_titre": "Rencontre de la communauté somalilandaise de France, janvier 2026",
+  "intro": "Le 26 décembre 2025, Israël a reconnu la République du Somaliland. En janvier 2026, la communauté somalilandaise de France s'est réunie pour célébrer cette reconnaissance : prises de parole, échanges et photos aux couleurs du Somaliland.",
+  "film": {
+   "fichier": "05-celebration-reconnaissance-israel-2026-01/videos/film-celebration-reconnaissance-israel.mp4",
+   "apercu": "05-celebration-reconnaissance-israel-2026-01/miniatures/film-celebration-reconnaissance-israel.jpg",
+   "legende": "Le film de la célébration de la reconnaissance du Somaliland par Israël",
+   "duree": 77.0
+  },
+  "photos": [
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-01.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-01.jpg",
+    "legende": "La table drapée aux couleurs du Somaliland, au début de la rencontre"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-02.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-02.jpg",
+    "legende": "Les participants autour de la table"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-03.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-03.jpg",
+    "legende": "Un participant en tenue traditionnelle, écharpe aux couleurs du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-04.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-04.jpg",
+    "legende": "Participants à la rencontre"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-05.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-05.jpg",
+    "legende": "Trois participants, dont deux en tenue traditionnelle"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-06.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-06.jpg",
+    "legende": "Participants, écharpe aux couleurs du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-07.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-07.jpg",
+    "legende": "Un aîné de la communauté, écharpe aux couleurs du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-08.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-08.jpg",
+    "legende": "Deux participants à la rencontre"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-09.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-09.jpg",
+    "legende": "Les participantes, parées aux couleurs du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-10.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-10.jpg",
+    "legende": "La salle, tables en U"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-11.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-11.jpg",
+    "legende": "Une prise de parole, à la table drapée du drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-12.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-12.jpg",
+    "legende": "La salle au complet, drapeaux sur les tables"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-13.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-13.jpg",
+    "legende": "La salle pendant la rencontre"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-14.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-14.jpg",
+    "legende": "La table d'honneur drapée du drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-15.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-15.jpg",
+    "legende": "Vue d'ensemble de la salle"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-16.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-16.jpg",
+    "legende": "Photo de groupe avec le drapeau, devant l'écran de projection"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-17.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-17.jpg",
+    "legende": "Les participants réunis autour du drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-18.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-18.jpg",
+    "legende": "Participantes et participants autour du drapeau"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-19.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-19.jpg",
+    "legende": "Les participantes avec les drapeaux du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-20.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-20.jpg",
+    "legende": "Les participantes déploient le drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-21.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-21.jpg",
+    "legende": "Le drapeau du Somaliland déployé"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-22.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-22.jpg",
+    "legende": "Un participant avec le drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-23.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-23.jpg",
+    "legende": "Deux participants avec le drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-24.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-24.jpg",
+    "legende": "Le drapeau du Somaliland, fièrement déployé"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-25.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-25.jpg",
+    "legende": "Deux jeunes participants avec le drapeau"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-26.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-26.jpg",
+    "legende": "Deux participants tiennent le drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-27.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-27.jpg",
+    "legende": "Photo de groupe avec le drapeau, au fond de la salle"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-28.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-28.jpg",
+    "legende": "Un participant, écharpe aux couleurs du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-29.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-29.jpg",
+    "legende": "Un participant drapé dans le drapeau du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-30.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-30.jpg",
+    "legende": "Portrait d'un participant, écharpe du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-31.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-31.jpg",
+    "legende": "Portrait d'un participant, écharpe aux couleurs du pays"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-32.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-32.jpg",
+    "legende": "Deux participants, écharpe du Somaliland"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-33.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-33.jpg",
+    "legende": "Deux participants à la rencontre"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-34.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-34.jpg",
+    "legende": "Deux jeunes de la communauté"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-35.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-35.jpg",
+    "legende": "Photo de groupe devant l'écran de projection"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-36.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-36.jpg",
+    "legende": "Quatre jeunes participants"
+   },
+   {
+    "fichier": "05-celebration-reconnaissance-israel-2026-01/photos/2026-01_celebration-reconnaissance-israel_photo-37.jpg",
+    "miniature": "05-celebration-reconnaissance-israel-2026-01/miniatures/2026-01_celebration-reconnaissance-israel_photo-37.jpg",
+    "legende": "Deux participants posent pour la photo"
+   }
+  ],
+  "videos": []
+ }
+];
+  var racine = document.getElementById('aslf-galerie');
+  if (!racine) return;
+  var base = racine.getAttribute('data-base') || '';
+  if (base && base.slice(-1) !== '/') base += '/';
+  var onglets = racine.querySelector('.g-onglets');
+  var conteneur = racine.querySelector('.g-albums');
+  var visio = racine.querySelector('.g-visio');
+  var zone = visio.querySelector('.g-visio-media');
+  var legende = visio.querySelector('.g-visio-legende');
+  var compteur = visio.querySelector('.g-visio-compteur');
+  var courant = [], index = 0, dernierFocus = null;
+
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; }
+  function duree(s) { s = Math.round(s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+
+  DATA.forEach(function (album, ai) {
+    var b = el('button', '', album.titre);
+    b.type = 'button'; b.setAttribute('role', 'tab'); b.id = 'g-onglet-' + album.id;
+    b.setAttribute('aria-controls', 'g-album-' + album.id);
+    b.setAttribute('aria-selected', ai === 0 ? 'true' : 'false');
+    b.addEventListener('click', function () { montrer(ai); });
+    onglets.appendChild(b);
+
+    var sec = el('div', 'g-album'); sec.id = 'g-album-' + album.id; sec.setAttribute('role', 'tabpanel');
+    sec.setAttribute('aria-labelledby', b.id); if (ai !== 0) sec.hidden = true;
+    sec.appendChild(el('h3', 'g-titre', album.titre));
+    if (album.sous_titre) sec.appendChild(el('p', 'g-sous', album.sous_titre));
+    if (album.intro) sec.appendChild(el('p', 'g-intro', album.intro));
+
+    if (album.film) {
+      var cadre = el('div', 'g-vedette');
+      var lect = el('video'); lect.controls = true; lect.preload = 'none'; lect.playsInline = true;
+      lect.poster = base + album.film.apercu; lect.src = base + album.film.fichier;
+      lect.setAttribute('aria-label', album.film.legende);
+      cadre.appendChild(lect); sec.appendChild(cadre);
+      sec.appendChild(el('p', 'g-film-legende', album.film.legende));
+    }
+    var elements = [];
+    album.photos.forEach(function (p) { elements.push({ type: 'photo', src: p.fichier, mini: p.miniature, legende: p.legende }); });
+    album.videos.forEach(function (v) { elements.push({ type: 'video', src: v.fichier, mini: v.apercu, legende: v.legende, duree: v.duree }); });
+
+    [['photo', 'Photos'], ['video', 'Vidéos']].forEach(function (g) {
+      var liste = elements.filter(function (x) { return x.type === g[0]; });
+      if (!liste.length) return;
+      sec.appendChild(el('p', 'g-section', g[1] + ' (' + liste.length + ')'));
+      var grille = el('div', 'g-grille');
+      liste.forEach(function (item) {
+        var v = el('button', 'g-vignette'); v.type = 'button';
+        v.setAttribute('aria-label', (item.type === 'video' ? 'Lire la vidéo : ' : 'Agrandir la photo : ') + item.legende);
+        var img = el('img'); img.src = base + item.mini; img.alt = item.legende; img.loading = 'lazy'; img.decoding = 'async';
+        v.appendChild(img);
+        if (item.type === 'video') {
+          var p = el('span', 'g-play'); p.appendChild(el('span')); v.appendChild(p);
+          v.appendChild(el('span', 'g-duree', duree(item.duree)));
+        }
+        v.addEventListener('click', function () { ouvrir(elements, elements.indexOf(item), v); });
+        grille.appendChild(v);
+      });
+      sec.appendChild(grille);
+    });
+    conteneur.appendChild(sec);
+  });
+
+  function montrer(i) {
+    var tabs = onglets.querySelectorAll('button'), secs = conteneur.querySelectorAll('.g-album');
+    for (var k = 0; k < tabs.length; k++) { tabs[k].setAttribute('aria-selected', k === i ? 'true' : 'false'); secs[k].hidden = k !== i; }
+    var vids = conteneur.querySelectorAll('video'); for (var v = 0; v < vids.length; v++) vids[v].pause();
+  }
+  function afficher() {
+    var item = courant[index];
+    var ancienne = zone.querySelector('video'); if (ancienne) ancienne.pause();
+    zone.innerHTML = '';
+    if (item.type === 'photo') {
+      var img = el('img'); img.src = base + item.src; img.alt = item.legende; zone.appendChild(img);
+    } else {
+      var vid = el('video'); vid.controls = true; vid.preload = 'metadata'; vid.playsInline = true;
+      vid.poster = base + item.mini; vid.src = base + item.src; zone.appendChild(vid);
+    }
+    legende.textContent = item.legende;
+    compteur.textContent = (index + 1) + ' / ' + courant.length;
+  }
+  function ouvrir(liste, i, declencheur) {
+    courant = liste; index = i; dernierFocus = declencheur;
+    visio.hidden = false; document.addEventListener('keydown', clavier); afficher();
+    visio.querySelector('.g-fermer').focus();
+  }
+  function fermer() {
+    var v = zone.querySelector('video'); if (v) v.pause();
+    zone.innerHTML = ''; visio.hidden = true; document.removeEventListener('keydown', clavier);
+    if (dernierFocus) dernierFocus.focus();
+  }
+  function aller(pas) { index = (index + pas + courant.length) % courant.length; afficher(); }
+  function clavier(e) {
+    if (e.key === 'Escape') fermer();
+    else if (e.key === 'ArrowLeft') aller(-1);
+    else if (e.key === 'ArrowRight') aller(1);
+  }
+  visio.querySelector('.g-fermer').addEventListener('click', fermer);
+  visio.querySelector('.g-prec').addEventListener('click', function () { aller(-1); });
+  visio.querySelector('.g-suiv').addEventListener('click', function () { aller(1); });
+  visio.addEventListener('click', function (e) { if (e.target === visio) fermer(); });
+})();
+</script>
+</section>
+
+
+    <h2 class="photo-archive-title" style="font-family:var(--font-display);font-size:clamp(1.4rem,3.5vw,1.8rem);color:var(--gray-900,#212529);margin:8px 0 14px;">Photothèque de l’association</h2>
     <div class="gallery-header">
       <p class="gallery-intro">
         Photothèque de l'Association Somalilandaise de France :

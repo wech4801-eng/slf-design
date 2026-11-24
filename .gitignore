@@ -39,3 +39,6 @@ data/
 # ── Hostinger : secrets et archive générés localement ──────────
 public/app/mot-de-passe-initial.php
 public/app/.debug
+
+# ── Médias des événements (envoyés à part sur Hostinger, trop lourds pour Git) ──
+medias/
