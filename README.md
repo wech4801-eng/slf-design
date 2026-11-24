@@ -3,63 +3,69 @@
 Site de l’**Association Somalilandaise de France (ASLF)** : site public, espace de gestion
 pour publier des articles sans connaissances techniques, formulaire de contact, liste des membres.
 
-- **Aucune dépendance** : Node.js ≥ 20 suffit (`npm install` inutile).
-- **Autonome** : sauvegardes quotidiennes, redémarrage automatique, HTTPS automatique (Caddy).
-- **Rapide** : pages compressées, articles injectés côté serveur, polices et images optimisées.
+- **Hébergé chez Hostinger** (offre Premium Web Hosting de l’association) : PHP 8 + SQLite, aucune dépendance.
+- **Tout est stocké sur le serveur** : articles, photos, membres et messages vivent dans le dossier
+  `aslf-data/` du serveur, jamais dans le navigateur des visiteurs.
+- **Autonome** : copie de la base chaque jour (30 jours gardés), corbeille vidée après 30 jours,
+  sauvegarde complète téléchargeable depuis l’espace de gestion.
+- **Rapide et référencé** : articles intégrés directement dans les pages, sitemap automatique,
+  métadonnées de partage par article.
 
-## Démarrer en local
-
-```bash
-npm start
-```
-
-Puis ouvrir <http://localhost:3456>. Au premier lancement, un mot de passe d’administration
-est généré dans `data/MOT-DE-PASSE-INITIAL.txt` (ou choisi avec `npm run mot-de-passe`).
-L’espace de gestion est à l’adresse `/admin/`.
+Adresse définitive : <https://www.asso-slf.org> (bascule du domaine décrite dans le guide).
 
 ## Mettre en ligne
 
-Tout est décrit dans **[DEPLOIEMENT-VPS.md](DEPLOIEMENT-VPS.md)** : une seule commande installe
-le site sur un VPS Debian ou Ubuntu.
+Tout est décrit dans **[DEPLOIEMENT-HOSTINGER.md](DEPLOIEMENT-HOSTINGER.md)**.
 
 Pour les bénévoles qui publient des articles : **[GUIDE-ADMINISTRATION.md](GUIDE-ADMINISTRATION.md)**.
 
 ## Organisation du code
 
 ```
-server.js              Démarrage
-server/
-  index.js             Serveur HTTP : pages, API, cache, compression, sécurité
-  store.js             Articles, membres, messages, photos (fichiers JSON écrits de façon atomique)
-  auth.js              Mot de passe (scrypt), sessions (cookie HttpOnly), anti-force brute
-  zip.js               Archive de sauvegarde téléchargeable
-  env.js               Configuration (variables d’environnement)
-public/                Tout ce qui est servi aux visiteurs
-  *.html               Pages du site
-  assets/site.js       Script unique du site public (articles, menu, partage, contact)
-  assets/sanitize.js   Filtre HTML des articles (partagé serveur / éditeur)
-  assets/config.js     Rubriques et thèmes des articles
-  admin/               Espace de gestion (articles, messages, membres, photos, réglages)
-scripts/mot-de-passe.js  Changer le mot de passe depuis le serveur
-deploy/                Installation et mise à jour sur VPS (systemd, Caddy, surveillance)
-tests/                 Tests de bout en bout : `npm test`
+public/                  Tout ce qui est envoyé sur Hostinger (contenu de public_html)
+  index.php              Point d’entrée : API, pages avec articles intégrés, photos, sitemap
+  .htaccess              HTTPS, adresse unique www, routage, en-têtes de sécurité, cache
+  app/                   Code serveur (jamais accessible depuis le web)
+    bootstrap.php        Chemins, base SQLite, réponses HTTP, erreurs
+    store.php            Articles, membres, messages, photos, sauvegardes
+    auth.php             Mot de passe (password_hash), sessions (cookie HttpOnly), anti-force brute
+    api.php              API /api/… (mêmes adresses que l’ancien serveur Node)
+    render.php           Pages : articles intégrés, métadonnées, sitemap, robots
+    sanitize.php         Filtre HTML des articles (portage de assets/sanitize.js)
+    sections.php         Rubriques et thèmes (identiques à assets/config.js)
+  *.html                 Pages du site
+  assets/site.js         Script unique du site public (articles, menu, partage, contact)
+  assets/sanitize.js     Filtre HTML de l’éditeur (collage depuis Word, aperçu)
+  assets/config.js       Rubriques et thèmes des articles
+  admin/                 Espace de gestion
+  seed-articles.json     Articles d’origine, importés au tout premier démarrage
+scripts/paquet-hostinger.py   Fabrique dist/aslf-site.zip à envoyer sur Hostinger
+tests/                   Tests : cohérence locale + bout en bout sur le site en ligne
 ```
 
-Les données vivent hors du code, dans `data/` en local et dans `/var/lib/aslf` sur le serveur :
-`articles.json`, `members.json`, `messages.json`, `uploads/` (photos), `backups/` (30 jours).
+## Données (sur le serveur, à côté de public_html)
 
-## Version en ligne sur GitHub Pages (avec Supabase)
+```
+domains/<domaine>/aslf-data/
+  aslf.sqlite            Base : articles, membres, messages, sessions
+  uploads/AAAA/MM/       Photos envoyées depuis l’espace de gestion
+  sauvegardes/           Une copie de la base par jour, 30 jours
+  erreurs.log            Journal des erreurs serveur
+```
 
-Chaque envoi sur `main` publie le site sur <https://wech4801-eng.github.io/slf-design/>.
-GitHub Pages ne fait tourner aucun serveur : sur cette adresse, les articles, photos, membres
-et messages sont stockés dans le projet Supabase **aslf-site** (Paris), via `public/assets/supabase.js`.
-L’espace de gestion fonctionne normalement : <https://wech4801-eng.github.io/slf-design/admin/>.
+Ce dossier est en dehors de `public_html` : il n’est pas accessible depuis le web et un nouveau
+déploiement du site ne l’efface pas.
 
-- Sécurité assurée dans la base (Row Level Security) : le public lit seulement les articles publiés
-  et peut envoyer un message ; seul le compte inscrit dans la table `admins` peut écrire.
-- Sur un VPS (serveur Node), ce mode est désactivé automatiquement et l’API du serveur est utilisée.
+## Tests
 
-## Licence
+```powershell
+node --test "tests/*.test.mjs"
+```
 
-© Association Somalilandaise de France (ASLF) — Tous droits réservés.
-21 Robert Desnos, 69120 Vaulx-en-Velin — somalilande.france@gmail.com
+Sans variable d’environnement, seuls les tests locaux tournent. Pour tester le site en ligne :
+
+```powershell
+$env:ASLF_URL = "https://www.asso-slf.org"; $env:ASLF_MOT_DE_PASSE = "…"; node --test "tests/*.test.mjs"
+```
+
+Les tests de bout en bout créent un article, un membre, un message et une photo de test, puis les suppriment.

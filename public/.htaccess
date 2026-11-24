@@ -1,0 +1,66 @@
+# ASLF — Configuration du serveur web Hostinger (LiteSpeed / Apache)
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+AddDefaultCharset utf-8
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # HTTPS obligatoire
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Adresse unique : asso-slf.org → www.asso-slf.org
+  RewriteCond %{HTTP_HOST} ^asso-slf\.org$ [NC]
+  RewriteRule ^ https://www.asso-slf.org%{REQUEST_URI} [L,R=301]
+
+  # Validation des certificats HTTPS : laissée intacte
+  RewriteRule ^\.well-known/ - [L]
+
+  # Code serveur, fichiers cachés et données d'origine : jamais servis tels quels
+  RewriteRule ^app(/|$) - [F,L]
+  RewriteRule (^|/)\. - [F,L]
+  RewriteRule ^seed-articles\.json$ - [F,L]
+  RewriteRule \.(sqlite|log|md|sh|bak)$ - [F,L]
+
+  # API, photos envoyées, sitemap et robots : gérés par index.php
+  RewriteRule ^(api/|uploads/|sitemap\.xml$|robots\.txt$) index.php [L,QSA]
+
+  # Pages : index.php y intègre les articles (et protège /admin/)
+  RewriteCond %{REQUEST_URI} \.html$ [OR]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Strict-Transport-Security "max-age=31536000"
+  Header unset X-Powered-By
+</IfModule>
+
+# Cache navigateur des fichiers statiques
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/gif "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType image/x-icon "access plus 30 days"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType text/javascript "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json application/xml text/plain image/svg+xml
+</IfModule>
+
+AddType image/webp .webp
+AddType font/woff2 .woff2

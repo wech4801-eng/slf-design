@@ -46,7 +46,7 @@
     return String(s)
       .replace(/&#x([0-9a-f]{1,6});?/gi, (_, h) => cp(parseInt(h, 16)))
       .replace(/&#(\d{1,7});?/g, (_, d) => cp(parseInt(d, 10)))
-      .replace(/&nbsp;/g, '00a0').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
       .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
   }
 
@@ -148,7 +148,7 @@
     while (stack.length) { const t = stack.pop(); if (t[0] !== '!') out.push('</' + t + '>'); }
 
     return out.join('')
-      .replace(/<(p|h2|h3|h4|li|blockquote|strong|em|u|s)>(\s|&nbsp;|00a0|<br>)*<\/\1>/g, '')
+      .replace(/<(p|h2|h3|h4|li|blockquote|strong|em|u|s)>(\s|&nbsp;| |<br>)*<\/\1>/g, '')
       .replace(/(<br>\s*){3,}/g, '<br><br>')
       .trim();
   }

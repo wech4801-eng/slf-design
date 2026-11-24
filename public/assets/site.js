@@ -1,9 +1,9 @@
 /**
  * ASLF — Script du site public (un seul fichier, chargé en « defer »).
  *
- * Les articles sont injectés par le serveur directement dans la page
+ * Les articles sont injectés par le serveur (public/index.php) directement dans la page
  * (<script id="aslf-data">) : aucun appel réseau supplémentaire pour les afficher.
- * Sur un hébergement statique (démo GitHub Pages), seed-articles.json sert de secours.
+ * À défaut, ils sont demandés à l'API du site (/api/articles).
  */
 (function () {
   'use strict';
@@ -23,14 +23,7 @@
     if (e.key === 'Escape' && m && m.classList.contains('open')) m.classList.remove('open');
   });
 
-  // Démo sur GitHub Pages : le site vit dans un sous-dossier (/nom-du-depot/)
-  const BASE = /\.github\.io$/i.test(location.hostname) ? '/' + location.pathname.split('/')[1] : '';
-  // Sans serveur : GitHub Pages, fichier ouvert directement, ou test local avec « ?base=supabase »
-  const STATIC = !!BASE || location.protocol === 'file:' || (() => {
-    try { return sessionStorage.getItem('aslf_base') === 'supabase' || new URLSearchParams(location.search).get('base') === 'supabase'; }
-    catch { return false; }
-  })();
-  const url = (u) => (u && u.startsWith('/') && !u.startsWith('//') ? BASE + u : u || '');
+  const url = (u) => u || '';
   const articleUrl = (a) => 'article.html?id=' + encodeURIComponent(a.slug || a.id);
 
   function readData() {
@@ -39,48 +32,14 @@
     try { return JSON.parse(el.textContent); } catch { return null; }
   }
 
-  // Hébergement sans serveur (GitHub Pages) : les articles viennent de la base Supabase
-  let dbPromise = null;
-  function db() {
-    if (!dbPromise) {
-      dbPromise = new Promise((resolve, reject) => {
-        if (window.SLFSupabase) return resolve(window.SLFSupabase);
-        const s = document.createElement('script');
-        s.src = BASE + '/assets/supabase.js?v=2';
-        s.onload = () => resolve(window.SLFSupabase);
-        s.onerror = reject;
-        document.head.append(s);
-      });
+  // Secours si la page arrive sans articles intégrés (cache intermédiaire, etc.) : l'API du site
+  let listPromise = null;
+  function fetchArticles() {
+    if (!listPromise) {
+      listPromise = fetch('/api/articles?limit=100').then((r) => (r.ok ? r.json() : { articles: [] }))
+        .then((j) => j.articles || []).catch(() => []);
     }
-    return dbPromise;
-  }
-
-  let seedPromise = null;
-  function seedArticles() {
-    if (!seedPromise && STATIC) {
-      seedPromise = db().then((d) => d.publicArticles()).catch(() => { seedPromise = null; return fileArticles(); });
-    }
-    return seedPromise || fileArticles();
-  }
-
-  // Dernier secours : le fichier d'articles livré avec le site
-  let filePromise = null;
-  function fileArticles() {
-    if (!filePromise) {
-      const abs = (u) => (u ? '/' + String(u).replace(/^\/+/, '') : '');
-      filePromise = fetch(BASE + '/seed-articles.json').then((r) => (r.ok ? r.json() : []))
-        .then((list) => list.filter((a) => a.status === 'publié').map((a) => ({
-          ...a,
-          slug: a.id,
-          coverImage: abs(a.coverImage),
-          coverThumb: abs(a.coverImage),
-          date: a.publishedAt || a.createdAt || a.updatedAt,
-          categoryLabel: a.categoryLabel || a.sectionLabel || 'Article',
-          readMinutes: Math.max(1, Math.round(String(a.content || '').replace(/<[^>]+>/g, ' ').split(/\s+/).length / 200)),
-        })).sort((x, y) => Date.parse(y.date) - Date.parse(x.date)))
-        .catch(() => []);
-    }
-    return filePromise;
+    return listPromise;
   }
 
   const fmtDate = (iso) => {
@@ -131,7 +90,7 @@
   // Styles des éléments ajoutés par ce script (badge, image absente, sections)
   const style = document.createElement('style');
   style.textContent = `
-    .news-card-placeholder{background:#0b5e31 url("${BASE}/images/logo-aslf-128.webp") center/72px no-repeat}
+    .news-card-placeholder{background:#0b5e31 url("/images/logo-aslf-128.webp") center/72px no-repeat}
     .news-new{position:absolute;top:-8px;right:-8px;background:#CE1126;color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
     .news-cat{position:relative}
     .aslf-more{display:flex;justify-content:center;margin:28px 0 8px}
@@ -163,7 +122,7 @@
   // ── Accueil : 3 derniers articles ─────────────────────────────────────────
   async function home(data) {
     const box = document.getElementById('dynamic-latest-container');
-    const list = data ? data.articles : await seedArticles();
+    const list = data ? data.articles : await fetchArticles();
     const empty = document.getElementById('latest-empty');
     box.textContent = '';
     if (empty) empty.style.display = list.length ? 'none' : '';
@@ -173,12 +132,12 @@
   // ── Actualités : liste complète, par pages de 24 ──────────────────────────
   async function news(data) {
     const box = document.getElementById('dynamic-news-container');
-    let list = data ? data.articles : await seedArticles();
+    let list = data ? data.articles : await fetchArticles();
     const total = data ? data.total : list.length;
     document.querySelectorAll('.news-static-card').forEach((el) => { el.style.display = list.length ? 'none' : ''; });
     box.textContent = '';
     list.forEach((a) => box.append(card(a, { heading: 'h2', author: true, more: true, badge: true })));
-    if (STATIC || list.length >= total) return;
+    if (list.length >= total) return;
     const wrap = h('div', 'aslf-more');
     const btn = h('button', null, 'Voir les articles plus anciens');
     btn.type = 'button';
@@ -206,7 +165,7 @@
     let list = data && data.articles;
     if (!data) {
       const page = location.pathname.split('/').pop().replace(/\.html?$/, '');
-      list = (await seedArticles()).filter((a) => a.section === page);
+      list = (await fetchArticles()).filter((a) => a.section === page);
     }
     const footer = document.querySelector('footer');
     if (!list || !list.length || !footer) return;
@@ -230,7 +189,7 @@
   function loadSanitizer() {
     return window.SLFSanitize ? Promise.resolve(window.SLFSanitize) : new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = BASE + '/assets/sanitize.js?v=1';
+      s.src = '/assets/sanitize.js?v=2';
       s.onload = () => resolve(window.SLFSanitize);
       s.onerror = reject;
       document.head.append(s);
@@ -247,20 +206,10 @@
     if (preview) {
       try { a = JSON.parse(localStorage.getItem('aslf_apercu') || 'null'); } catch { a = null; }
       if (a) a.content = (await loadSanitizer()).sanitize(a.content || '');
-    } else if (!data && params.get('id') && STATIC) {
-      const found = await db().then((d) => d.publicArticle(params.get('id'))).catch(() => undefined);
-      if (found !== undefined) {
-        a = found ? found.article : null;
-        related = found ? found.related : [];
-      } else {
-        const list = await fileArticles();
-        a = list.find((x) => x.id === params.get('id') || x.slug === params.get('id')) || null;
-        if (a) related = list.filter((x) => x.id !== a.id && x.section === a.section).slice(0, 3);
-      }
     } else if (!data && params.get('id')) {
-      const list = await seedArticles();
-      a = list.find((x) => x.id === params.get('id') || x.slug === params.get('id')) || null;
-      if (a) related = list.filter((x) => x.id !== a.id && x.section === a.section).slice(0, 3);
+      a = await fetch('/api/articles/' + encodeURIComponent(params.get('id')))
+        .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (a) related = (await fetchArticles()).filter((x) => x.id !== a.id && x.section === a.section).slice(0, 3);
     }
 
     const empty = document.getElementById('article-empty');
@@ -295,7 +244,6 @@
     if (body) {
       // Contenu déjà filtré par le serveur à l'enregistrement
       body.innerHTML = a.content && a.content.trim() ? a.content : '<p><em>Cet article n’a pas encore de contenu.</em></p>';
-      if (BASE) body.querySelectorAll('img[src^="/"]').forEach((i) => { i.src = url(i.getAttribute('src')); });
 
       if (a.gallery && a.gallery.length) {
         const title = h('h2', null, 'Galerie photos');
@@ -388,9 +336,7 @@
         ? 'Aperçu : voici à quoi ressemblera l’article. Il n’est ni enregistré ni publié. Fermez cet onglet pour revenir à l’éditeur.'
         : 'Brouillon : cet article n’est visible que par vous, car vous êtes connecté à l’espace de gestion.';
       document.body.prepend(bar);
-    } else if (STATIC && a.id) {
-      db().then((d) => d.countView(a.id)).then((n) => { if (typeof n === 'number') showViews(n); }).catch(() => {});
-    } else if (!STATIC && a.id && !(data && data.admin)) {
+    } else if (a.id && !(data && data.admin)) {
       fetch(`/api/articles/${encodeURIComponent(a.id)}/vue`, { method: 'POST' })
         .then((r) => r.json()).then((j) => { if (j && j.views) showViews(j.views); }).catch(() => {});
     }
@@ -435,14 +381,6 @@
     if (btn) { btn.disabled = true; btn.textContent = 'Envoi en cours…'; }
     msg.style.display = 'none';
     try {
-      if (STATIC) {
-        // Champ piège invisible : rempli uniquement par les robots
-        if (!v('site')) await (await db()).sendMessage({ nom: v('nom'), email: v('email'), telephone: v('telephone'), sujet: v('sujet'), message: v('message') });
-        form.style.display = 'none';
-        const okBox = document.getElementById('formSuccess');
-        if (okBox) { okBox.style.display = 'block'; okBox.setAttribute('tabindex', '-1'); okBox.focus(); }
-        return;
-      }
       const r = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'ASLF' },
@@ -466,5 +404,5 @@
   if (document.getElementById('dynamic-latest-container')) run(home);
   else if (document.getElementById('dynamic-news-container')) run(news);
   else if (document.getElementById('article-wrap')) run(article);
-  else if ((data && data.section) || (!data && STATIC)) run(section);
+  else if (data && data.section) run(section);
 })();

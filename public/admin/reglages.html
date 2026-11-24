@@ -54,18 +54,17 @@
         <li><strong>Un article a disparu&nbsp;?</strong> Regardez dans l’onglet « Corbeille » de la page Articles : il y reste 30 jours.</li>
         <li><strong>Une photo ne passe pas&nbsp;?</strong> Faites une capture d’écran de la photo, ou envoyez-la-vous par e-mail, puis réessayez.</li>
         <li><strong>Vous avez fermé la page sans enregistrer&nbsp;?</strong> Rouvrez l’article : l’éditeur vous proposera de reprendre votre texte.</li>
-        <li><strong>Le site ne répond plus&nbsp;?</strong> Attendez une minute : il redémarre tout seul. Si le problème continue, prévenez le responsable technique.</li>
+        <li><strong>Le site ne répond plus&nbsp;?</strong> Attendez quelques minutes puis rechargez la page. Si le problème continue, prévenez le responsable technique.</li>
       </ol>
       <p style="margin-top:20px"><button class="btn btn-secondary" type="button" id="logout"><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#log-out"></use></svg>Se déconnecter de cet appareil</button></p>
     </section>
   </main>
 
-  <script src="../assets/supabase.js?v=1"></script>
 
   <script src="admin.js?v=1"></script>
   <script>
     (function () {
-      const { api, toast, esc, frDate, formatBytes, setBusy, logout, DB, $ } = window.ASLF;
+      const { api, toast, esc, frDate, formatBytes, setBusy, logout, $ } = window.ASLF;
       const form = $('#pw-form');
 
       $('#show-pw').addEventListener('change', (e) => {
@@ -91,29 +90,14 @@
         finally { setBusy(btn, false); }
       });
 
-      $('#backup').addEventListener('click', async (e) => {
+      $('#backup').addEventListener('click', () => {
         toast('La sauvegarde se prépare, le téléchargement va commencer…');
-        if (!DB) return;
-        // Sans serveur : la sauvegarde (articles, membres, messages) est créée dans le navigateur
-        e.preventDefault();
-        try {
-          const blob = await api('GET', '/api/admin/sauvegarde');
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = 'sauvegarde-aslf-' + new Date().toISOString().slice(0, 10) + '.json';
-          a.click();
-          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-        } catch (ex) { toast(ex.message, 'error'); }
       });
 
       (async () => {
         try {
           const s = await api('GET', '/api/admin/etat');
-          if (DB) {
-            $('#backup-lead').textContent = 'Les articles, les membres et les messages sont enregistrés dans une base de données en ligne. Par sécurité, téléchargez une sauvegarde une fois par mois et gardez-la sur votre ordinateur ou une clé USB.';
-            $('#backup').lastChild.textContent = 'Télécharger une sauvegarde';
-          }
-          $('#last-backup').textContent = DB ? '' : s.derniereSauvegarde
+          $('#last-backup').textContent = s.derniereSauvegarde
             ? `Dernière sauvegarde automatique : ${frDate(s.derniereSauvegarde)}.`
             : 'Aucune sauvegarde automatique pour l’instant.';
           const facts = [
@@ -123,8 +107,9 @@
             ['Membres', s.membres],
             ['Photos', `${s.photos.nombre} (${formatBytes(s.photos.poids)})`],
             ['Espace libre sur le serveur', formatBytes(s.disqueLibre)],
-            ['En marche depuis', frDate(s.demarrage, true)],
+            ['Dernière copie automatique', s.derniereSauvegarde ? frDate(s.derniereSauvegarde) : '—'],
             ['Version du site', s.version],
+            ['Serveur', s.systeme || '—'],
           ];
           $('#facts').innerHTML = facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
         } catch (e) {

@@ -1,17 +1,11 @@
 {
   "name": "aslf-site",
-  "version": "2.0.0",
-  "description": "Site de l'Association Somalilandaise de France (ASLF). Serveur Node.js autonome, sans dépendance.",
-  "main": "server.js",
+  "version": "3.0.0",
+  "description": "Site de l'Association Somalilandaise de France (ASLF). Hébergement Hostinger : PHP 8 + SQLite, sans dépendance.",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "start": "node server.js",
-    "dev": "DEV=1 node server.js",
-    "mot-de-passe": "node scripts/mot-de-passe.js",
-    "test": "node --test tests/*.test.js"
-  },
-  "engines": {
-    "node": ">=20"
+    "paquet": "python scripts/paquet-hostinger.py",
+    "test": "node --test tests/*.test.mjs"
   }
 }

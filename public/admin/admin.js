@@ -6,11 +6,8 @@
   'use strict';
 
   const ICONS = 'icons.svg';
-  // Hébergement sans serveur (GitHub Pages) : les données passent par Supabase
-  const DB = window.SLFSupabase && window.SLFSupabase.ACTIVE ? window.SLFSupabase : null;
-  const BASE = DB ? DB.BASE : '';
-  /** Adresse affichable d'une image du site (« /images/… » → sous-dossier GitHub si besoin). */
-  const src = (u) => (u && u.startsWith('/') && !u.startsWith('//') ? BASE + u : u || '');
+  /** Adresse affichable d'une image du site. */
+  const src = (u) => u || '';
   const herePage = () => (location.pathname.split('/').pop() || '') + location.search;
   const icon = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="${ICONS}#${name}"></use></svg>`;
 
@@ -78,15 +75,6 @@
   class ApiError extends Error {}
 
   async function api(method, url, body, opts = {}) {
-    if (DB) {
-      try { return await DB.api(method, url, body); }
-      catch (e) {
-        if (e.status === 401 && !url.endsWith('/api/login')) {
-          location.href = 'connexion.html?suite=' + encodeURIComponent(herePage());
-        }
-        throw new ApiError(e.message || 'Une erreur est survenue. Réessayez dans un instant.');
-      }
-    }
     const headers = { 'X-Requested-With': 'ASLF' };
     let payload = body;
     if (body !== undefined && !(body instanceof Blob)) {
@@ -292,16 +280,7 @@
     return `${(n / 1073741824).toFixed(1).replace('.', ',')} Go`;
   }
 
-  window.ASLF = { src, DB, refreshUnread, api, ApiError, toast, dialog, icon, esc, $, $$, frDate, uploadPhoto, pickFiles, checkImageFile, setBusy, formatBytes, logout };
-
-  // Sans serveur, la protection des pages se fait ici : pas de session, retour à la connexion
-  (async () => {
-    if (!DB) return;
-    const connected = !!(await DB.token());
-    const onLogin = /connexion[.]html$/.test(location.pathname);
-    if (onLogin && connected) location.replace('./');
-    else if (!onLogin && !connected) location.replace('connexion.html?suite=' + encodeURIComponent(herePage()));
-  })();
+  window.ASLF = { src, DB: null, refreshUnread, api, ApiError, toast, dialog, icon, esc, $, $$, frDate, uploadPhoto, pickFiles, checkImageFile, setBusy, formatBytes, logout };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderChrome);
   else renderChrome();

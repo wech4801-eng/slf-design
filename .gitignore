@@ -35,3 +35,7 @@ data/
 
 # ── Fichiers de configuration locale de l'outil d'édition ───────
 .impeccable/
+
+# ── Hostinger : secrets et archive générés localement ──────────
+public/app/mot-de-passe-initial.php
+public/app/.debug
