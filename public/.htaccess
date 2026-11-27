@@ -21,12 +21,12 @@ AddDefaultCharset utf-8
 
   # Code serveur, fichiers cachés et données d'origine : jamais servis tels quels
   RewriteRule ^app(/|$) - [F,L]
-  RewriteRule (^|/)\. - [F,L]
+  RewriteRule (^|/)\. index.php [L]
   RewriteRule ^seed-articles\.json$ - [F,L]
   RewriteRule \.(sqlite|log|md|sh|bak)$ - [F,L]
 
   # API, photos envoyées, sitemap et robots : gérés par index.php
-  RewriteRule ^(api/|uploads/|medias/|sitemap\.xml$|robots\.txt$) index.php [L,QSA]
+  RewriteRule ^(api/|uploads/|medias/|fichiers/|sitemap\.xml$|robots\.txt$) index.php [L,QSA]
 
   # Pages : index.php y intègre les articles (et protège /admin/)
   RewriteCond %{REQUEST_URI} \.html$ [OR]

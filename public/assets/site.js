@@ -134,7 +134,8 @@
     const box = document.getElementById('dynamic-news-container');
     let list = data ? data.articles : await fetchArticles();
     const total = data ? data.total : list.length;
-    document.querySelectorAll('.news-static-card').forEach((el) => { el.style.display = list.length ? 'none' : ''; });
+    const empty = document.getElementById('news-empty');
+    if (empty) empty.style.display = list.length ? 'none' : '';
     box.textContent = '';
     list.forEach((a) => box.append(card(a, { heading: 'h2', author: true, more: true, badge: true })));
     if (list.length >= total) return;
@@ -278,6 +279,35 @@
         box.append(f);
         body.append(box);
       });
+
+      // Documents joints : liste à télécharger (PDF ouvert dans le navigateur, autres formats téléchargés)
+      const docs = (a.attachments || []).filter((d) => d && /^\/fichiers\/\d{4}\/\d{2}\/[\w-]+\.\w+$/.test(d.url));
+      if (docs.length) {
+        const wrapDocs = h('section', 'aslf-docs');
+        wrapDocs.setAttribute('aria-label', 'Documents à télécharger');
+        const t = h('h2', null, docs.length > 1 ? 'Documents à télécharger' : 'Document à télécharger');
+        t.style.cssText = 'font-family:var(--font-display);font-size:22px;color:var(--green-dark);margin:40px 0 12px;';
+        wrapDocs.append(t);
+        const size = (n) => (n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' Ko' : (n / 1048576).toFixed(1).replace('.', ',') + ' Mo');
+        docs.forEach((d) => {
+          const link = h('a');
+          link.href = d.url;
+          if (d.ext === 'pdf') { link.target = '_blank'; link.rel = 'noopener'; } else link.setAttribute('download', '');
+          link.style.cssText = 'display:flex;gap:14px;align-items:center;padding:14px 16px;margin:0 0 10px;border:1px solid var(--gray-200,#e9ecef);border-radius:10px;background:#fff;color:inherit;text-decoration:none;';
+          const badge = h('span', null, (d.ext || '').toUpperCase());
+          badge.style.cssText = 'flex:0 0 auto;min-width:54px;padding:8px 6px;border-radius:8px;background:#e8f5ee;color:#006830;font:700 12px/1 Inter,system-ui,sans-serif;text-align:center;letter-spacing:.04em;';
+          const info = h('span');
+          info.style.cssText = 'flex:1;min-width:0;';
+          const name = h('strong', null, d.name || 'Document');
+          name.style.cssText = 'display:block;overflow-wrap:anywhere;color:#212529;';
+          info.append(name, h('small', null, `${d.label || 'Document'} · ${size(d.size || 0)}`));
+          const go = h('span', null, d.ext === 'pdf' ? 'Ouvrir ↗' : 'Télécharger ↓');
+          go.style.cssText = 'flex:0 0 auto;color:var(--green);font-weight:600;font-size:14px;';
+          link.append(badge, info, go);
+          wrapDocs.append(link);
+        });
+        body.append(wrapDocs);
+      }
     }
 
     const tags = document.querySelector('.tags');

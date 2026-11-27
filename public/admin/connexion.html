@@ -18,7 +18,7 @@
         <span><strong>ASLF</strong><small>Association Somalilandaise de France</small></span>
       </a>
       <h1>Bonjour&nbsp;!</h1>
-      <p>Entrez le mot de passe de l’association pour gérer le site&nbsp;: écrire des articles, ajouter des photos, tenir la liste des membres.</p>
+      <p>Entrez l’identifiant et le mot de passe de l’association pour gérer le site&nbsp;: écrire des articles, ajouter des photos, tenir la liste des membres.</p>
 
       <form id="form" novalidate>
         <div class="notice notice-error" id="error" role="alert" hidden>
@@ -26,9 +26,13 @@
           <div id="error-text"></div>
         </div>
         <div class="field">
+          <label class="label" for="login">Identifiant</label>
+          <input class="input" id="login" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+        </div>
+        <div class="field">
           <label class="label" for="password">Mot de passe</label>
           <div class="pw-wrap">
-            <input class="input" id="password" name="password" type="password" autocomplete="current-password" required autofocus aria-describedby="pw-hint">
+            <input class="input" id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="pw-hint">
             <button class="btn btn-ghost" type="button" id="toggle" aria-controls="password" aria-pressed="false">
               <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#eye"></use></svg><span>Afficher</span>
             </button>
@@ -39,7 +43,7 @@
       </form>
     </div>
   </main>
-  <p class="login-foot">Mot de passe oublié&nbsp;? Demandez-le à la personne qui s’occupe du site.<br><a href="../">Retour au site de l’association</a></p>
+  <p class="login-foot">Identifiant ou mot de passe oublié&nbsp;? Demandez-les à la personne qui s’occupe du site.<br><a href="../">Retour au site de l’association</a></p>
 
 
   <script src="admin.js?v=1"></script>
@@ -48,6 +52,7 @@
       const { api, setBusy } = window.ASLF;
       const form = document.getElementById('form');
       const pw = document.getElementById('password');
+      const login = document.getElementById('login');
       const err = document.getElementById('error');
       const toggle = document.getElementById('toggle');
 
@@ -60,20 +65,21 @@
         pw.focus();
       });
 
-      function showError(msg) {
+      function showError(msg, field = pw) {
         document.getElementById('error-text').textContent = msg;
         err.hidden = false;
-        pw.setAttribute('aria-invalid', 'true');
-        pw.select();
+        field.setAttribute('aria-invalid', 'true');
+        field.select();
       }
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!login.value.trim()) return showError('Écrivez l’identifiant dans la première case.', login);
         if (!pw.value) return showError('Écrivez le mot de passe dans la case ci-dessous.');
         const btn = document.getElementById('submit');
         setBusy(btn, true, 'Connexion…');
         try {
-          await api('POST', '/api/login', { password: pw.value });
+          await api('POST', '/api/login', { identifiant: login.value.trim(), password: pw.value });
           const next = new URLSearchParams(location.search).get('suite') || '';
           // Retour uniquement vers une page de l'administration (nom de page simple, sans chemin)
           location.href = /^[\w-]+\.html(\?[\w\-=&%.]*)?$/.test(next) && !next.startsWith('connexion') ? next : './';

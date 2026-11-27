@@ -14,6 +14,7 @@ const ASLF_VERSION = '3.0.0';
 define('PUBLIC_DIR', dirname(__DIR__));
 define('DATA_DIR', rtrim((string) (getenv('ASLF_DATA_DIR') ?: dirname(PUBLIC_DIR) . '/aslf-data'), '/'));
 define('UPLOADS_DIR', DATA_DIR . '/uploads');
+define('DOCS_DIR', DATA_DIR . '/fichiers');
 define('BACKUPS_DIR', DATA_DIR . '/sauvegardes');
 define('DB_FILE', DATA_DIR . '/aslf.sqlite');
 // Photos et vidéos des événements (envoyées à part, trop lourdes pour l'archive du site)
@@ -74,7 +75,7 @@ function ensure_data_dirs(): void
 {
     static $done = false;
     if ($done) return;
-    foreach ([DATA_DIR, UPLOADS_DIR, BACKUPS_DIR] as $dir) {
+    foreach ([DATA_DIR, UPLOADS_DIR, DOCS_DIR, BACKUPS_DIR] as $dir) {
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             throw new RuntimeException("Impossible de créer le dossier de données $dir");
         }
@@ -108,8 +109,22 @@ function migrate_schema(PDO $pdo): void
 {
     $pdo->exec('CREATE TABLE IF NOT EXISTS settings (name TEXT PRIMARY KEY, value TEXT NOT NULL)');
     $version = (int) (setting_get('schema', '0', $pdo));
-    if ($version >= 1) return;
+    if ($version < 1) migrate_v1($pdo);
+    if ($version < 2) {
+        // v2 : documents joints aux articles (PDF, Word, Excel…)
+        $pdo->exec('CREATE TABLE IF NOT EXISTS documents (
+            url TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            size INTEGER NOT NULL,
+            ext TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )');
+        setting_set('schema', '2', $pdo);
+    }
+}
 
+function migrate_v1(PDO $pdo): void
+{
     $pdo->beginTransaction();
     $statements = [
         'CREATE TABLE IF NOT EXISTS articles (
@@ -342,3 +357,5 @@ require __DIR__ . '/sections.php';
 require __DIR__ . '/sanitize.php';
 require __DIR__ . '/store.php';
 require __DIR__ . '/auth.php';
+require __DIR__ . '/securite.php';
+require __DIR__ . '/reglages.php';

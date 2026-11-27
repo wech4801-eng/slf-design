@@ -14,7 +14,7 @@
     <div class="page-head">
       <div>
         <h1>Réglages</h1>
-        <p>Le mot de passe, les sauvegardes et l’état du site.</p>
+        <p>L’identifiant, le mot de passe, les sauvegardes et l’état du site.</p>
       </div>
     </div>
 
@@ -26,6 +26,18 @@
         <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#download"></use></svg>Télécharger une sauvegarde complète
       </a>
       <p class="hint">Conseil : faites-le une fois par mois. Le fichier peut prendre un peu de temps s’il y a beaucoup de photos.</p>
+    </section>
+
+    <section class="section" aria-labelledby="h-login">
+      <h2 id="h-login">Changer l’identifiant</h2>
+      <p class="lead">Identifiant actuel : <strong id="current-login">…</strong>. Il peut s’agir d’un pseudo ou d’une adresse e-mail. Après le changement, les autres appareils connectés devront se reconnecter.</p>
+      <form id="login-form" novalidate style="max-width:460px">
+        <div class="notice notice-error" id="login-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#triangle-alert"></use></svg><div id="login-error-text"></div></div>
+        <label class="field"><span>Nouvel identifiant</span><input class="input" type="text" name="next" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="160" required>
+          <small class="hint">Lettres, chiffres et . _ - @ + uniquement, sans espace. Les majuscules ne comptent pas.</small></label>
+        <label class="field"><span>Mot de passe actuel (pour confirmer)</span><input class="input" type="password" name="current" autocomplete="current-password" required></label>
+        <button class="btn btn-primary" type="submit" id="login-save">Changer l’identifiant</button>
+      </form>
     </section>
 
     <section class="section" aria-labelledby="h-pw">
@@ -42,10 +54,59 @@
       </form>
     </section>
 
+    <section class="section" aria-labelledby="h-comptes">
+      <h2 id="h-comptes">Comptes d’accès</h2>
+      <p class="lead">Chaque personne qui gère le site a son propre identifiant et son propre mot de passe. Il en faut au moins deux, pour ne jamais perdre l’accès.</p>
+      <div id="comptes" aria-live="polite"><p class="hint">Chargement…</p></div>
+      <form id="compte-form" novalidate style="max-width:460px;margin-top:18px">
+        <h3 style="font-size:16px;margin:0 0 10px">Ajouter une personne</h3>
+        <div class="notice notice-error" id="compte-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#triangle-alert"></use></svg><div id="compte-error-text"></div></div>
+        <label class="field"><span>Son identifiant</span><input class="input" type="text" name="identifiant" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="160" required>
+          <small class="hint">Un pseudo ou son adresse e-mail (lettres, chiffres, . _ - @ +).</small></label>
+        <label class="field"><span>Son mot de passe de départ</span><input class="input" type="text" name="password" autocomplete="off" minlength="10" required>
+          <small class="hint">Au moins 10 caractères. Transmettez-le-lui de vive voix ; elle pourra le changer dans Réglages.</small></label>
+        <label class="field"><span>Votre mot de passe actuel (pour confirmer)</span><input class="input" type="password" name="current" autocomplete="current-password" required></label>
+        <button class="btn btn-primary" type="submit" id="compte-save">Créer le compte</button>
+      </form>
+    </section>
+
+    <section class="section" aria-labelledby="h-site">
+      <h2 id="h-site">Alertes et adhésion en ligne</h2>
+      <form id="site-form" novalidate style="max-width:560px">
+        <div class="notice notice-error" id="site-error" role="alert" hidden><svg class="i" aria-hidden="true"><use href="icons.svg?v=1#triangle-alert"></use></svg><div id="site-error-text"></div></div>
+        <label class="check" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;cursor:pointer"><input type="checkbox" name="alerteActive" style="width:22px;height:22px;accent-color:var(--green)"><span>Recevoir un e-mail à chaque message du formulaire de contact</span></label>
+        <label class="field"><span>Adresse qui reçoit les alertes</span><input class="input" type="email" name="alerteEmail" maxlength="160" autocomplete="email"></label>
+        <p><button class="btn btn-secondary" type="button" id="alerte-test">Envoyer un e-mail de test</button></p>
+        <label class="field"><span>Lien HelloAsso pour adhérer en ligne</span><input class="input" type="url" name="helloassoAdhesion" placeholder="https://www.helloasso.com/associations/…" maxlength="500">
+          <small class="hint">Laissez vide tant que le formulaire HelloAsso n’existe pas : rien ne s’affiche sur le site.</small></label>
+        <label class="field"><span>Lien HelloAsso pour faire un don</span><input class="input" type="url" name="helloassoDon" placeholder="https://www.helloasso.com/associations/…" maxlength="500"></label>
+        <div class="field"><span>Bulletin d’adhésion (PDF)</span>
+          <p id="bulletin-now" class="hint" style="margin:6px 0 10px">Aucun bulletin pour l’instant.</p>
+          <button class="btn btn-secondary" type="button" id="bulletin-add">Envoyer le bulletin (PDF)</button>
+          <button class="btn btn-ghost danger" type="button" id="bulletin-remove" hidden>Retirer le bulletin du site</button></div>
+        <button class="btn btn-primary" type="submit" id="site-save">Enregistrer</button>
+      </form>
+    </section>
+
+    <section class="section" aria-labelledby="h-secu">
+      <h2 id="h-secu">Sécurité</h2>
+      <p class="lead">Le site bloque tout seul, pendant 30 minutes à 1 heure, les adresses qui s’acharnent : 5 mots de passe faux en 15 minutes, robots qui cherchent des failles, ou plus de 180 requêtes en une minute. Les blocages se lèvent d’eux-mêmes.</p>
+      <div id="bans" aria-live="polite"><p class="hint">Chargement…</p></div>
+    </section>
+
     <section class="section" aria-labelledby="h-state">
       <h2 id="h-state">État du site</h2>
-      <p class="lead">Ces informations sont utiles si vous contactez la personne qui s’occupe de la partie technique du site.</p>
-      <dl class="facts" id="facts"><div><dt>Chargement…</dt><dd>&nbsp;</dd></div></dl>
+      <p class="lead">Chiffres calculés à l’instant sur le serveur Hostinger. Utiles aussi si vous contactez la personne qui s’occupe de la partie technique du site.</p>
+      <h3 class="facts-title">Contenu du site</h3>
+      <dl class="facts" id="facts-contenu"><div><dt>Chargement…</dt><dd>&nbsp;</dd></div></dl>
+      <h3 class="facts-title">Espace occupé sur l’hébergement</h3>
+      <div class="quota" id="quota" hidden>
+        <div class="quota-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Espace utilisé"><span id="quota-fill"></span></div>
+        <p class="hint" id="quota-text"></p>
+      </div>
+      <dl class="facts" id="facts-espace"></dl>
+      <h3 class="facts-title">Informations techniques</h3>
+      <dl class="facts" id="facts-tech"></dl>
     </section>
 
     <section class="section" aria-labelledby="h-help">
@@ -90,6 +151,128 @@
         finally { setBusy(btn, false); }
       });
 
+      const loginForm = $('#login-form');
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = (m) => { $('#login-error-text').textContent = m; $('#login-error').hidden = false; };
+        $('#login-error').hidden = true;
+        const { next, current } = Object.fromEntries(new FormData(loginForm));
+        if (next.trim().length < 3) return err('Le nouvel identifiant doit faire au moins 3 caractères.');
+        if (!current) return err('Écrivez votre mot de passe actuel pour confirmer.');
+        const btn = $('#login-save');
+        setBusy(btn, true, 'Enregistrement…');
+        try {
+          const r = await api('POST', '/api/admin/identifiant', { next: next.trim(), current });
+          loginForm.reset();
+          $('#current-login').textContent = r.identifiant;
+          toast('Identifiant changé. Notez-le dans un endroit sûr.');
+        } catch (ex) { err(ex.message); }
+        finally { setBusy(btn, false); }
+      });
+
+      // Comptes d'accès
+      async function loadComptes() {
+        try {
+          const list = await api('GET', '/api/admin/comptes');
+          $('#comptes').innerHTML = list.map((c) => `<div class="video-row">
+              <span><strong>${esc(c.identifiant)}</strong>${c.moi ? ' <small class="hint" style="display:inline">(vous)</small>' : ''}
+                <small class="hint" style="display:block">${c.derniereConnexion ? 'Dernière connexion ' + esc(frDate(c.derniereConnexion, true)) : 'Jamais connecté'}</small></span>
+              ${c.moi || list.length < 2 ? '' : `<button class="btn btn-ghost danger" type="button" data-del-compte="${c.id}" data-nom="${esc(c.identifiant)}">Retirer l’accès</button>`}</div>`).join('');
+        } catch (e) { $('#comptes').innerHTML = `<p class="hint">${esc(e.message)}</p>`; }
+      }
+      $('#comptes').addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-del-compte]');
+        if (!b) return;
+        const ok = await window.ASLF.dialog({ title: `Retirer l’accès de « ${b.dataset.nom} » ?`, text: 'Cette personne ne pourra plus se connecter à l’espace de gestion.', ok: 'Oui, retirer', danger: true });
+        if (!ok) return;
+        try { await api('DELETE', '/api/admin/comptes?id=' + encodeURIComponent(b.dataset.delCompte)); toast('Accès retiré.'); loadComptes(); }
+        catch (ex) { toast(ex.message, 'error'); }
+      });
+      const compteForm = $('#compte-form');
+      compteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = (m) => { $('#compte-error-text').textContent = m; $('#compte-error').hidden = false; };
+        $('#compte-error').hidden = true;
+        const data = Object.fromEntries(new FormData(compteForm));
+        if (data.identifiant.trim().length < 3) return err('L’identifiant doit faire au moins 3 caractères.');
+        if (data.password.length < 10) return err('Le mot de passe de départ doit faire au moins 10 caractères.');
+        if (!data.current) return err('Écrivez votre mot de passe actuel pour confirmer.');
+        const btn = $('#compte-save');
+        setBusy(btn, true, 'Création…');
+        try { await api('POST', '/api/admin/comptes', data); compteForm.reset(); toast('Compte créé.'); loadComptes(); }
+        catch (ex) { err(ex.message); }
+        finally { setBusy(btn, false); }
+      });
+      loadComptes();
+
+      // Alertes, HelloAsso et bulletin
+      const siteForm = $('#site-form');
+      function showSettings(r) {
+        siteForm.alerteActive.checked = !!r.alerteActive;
+        siteForm.alerteEmail.value = r.alerteEmail || '';
+        siteForm.helloassoAdhesion.value = r.helloassoAdhesion || '';
+        siteForm.helloassoDon.value = r.helloassoDon || '';
+        $('#bulletin-now').innerHTML = r.bulletin ? `En ligne : <a href="${esc(r.bulletin.url)}" target="_blank" rel="noopener">${esc(r.bulletin.name)}</a>` : 'Aucun bulletin pour l’instant.';
+        $('#bulletin-remove').hidden = !r.bulletin;
+      }
+      function saveSettings(extra = {}) {
+        const f = siteForm;
+        return api('PUT', '/api/admin/reglages', { alerteActive: f.alerteActive.checked, alerteEmail: f.alerteEmail.value.trim(),
+          helloassoAdhesion: f.helloassoAdhesion.value.trim(), helloassoDon: f.helloassoDon.value.trim(), ...extra });
+      }
+      api('GET', '/api/admin/reglages').then(showSettings).catch((e) => toast(e.message, 'error'));
+      siteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('#site-error').hidden = true;
+        const btn = $('#site-save');
+        setBusy(btn, true, 'Enregistrement…');
+        try { showSettings(await saveSettings()); toast('Réglages enregistrés.'); }
+        catch (ex) { $('#site-error-text').textContent = ex.message; $('#site-error').hidden = false; }
+        finally { setBusy(btn, false); }
+      });
+      $('#alerte-test').addEventListener('click', async () => {
+        try {
+          showSettings(await saveSettings());
+          const r = await api('POST', '/api/admin/alerte-test');
+          toast(r.ok ? 'E-mail de test envoyé : regardez la boîte de réception (et les indésirables).' : 'L’envoi a échoué : vérifiez l’adresse.', r.ok ? 'ok' : 'error');
+        } catch (ex) { toast(ex.message, 'error'); }
+      });
+      $('#bulletin-add').addEventListener('click', async () => {
+        const files = await window.ASLF.pickDocuments();
+        const file = files && files[0];
+        if (!file) return;
+        if (!/[.]pdf$/i.test(file.name)) { toast('Le bulletin doit être un fichier PDF.', 'error'); return; }
+        const btn = $('#bulletin-add');
+        setBusy(btn, true, 'Envoi…');
+        try {
+          const doc = await window.ASLF.uploadDocument(file);
+          showSettings(await saveSettings({ bulletin: doc.url }));
+          toast('Bulletin en ligne sur la page « Adhérer / Faire un don ».');
+        } catch (ex) { toast(ex.message, 'error'); }
+        finally { setBusy(btn, false); }
+      });
+      $('#bulletin-remove').addEventListener('click', async () => {
+        try { showSettings(await saveSettings({ bulletin: '' })); toast('Bulletin retiré du site.'); }
+        catch (ex) { toast(ex.message, 'error'); }
+      });
+
+      async function loadBans() {
+        try {
+          const bans = await api('GET', '/api/admin/securite');
+          $('#bans').innerHTML = bans.length ? bans.map((b) => `<div class="video-row">
+              <span><strong>${esc(b.ip)}</strong> <small class="hint" style="display:inline">· ${esc(b.raison)} · bloquée jusqu’à ${esc(new Date(b.jusqua).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))}${b.fois > 1 ? ` · ${b.fois} fois` : ''}</small></span>
+              <button class="btn btn-ghost" type="button" data-unban="${esc(b.ip)}">Débloquer</button></div>`).join('')
+            : '<p class="hint">Aucune adresse bloquée en ce moment.</p>';
+        } catch (e) { $('#bans').innerHTML = `<p class="hint">${esc(e.message)}</p>`; }
+      }
+      $('#bans').addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-unban]');
+        if (!b) return;
+        try { await api('DELETE', '/api/admin/securite?ip=' + encodeURIComponent(b.dataset.unban)); toast('Adresse débloquée.'); loadBans(); }
+        catch (ex) { toast(ex.message, 'error'); }
+      });
+      loadBans();
+
       $('#backup').addEventListener('click', () => {
         toast('La sauvegarde se prépare, le téléchargement va commencer…');
       });
@@ -97,23 +280,48 @@
       (async () => {
         try {
           const s = await api('GET', '/api/admin/etat');
+          $('#current-login').textContent = s.identifiant || 'admin';
           $('#last-backup').textContent = s.derniereSauvegarde
             ? `Dernière sauvegarde automatique : ${frDate(s.derniereSauvegarde)}.`
             : 'Aucune sauvegarde automatique pour l’instant.';
-          const facts = [
+          const st = s.stockage;
+          const ev = st.evenements;
+          const n = (x, one, many) => `${x.toLocaleString('fr-FR')} ${x > 1 ? many : one}`;
+          const fill = (id, rows) => { $(id).innerHTML = rows.map(([k, v, d]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd>${d ? `<small class="hint">${esc(d)}</small>` : ''}</div>`).join(''); };
+          fill('#facts-contenu', [
             ['Articles en ligne', s.articles.enLigne],
             ['Brouillons', s.articles.brouillons],
             ['Dans la corbeille', s.articles.corbeille],
+            ['Photos des événements', ev.photos.nombre, 'page « En images »'],
+            ['Vidéos des événements', ev.videos.nombre, n(ev.films.nombre, 'film monté en plus', 'films montés en plus')],
+            ['Images des pages du site', st.imagesSite.nombre],
+            ['Photos ajoutées aux articles', st.photosArticles.nombre, 'envoyées depuis l’espace de gestion'],
+            ['Documents joints aux articles', st.documentsJoints.nombre],
             ['Membres', s.membres],
-            ['Photos', `${s.photos.nombre} (${formatBytes(s.photos.poids)})`],
-            ['Espace libre sur le serveur', formatBytes(s.disqueLibre)],
+            ['Messages reçus', s.messages, s.messagesNonLus ? n(s.messagesNonLus, 'non lu', 'non lus') : 'tous lus'],
+          ]);
+          const pct = Math.min(100, (st.total / st.quota) * 100);
+          $('#quota').hidden = false;
+          $('#quota-fill').style.width = Math.max(pct, 0.5) + '%';
+          $('.quota-bar').setAttribute('aria-valuenow', pct.toFixed(1));
+          $('#quota-text').textContent = `${formatBytes(st.total)} utilisés sur ${formatBytes(st.quota)} inclus dans l’offre Hostinger (${pct.toFixed(1).replace('.', ',')} %). Il reste ${formatBytes(Math.max(0, st.quota - st.total))}.`;
+          fill('#facts-espace', [
+            ['Photos et vidéos des événements', formatBytes(ev.total.poids)],
+            ['Images des pages du site', formatBytes(st.imagesSite.poids)],
+            ['Photos ajoutées aux articles', formatBytes(st.photosArticles.poids)],
+            ['Documents (livre, pièces jointes)', formatBytes(st.documentsSite.poids + st.documentsJoints.poids)],
+            ['Base de données (articles, membres, messages)', formatBytes(st.base)],
+            ['Copies de sécurité automatiques', formatBytes(st.sauvegardes.poids), n(st.sauvegardes.nombre, 'copie', 'copies') + ', 30 jours gardés'],
+          ]);
+          fill('#facts-tech', [
             ['Dernière copie automatique', s.derniereSauvegarde ? frDate(s.derniereSauvegarde) : '—'],
+            ['Adresses bloquées en ce moment', s.adressesBloquees],
             ['Version du site', s.version],
             ['Serveur', s.systeme || '—'],
-          ];
-          $('#facts').innerHTML = facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+            ['Votre adresse IP', s.reseau ? s.reseau.ip : '—'],
+          ]);
         } catch (e) {
-          $('#facts').innerHTML = `<div><dt>Erreur</dt><dd>${esc(e.message)}</dd></div>`;
+          $('#facts-contenu').innerHTML = `<div><dt>Erreur</dt><dd>${esc(e.message)}</dd></div>`;
         }
       })();
     })();

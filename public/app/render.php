@@ -13,6 +13,15 @@ const LEGACY = [
     '/admin-medias.html' => '/admin/photos.html',
     '/admin-categories.html' => '/admin/',
     '/admin-parametres.html' => '/admin/reglages.html',
+    // Pages regroupées le 28/11/2026 (menu à 7 entrées)
+    '/qui-sommes-nous.html' => '/association.html#qui-sommes-nous',
+    '/qui-sommes-nous' => '/association.html#qui-sommes-nous',
+    '/notre-but.html' => '/association.html#nos-missions',
+    '/notre-but' => '/association.html#nos-missions',
+    '/appel-cotisation.html' => '/bulletin-adhesion.html',
+    '/appel-cotisation' => '/bulletin-adhesion.html',
+    '/radios.html' => '/medias.html',
+    '/radios' => '/medias.html',
 ];
 const MIME = ['webp' => 'image/webp', 'jpg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif'];
 
@@ -72,7 +81,7 @@ function render_page(string $src, string $page, bool $admin): array
         $s = article_summary($a, false);
         $title = (($a['seoTitle'] ?? '') ?: $a['title']) . ' · ASLF';
         $desc = mb_substr((($a['metaDesc'] ?? '') ?: $s['chapeau']), 0, 200);
-        $img = absolute_url($s['coverImage'] ?: '/images/comite_executif.jpg');
+        $img = absolute_url($s['coverImage'] ?: '/images/partage-aslf.jpg');
         $link = absolute_url('/article.html?id=' . rawurlencode($a['slug'] ?? $a['id']));
         $html = preg_replace('~<title>[\s\S]*?</title>~', '<title>' . esc_html($title) . '</title>', $html, 1) ?? $html;
         $html = set_meta($html, 'name', 'description', $desc);
@@ -90,6 +99,13 @@ function render_page(string $src, string $page, bool $admin): array
         $pos = strripos($html, '</body>');
         $html = $pos !== false ? substr_replace($html, $tag . "\n", $pos, 0) : $html . $tag;
     }
+    $html = str_replace('<!--HELLOASSO-->', adhesion_block(), $html);
+    $html = str_replace('<!--RDV-->', rdv_block(), $html);
+    if (str_contains($html, '<!--BULLETIN-')) {
+        [$bouton, $etape] = bulletin_parts();
+        $html = str_replace(['<!--BULLETIN-BOUTON-->', '<!--BULLETIN-ETAPE-->'], [$bouton, $etape], $html);
+    }
+    $html = str_replace('<!--MAJ-->', ' · <span class="page-maj">Page mise à jour le ' . date_fr(page_updated($page, $pd)) . '</span>', $html);
     return [$html, $pd['status'] ?? 200];
 }
 
@@ -236,6 +252,35 @@ function serve_media(string $path): never
     exit;
 }
 
+/**
+ * Document joint : téléchargé sous son nom d'origine, jamais exécuté ni interprété
+ * (type imposé, nosniff, CSP « sandbox »). Les PDF s'ouvrent dans le navigateur.
+ */
+function serve_document(string $path): never
+{
+    $file = document_path($path);
+    $doc = $file ? get_document($path) : null;
+    if (!$doc || !is_file($file)) not_found();
+    $size = (int) filesize($file);
+    $etag = '"d' . base_convert((string) $size, 10, 36) . '-' . base_convert((string) filemtime($file), 10, 36) . '"';
+    $name = $doc['name'];
+    $ascii = preg_replace('/[^A-Za-z0-9 ._-]+/', '_', @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: 'document') ?: 'document';
+    header('Content-Type: ' . DOC_TYPES[$doc['ext']][0]);
+    header('Content-Disposition: ' . ($doc['ext'] === 'pdf' ? 'inline' : 'attachment') . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+    header('Content-Security-Policy: sandbox');
+    header('X-Content-Type-Options: nosniff');
+    // Jamais gardé par le CDN : un document retiré du site doit cesser d'être téléchargeable aussitôt
+    header('Cache-Control: private, no-cache');
+    header('ETag: ' . $etag);
+    if (trim(header_value('If-None-Match')) === $etag) { http_response_code(304); exit; }
+    header('Content-Length: ' . $size);
+    if (request_method() !== 'HEAD') {
+        while (ob_get_level()) ob_end_clean();
+        readfile($file);
+    }
+    exit;
+}
+
 function sitemap(): string
 {
     $urls = [];
@@ -260,6 +305,74 @@ function robots(): string
     return "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: " . absolute_url('/sitemap.xml') . "\n";
 }
 
+/** Prochains rendez-vous : 18 mai (restauration de l'indépendance, 1991) et 26 juin (indépendance, 1960). */
+function rdv_block(): string
+{
+    $today = strtotime(date('Y-m-d'));
+    $items = [];
+    foreach ([[5, 18, 1991, 'Fête nationale du Somaliland', 'anniversaire de la restauration de l’indépendance, le 18 mai 1991'],
+              [6, 26, 1960, 'Jour de l’indépendance', 'anniversaire de l’indépendance du 26 juin 1960']] as [$m, $d, $origin, $title, $what]) {
+        $y = (int) date('Y');
+        if (mktime(0, 0, 0, $m, $d, $y) < $today) $y++;
+        $n = $y - $origin;
+        $items[] = [mktime(0, 0, 0, $m, $d, $y), '<li class="rdv"><time datetime="' . sprintf('%04d-%02d-%02d', $y, $m, $d) . '"><span>' . $d . '</span>'
+            . ($m === 5 ? 'mai' : 'juin') . ' ' . $y . '</time><div><strong>' . $title . '</strong><p>' . $n . '<sup>e</sup> ' . $what . '</p></div></li>'];
+    }
+    usort($items, static fn ($a, $b) => $a[0] <=> $b[0]);
+    return '<ul class="rdv-list" style="list-style:none;padding:0">' . implode('', array_column($items, 1)) . '</ul>';
+}
+
+/** Date de mise à jour d'une page : le fichier lui-même, ou le plus récent article qu'elle affiche. */
+function page_updated(string $page, ?array $pd): int
+{
+    $t = (int) @filemtime(PUBLIC_DIR . '/' . $page . '.html');
+    $list = $pd['data']['articles'] ?? (isset($pd['data']['article']) && $pd['data']['article'] ? [$pd['data']['article']] : []);
+    foreach ($list as $a) {
+        $t = max($t, ts($a['updatedAt'] ?? null), ts($a['date'] ?? null));
+    }
+    return $t ?: time();
+}
+
+function date_fr(int $t): string
+{
+    static $mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    return date('j', $t) . ' ' . $mois[(int) date('n', $t) - 1] . ' ' . date('Y', $t);
+}
+
+/**
+ * Anciennes adresses du site Joomla (asso-slf.org avant 2026) → nouvelles pages (redirection 301).
+ * Joomla utilisait index.php?option=com_…, /index.php/rubrique/… ou des adresses « propres ».
+ */
+function joomla_redirect(string $path, string $query): ?string
+{
+    $isJoomla = $path === '/index.php' || str_starts_with($path, '/index.php/') || str_starts_with($path, '/component/')
+        || preg_match('~^/(images/(stories|phocagallery)|media/|templates/|modules/|plugins/)~', $path);
+    $hay = strtolower(rawurldecode($path . ' ' . $query));
+    if (!$isJoomla) {
+        // Adresse « propre » de l'ancien site : seulement si elle n'existe pas ici et ne ressemble à rien de connu
+        if (pathinfo($path, PATHINFO_EXTENSION) !== '' || str_starts_with($path, '/admin') || str_starts_with($path, '/api')) return null;
+        if (is_file(PUBLIC_DIR . $path . '.html')) return null;
+    }
+    $map = [
+        'contact' => '/contact.html',
+        'adhesion' => '/bulletin-adhesion.html', 'adherer' => '/bulletin-adhesion.html', 'bulletin' => '/bulletin-adhesion.html',
+        'cotisation' => '/bulletin-adhesion.html', 'don' => '/bulletin-adhesion.html',
+        'diplomatie' => '/diplomatie.html',
+        'phoca' => '/en-images.html', 'galerie' => '/en-images.html', 'gallery' => '/en-images.html', 'photo' => '/en-images.html', 'images' => '/en-images.html',
+        'video' => '/videos.html', 'radio' => '/medias.html', 'media' => '/medias.html',
+        'liens' => '/liens-utiles.html', 'link' => '/liens-utiles.html',
+        'qui-sommes' => '/association.html#qui-sommes-nous', 'presentation' => '/association.html', 'association' => '/association.html',
+        'notre-but' => '/association.html#nos-missions', 'objectif' => '/association.html#nos-missions',
+        'action' => '/actions-realisees.html',
+        'actualit' => '/news.html', 'news' => '/news.html', 'article' => '/news.html', 'blog' => '/news.html',
+        'somaliland' => '/connaitre-somaliland.html', 'histoire' => '/connaitre-somaliland.html',
+    ];
+    foreach ($map as $needle => $target) {
+        if (str_contains($hay, $needle)) return $target;
+    }
+    return $isJoomla ? '/' : null;
+}
+
 function handle_page(): never
 {
     $path = request_path();
@@ -270,11 +383,14 @@ function handle_page(): never
     if ($path === '/robots.txt') send_text(200, robots(), 'text/plain; charset=utf-8', ['Cache-Control' => 'public, max-age=86400']);
     $query = (string) ($_SERVER['QUERY_STRING'] ?? '');
     $qs = $query !== '' ? '?' . $query : '';
-    if (isset(LEGACY[$path])) redirect(LEGACY[$path] . $qs, 301);
+    if (isset(LEGACY[$path])) redirect(LEGACY[$path] . (str_contains(LEGACY[$path], '#') ? '' : $qs), 301);
+    $joomla = joomla_redirect($path, $query);
+    if ($joomla !== null) redirect($joomla, 301);
     if ($path === '/admin') redirect('/admin/' . $qs, 301);
     if ($path === '/index.html') redirect('/' . $qs, 301);
     if (str_starts_with($path, '/uploads/')) serve_upload($path);
     if (str_starts_with($path, '/medias/')) serve_media($path);
+    if (str_starts_with($path, '/fichiers/')) serve_document($path);
 
     $rel = str_ends_with($path, '/') ? $path . 'index.html' : $path;
     if (pathinfo($rel, PATHINFO_EXTENSION) === '') $rel .= '.html';

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Bulletin d'adhésion · ASLF · Association Somalilandaise de France</title>
+  <title>Adhérer ou faire un don · ASLF · Association Somalilandaise de France</title>
   <link rel="preload" href="assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/fonts.css?v=1" />
   <style>
@@ -47,27 +47,33 @@
     .footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding:16px;text-align:center;font-size:12px;color:rgba(255,255,255,.4)}
     @media(min-width:768px){.header-inner{height:68px}.nav-desktop{display:flex}.hamburger{display:none}.footer-top{grid-template-columns:2fr 1fr 1fr}}
     @media(min-width:1024px){.flag-stripe{height:5px}}
+  
+    .why-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:8px}
+    .why-item{background:var(--green-light);border-radius:10px;padding:20px;border-left:4px solid var(--green)}
+    .why-item h3{font-size:15px;font-weight:700;color:var(--green-dark);margin-bottom:6px}
+    .why-item p{font-size:14px;color:var(--gray-800);margin:0}
+    .why-grid{grid-template-columns:1fr 1fr}
   </style>
 
-  <meta name="description" content="Rejoignez l'Association Somalilandaise de France en remplissant le bulletin d'adhésion." />
+  <meta name="description" content="Adhérez à l’Association Somalilandaise de France pour 10 € par an ou faites un don pour soutenir ses actions en France et au Somaliland." />
   <meta name="author" content="Association Somalilandaise de France" />
   <link rel="canonical" href="https://www.asso-slf.org/bulletin-adhesion.html" />
-  <link rel="icon" type="image/png" sizes="192x192" href="images/logo-aslf-192.png?v=3" />
-  <link rel="apple-touch-icon" href="images/logo-aslf-192.png?v=3" />
+  <link rel="icon" type="image/png" sizes="192x192" href="images/drapeau-somaliland-192.png?v=1" />
+  <link rel="apple-touch-icon" href="images/drapeau-somaliland-180.png?v=1" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.asso-slf.org/bulletin-adhesion.html" />
-  <meta property="og:title" content="Bulletin d'adhésion · ASLF" />
-  <meta property="og:description" content="Rejoignez l'Association Somalilandaise de France en remplissant le bulletin d'adhésion." />
-  <meta property="og:image" content="https://www.asso-slf.org/images/comite_executif.jpg" />
+  <meta property="og:title" content="Adhérer ou faire un don · ASLF" />
+  <meta property="og:description" content="Adhérez à l’Association Somalilandaise de France pour 10 € par an ou faites un don pour soutenir ses actions en France et au Somaliland." />
+  <meta property="og:image" content="https://www.asso-slf.org/images/partage-aslf.jpg" />
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:site_name" content="ASLF · Association Somalilandaise de France" />
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Bulletin d'adhésion · ASLF" />
-  <meta name="twitter:description" content="Rejoignez l'Association Somalilandaise de France en remplissant le bulletin d'adhésion." />
-  <meta name="twitter:image" content="https://www.asso-slf.org/images/comite_executif.jpg" />
+  <meta name="twitter:title" content="Adhérer ou faire un don · ASLF" />
+  <meta name="twitter:description" content="Adhérez à l’Association Somalilandaise de France pour 10 € par an ou faites un don pour soutenir ses actions en France et au Somaliland." />
+  <meta name="twitter:image" content="https://www.asso-slf.org/images/partage-aslf.jpg" />
   <meta name="theme-color" content="#00843D" />
 <style>/* aslf-mobile-fix v1 */
 @media (max-width: 639px){
@@ -91,52 +97,32 @@
 }
 </style>
   <script src="assets/site.js?v=1" defer></script>
+  <link rel="stylesheet" href="assets/commun.css?v=1" />
 </head>
 <body>
   <div class="flag-stripe"><span class="s-green"></span><span class="s-white"></span><span class="s-red"></span></div>
   <header class="site-header">
     <div class="header-inner">
-      <a href="index.html" class="logo"><img decoding="async" class="logo-img" src="images/logo-aslf-128.webp?v=3" alt="Logo ASLF" /><div class="logo-text"><span class="logo-name">ASLF</span><span class="logo-sub">Association Somalilandaise de France</span></div></a>
-      <nav class="nav-desktop">
-        <a href="index.html">Accueil</a><a href="news.html">News</a><a href="diplomatie.html">Diplomatie</a>
-        <div class="nav-item-drop"><div class="nav-drop-trigger active">L'association <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="nav-dropdown"><a href="qui-sommes-nous.html">Qui sommes-nous ?</a><a href="notre-but.html">Notre but</a><a href="actions-realisees.html">Actions réalisées</a><div class="drop-sep"></div><a href="bulletin-adhesion.html" class="active">Bulletin d'adhésion</a><a href="appel-cotisation.html">Appel à cotisation</a><div class="drop-sep"></div><a href="en-images.html">En images</a></div></div>
-        <div class="nav-item-drop"><div class="nav-drop-trigger">Médias <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="nav-dropdown"><a href="radios.html">Radios</a><a href="videos.html">Vidéos</a></div></div>
-        <a href="liens-utiles.html">Liens utiles</a><a href="connaitre-somaliland.html">Connaître le Somaliland</a><a href="contact.html">Contact</a>
-      </nav>
-      <div class="header-actions"><a href="admin/" class="btn-admin" title="Admin" aria-label="Admin"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></a><button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button></div>
+      <a href="./" class="logo"><img decoding="async" class="logo-img" src="images/logo-aslf-128.webp?v=3" alt="" width="44" height="44" /><div class="logo-text"><span class="logo-name">ASLF</span><span class="logo-sub">Association Somalilandaise de France</span></div></a>
+      <nav class="nav-desktop" aria-label="Menu principal"><a href="./">Accueil</a><div class="nav-item-drop"><a class="nav-drop-trigger" href="news.html">Actualités <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></a><div class="nav-dropdown"><a href="news.html">Toutes les actualités</a><a href="diplomatie.html">Diplomatie</a></div></div><div class="nav-item-drop"><a class="nav-drop-trigger" href="connaitre-somaliland.html">Le Somaliland <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></a><div class="nav-dropdown"><a href="connaitre-somaliland.html">Connaître le Somaliland</a><a href="connaitre-somaliland.html#livre">Le livre à télécharger</a><a href="liens-utiles.html">Liens utiles</a></div></div><div class="nav-item-drop"><a class="nav-drop-trigger" href="association.html">L’association <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></a><div class="nav-dropdown"><a href="association.html">L’association</a><a href="actions-realisees.html">Actions réalisées</a></div></div><div class="nav-item-drop"><a class="nav-drop-trigger" href="medias.html">Médias <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></a><div class="nav-dropdown"><a href="en-images.html">En images</a><a href="videos.html">Vidéos</a></div></div><a href="contact.html">Contact</a></nav>
+      <div class="header-actions"><a href="bulletin-adhesion.html" class="btn-adherer" aria-current="page"><span class="adh-long">Adhérer / Faire un don</span><span class="adh-court">Adhérer</span></a><button class="hamburger" type="button" onclick="toggleMenu()" aria-label="Ouvrir le menu" aria-controls="mobileMenu" aria-expanded="false"><span></span><span></span><span></span></button></div>
     </div>
   </header>
   <div class="mobile-menu" id="mobileMenu" onclick="closeMenu(event)">
-    <nav class="mobile-menu-inner">
-      <a href="index.html">Accueil</a><a href="news.html">News</a><a href="diplomatie.html">Diplomatie</a>
-      <a href="association.html" style="font-weight:700;color:var(--green-dark);">L'association</a>
-      <a href="qui-sommes-nous.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Qui sommes-nous ?</a>
-      <a href="notre-but.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Notre but</a>
-      <a href="actions-realisees.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Actions réalisées</a>
-      <a href="bulletin-adhesion.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Bulletin d'adhésion</a>
-      <a href="appel-cotisation.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Appel à cotisation</a>
-      <a href="en-images.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ En images</a>
-      <a href="medias.html" style="font-weight:700;color:var(--green-dark);">Médias</a>
-      <a href="radios.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Radios</a>
-      <a href="videos.html" style="padding-left:28px;font-size:14px;color:var(--gray-600);">└ Vidéos</a>
-      <a href="liens-utiles.html">Liens utiles</a><a href="connaitre-somaliland.html">Connaître le Somaliland</a><a href="contact.html">Contact</a>
-    </nav>
+    <nav class="mobile-menu-inner" aria-label="Menu"><a href="./">Accueil</a><a href="news.html">Actualités</a><a href="connaitre-somaliland.html">Le Somaliland</a><a href="association.html">L’association</a><a href="medias.html">Médias</a><a href="contact.html">Contact</a><a href="bulletin-adhesion.html" class="mobile-adherer">Adhérer / Faire un don</a></nav>
   </div>
 
   <div class="breadcrumb"><a href="index.html">Accueil</a><span>›</span><a href="association.html">L'association</a><span>›</span><span>Bulletin d'adhésion</span></div>
 
   <div class="page-content">
-    <h1 class="page-title">Bulletin d'adhésion</h1>
+    <h1 class="page-title">Adhérer ou faire un don</h1>
     <div class="page-divider"></div>
 
     <div class="adhese-box">
       <h2>Rejoignez l'association ASLF</h2>
       <p>Soutenez la cause somalilandaise et participez activement à nos actions en France et au Somaliland.</p>
       <div class="price">10 <span>€ / an</span></div>
-      <a href="contact.html" class="btn-download">
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Télécharger le bulletin d'adhésion (PDF)
-      </a>
+      <!--BULLETIN-BOUTON-->
     </div>
 
     <div class="content-card">
@@ -145,15 +131,14 @@
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-content">
-            <h3>Téléchargez le bulletin</h3>
-            <p>Cliquez sur le bouton ci-dessus pour télécharger le bulletin d'adhésion au format PDF.</p>
+            <!--BULLETIN-ETAPE-->
           </div>
         </div>
         <div class="step">
           <div class="step-num">2</div>
           <div class="step-content">
             <h3>Imprimez et complétez</h3>
-            <p>Imprimez le bulletin et remplissez-le avec vos coordonnées complètes.</p>
+            <p>Imprimez le bulletin et remplissez-le avec vos coordonnées complètes, puis datez et signez.</p>
           </div>
         </div>
         <div class="step">
@@ -165,15 +150,43 @@
         </div>
       </div>
     </div>
+    <!--HELLOASSO-->
+    <div class="content-card" id="don">
+      <h2 style="font-family:var(--font-display);color:var(--green-dark);margin-bottom:12px;font-size:22px;">Faire un don</h2>
+      <p>Vous pouvez soutenir l’association par un don, du montant de votre choix. Écrivez-nous grâce au <a href="contact.html" style="color:var(--green);font-weight:600">formulaire de contact</a> (sujet « Don ») ou à <a href="mailto:somalilande.france@gmail.com" style="color:var(--green);font-weight:600">somalilande.france@gmail.com</a> : nous vous indiquons comment procéder.</p>
+    </div>
+
+    <div class="content-card">
+      <h2 style="font-family:var(--font-display);color:var(--green-dark);margin-bottom:20px;font-size:22px;">Pourquoi cotiser ?</h2>
+      <div class="why-grid">
+        <div class="why-item">
+          <h3>Soutenir nos actions humanitaires</h3>
+          <p>Financer l'expédition de matériel médical et les projets éducatifs au Somaliland.</p>
+        </div>
+        <div class="why-item">
+          <h3>Promouvoir la reconnaissance</h3>
+          <p>Contribuer aux efforts diplomatiques pour la reconnaissance internationale du Somaliland.</p>
+        </div>
+        <div class="why-item">
+          <h3>Développer le français</h3>
+          <p>Soutenir la création d'écoles francophones à Hargeisa et dans d'autres villes.</p>
+        </div>
+        <div class="why-item">
+          <h3>Renforcer la communauté</h3>
+          <p>Participer aux événements et activités de la communauté somalilandaise de France.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <footer>
     <div class="footer-top">
-      <div class="footer-brand"><div class="logo"><img decoding="async" class="logo-img" src="images/logo-aslf-128.webp?v=3" alt="Logo ASLF" /><div class="logo-text"><span class="logo-name">ASLF</span><span class="logo-sub" style="color:rgba(255,255,255,.5)">Association Somalilandaise de France</span></div></div><p>Organisation militante et à vocation humaine, œuvrant pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans.</p></div>
-      <div class="footer-col"><h4>Navigation</h4><ul><li><a href="index.html">Accueil</a></li><li><a href="news.html">Actualités</a></li><li><a href="diplomatie.html">Diplomatie</a></li><li><a href="association.html">L'association</a></li><li><a href="medias.html">Médias</a></li><li><a href="contact.html">Contact</a></li></ul></div>
-      <div class="footer-col"><h4>L'association</h4><ul><li><a href="qui-sommes-nous.html">Qui sommes-nous ?</a></li><li><a href="notre-but.html">Notre but</a></li><li><a href="actions-realisees.html">Actions réalisées</a></li><li><a href="bulletin-adhesion.html">Adhérer</a></li><li><a href="appel-cotisation.html">Cotisation</a></li><li><a href="liens-utiles.html">Liens utiles</a></li></ul></div>
+      <div class="footer-brand"><div class="logo"><img decoding="async" class="logo-img" src="images/logo-aslf-128.webp?v=3" alt="" width="44" height="44" /><div class="logo-text"><span class="logo-name">ASLF</span><span class="logo-sub" style="color:rgba(255,255,255,.6)">Association Somalilandaise de France</span></div></div><p>Organisation militante et à vocation humaine, œuvrant pour la reconnaissance du Somaliland et l'amitié franco-somalilandaise depuis plus de 20 ans.</p></div>
+      <div class="footer-col"><h4>Navigation</h4><ul><li><a href="./">Accueil</a></li><li><a href="news.html">Actualités</a></li><li><a href="connaitre-somaliland.html">Le Somaliland</a></li><li><a href="association.html">L’association</a></li><li><a href="medias.html">Médias</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Aller plus loin</h4><ul><li><a href="actions-realisees.html">Actions réalisées</a></li><li><a href="diplomatie.html">Diplomatie</a></li><li><a href="liens-utiles.html">Liens utiles</a></li><li><a href="bulletin-adhesion.html">Adhérer / Faire un don</a></li><li><a href="mentions-legales.html">Mentions légales et confidentialité</a></li><li><a href="admin/" rel="nofollow">Espace de gestion</a></li></ul></div>
     </div>
-    <div class="footer-bottom"><div class="flag-stripe" style="margin-bottom:12px;height:3px;"></div>© 2026 Association Somalilandaise de France (ASLF) · Tous droits réservés · <a href="mentions-legales.html" style="color:inherit;text-decoration:underline">Mentions légales et confidentialité</a></div>
+    <div class="footer-bottom"><div class="flag-stripe" style="margin-bottom:12px;height:3px;"></div>© 2026 Association Somalilandaise de France (ASLF) · Tous droits réservés<!--MAJ--></div>
   </footer>
 </body>
 </html>

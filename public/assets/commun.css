@@ -1,0 +1,56 @@
+/* ASLF — Styles communs à toutes les pages (navigation à 7 entrées, pied de page, adhésion).
+   Complète les styles propres à chaque page, sans les remplacer. */
+
+/* Bouton « Adhérer / Faire un don » dans l'en-tête */
+.btn-adherer { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 16px; border-radius: 8px;
+  background: #CE1126; color: #fff !important; font-size: 13px; font-weight: 700; white-space: nowrap;
+  text-decoration: none; transition: background .15s, transform .1s; }
+.btn-adherer:hover, .btn-adherer[aria-current] { background: #a50d1e; }
+.btn-adherer:focus-visible, .hamburger:focus-visible, .nav-desktop a:focus-visible { outline: 3px solid #00843D; outline-offset: 2px; }
+.btn-adherer .adh-long { display: none; }
+@media (min-width: 1180px) { .btn-adherer .adh-long { display: inline; } .btn-adherer .adh-court { display: none; } }
+@media (max-width: 380px) { .btn-adherer { padding: 8px 10px; font-size: 12px; } }
+.nav-desktop a[aria-current] { background: var(--green-light, #e8f5ee); color: var(--green-dark, #006830); }
+
+/* Menu sur téléphone : 7 entrées, toutes visibles sans défiler */
+.mobile-menu-inner a { min-height: 48px; display: flex; align-items: center; }
+.mobile-menu-inner a[aria-current] { background: var(--green-light, #e8f5ee); color: var(--green-dark, #006830); font-weight: 700; }
+.mobile-menu-inner .mobile-adherer { justify-content: center; margin-top: 10px; background: #CE1126; color: #fff;
+  font-weight: 700; border-bottom: 0; }
+.mobile-menu-inner .mobile-adherer:hover { background: #a50d1e; color: #fff; }
+
+/* Pied de page : liens faciles à toucher (24 px minimum) */
+.footer-col ul { gap: 4px !important; }
+.footer-col ul a { display: inline-flex; align-items: center; min-height: 32px; padding: 2px 0; }
+.footer-bottom .page-maj { white-space: nowrap; }
+
+/* L'association : qui sommes-nous, missions, bureau */
+.asso-section { background: #fff; border-radius: 12px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.asso-section h2 { font-family: var(--font-display, Georgia, serif); color: var(--green-dark, #006830); font-size: 22px; margin: 0 0 14px; }
+.asso-section p { line-height: 1.7; margin: 0 0 12px; }
+.asso-section p:last-child { margin-bottom: 0; }
+
+/* Adhésion en ligne et bulletin (affichés dès que l'association les a fournis) */
+.adhesion-en-ligne { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 0; }
+.adhesion-en-ligne a { display: inline-flex; align-items: center; min-height: 48px; padding: 12px 22px; border-radius: 10px;
+  font-weight: 700; text-decoration: none; background: #00843D; color: #fff; }
+.adhesion-en-ligne a.secondaire { background: #fff; color: #006830; border: 2px solid #00843D; }
+
+/* Vidéos YouTube chargées seulement au clic */
+.yt-facade { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; padding: 0; cursor: pointer;
+  background: #000 center / cover no-repeat; border-radius: inherit; }
+.yt-facade::after { content: ""; position: absolute; inset: 0; margin: auto; width: 68px; height: 48px; border-radius: 12px;
+  background: rgba(206,17,38,.92) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8 5v14l11-7z'/%3E%3C/svg%3E") center / 28px no-repeat; }
+.yt-facade:hover::after, .yt-facade:focus-visible::after { background-color: #CE1126; }
+.yt-facade:focus-visible { outline: 3px solid #00843D; outline-offset: 2px; }
+
+/* Prochains rendez-vous (accueil) */
+.rdv-list { display: grid; gap: 14px; grid-template-columns: 1fr; max-width: 900px; margin: 0 auto; }
+@media (min-width: 700px) { .rdv-list { grid-template-columns: 1fr 1fr; } }
+.rdv { display: flex; gap: 16px; align-items: center; background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.rdv time { flex: 0 0 auto; min-width: 70px; text-align: center; border-radius: 10px; padding: 8px 6px; background: #e8f5ee; color: #006830; font-weight: 800; line-height: 1.1; }
+.rdv time span { display: block; font-size: 26px; }
+.rdv strong { display: block; color: #212529; }
+.rdv p { margin: 4px 0 0; font-size: 14px; color: #5c636a; }
+
+@media (prefers-reduced-motion: reduce) { .btn-adherer { transition: none; } }

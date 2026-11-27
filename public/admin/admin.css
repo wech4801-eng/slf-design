@@ -309,6 +309,7 @@ details.more > .more-body { padding: 0 4px 24px; }
 
 .video-row { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--rule); }
 .video-row img { width: 120px; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius); background: var(--paper-2); }
+.doc-row .doc-badge { flex: 0 0 auto; min-width: 52px; padding: 6px 8px; border-radius: var(--radius); background: var(--paper-2); color: var(--ink-2); font-weight: 700; font-size: 12px; text-align: center; letter-spacing: .04em; }
 .video-row span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
 .inline-form { display: flex; gap: 10px; flex-wrap: wrap; }
 .inline-form .input { flex: 1; min-width: 220px; }
@@ -393,6 +394,12 @@ dialog[open] { animation: rise .2s var(--ease); }
 .facts div { padding: 16px 16px 16px 0; border-bottom: 1px solid var(--rule); }
 .facts dt { font-size: 14px; color: var(--ink-3); }
 .facts dd { margin: 4px 0 0; font: 700 22px/1.2 var(--display); }
+.facts small.hint { display: block; margin-top: 2px; }
+.facts-title { font-size: 16px; margin: 26px 0 10px; color: var(--ink-2); }
+.quota { margin: 0 0 14px; }
+.quota-bar { height: 14px; border-radius: 7px; background: var(--paper-2); overflow: hidden; border: 1px solid var(--rule); }
+.quota-bar span { display: block; height: 100%; background: var(--green); border-radius: 7px; }
+.quota .hint { margin: 8px 0 0; }
 .steps-help { margin: 0; padding-left: 1.3em; color: var(--ink-2); }
 .steps-help li { margin-bottom: 8px; }
 

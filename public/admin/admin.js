@@ -75,7 +75,7 @@
   class ApiError extends Error {}
 
   async function api(method, url, body, opts = {}) {
-    const headers = { 'X-Requested-With': 'ASLF' };
+    const headers = { 'X-Requested-With': 'ASLF', ...(opts.headers || {}) };
     let payload = body;
     if (body !== undefined && !(body instanceof Blob)) {
       headers['Content-Type'] = 'application/json';
@@ -246,6 +246,33 @@
     return res;
   }
 
+  // ── Documents joints : PDF, Word, Excel, PowerPoint, OpenOffice, texte (20 Mo maximum) ──
+  const DOC_EXT = ['pdf', 'doc', 'docx', 'odt', 'xls', 'xlsx', 'ods', 'ppt', 'pptx', 'odp', 'txt', 'csv'];
+  function checkDocumentFile(file) {
+    if (!file) return 'Aucun fichier choisi.';
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!DOC_EXT.includes(ext)) return `« ${file.name} » : format non accepté (PDF, Word, Excel, PowerPoint, OpenOffice ou texte).`;
+    if (file.size > 20 * 1024 * 1024) return `« ${file.name} » est trop lourd (plus de 20 Mo). Compressez-le ou coupez-le en plusieurs fichiers.`;
+    if (!file.size) return `« ${file.name} » est vide.`;
+    return null;
+  }
+  /** Envoie un document ; renvoie { url, name, size, ext, label }. */
+  async function uploadDocument(file) {
+    const problem = checkDocumentFile(file);
+    if (problem) throw new ApiError(problem);
+    return api('POST', '/api/admin/documents', file, { headers: { 'X-Nom-Fichier': encodeURIComponent(file.name) } });
+  }
+  function pickDocuments() {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = DOC_EXT.map((e) => '.' + e).join(',');
+      input.multiple = true;
+      input.addEventListener('change', () => resolve([...input.files]));
+      input.click();
+    });
+  }
+
   /** Ouvre le sélecteur de fichiers et renvoie les fichiers choisis. */
   function pickFiles({ multiple = false } = {}) {
     return new Promise((resolve) => {
@@ -280,7 +307,7 @@
     return `${(n / 1073741824).toFixed(1).replace('.', ',')} Go`;
   }
 
-  window.ASLF = { src, DB: null, refreshUnread, api, ApiError, toast, dialog, icon, esc, $, $$, frDate, uploadPhoto, pickFiles, checkImageFile, setBusy, formatBytes, logout };
+  window.ASLF = { src, DB: null, refreshUnread, api, ApiError, toast, dialog, icon, esc, $, $$, frDate, uploadPhoto, pickFiles, checkImageFile, uploadDocument, pickDocuments, setBusy, formatBytes, logout };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderChrome);
   else renderChrome();

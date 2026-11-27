@@ -185,6 +185,7 @@ function normalize_article(array $input, ?array $existing): array
         'metaDesc' => plain($input['metaDesc'] ?? '', 220),
         'gallery' => $gallery,
         'videos' => $videos,
+        'attachments' => clean_attachments($input['attachments'] ?? []),
         'words' => count_words(to_text($content)),
         'views' => (int) ($existing['views'] ?? 0),
         'createdAt' => $existing['createdAt'] ?? $now,
@@ -237,6 +238,7 @@ function article_full(array $a, bool $admin): array
         'tags' => $a['tags'] ?? [],
         'gallery' => $a['gallery'] ?? [],
         'videos' => $a['videos'] ?? [],
+        'attachments' => $a['attachments'] ?? [],
         'seoTitle' => $a['seoTitle'] ?? '',
         'metaDesc' => $a['metaDesc'] ?? '',
         'createdAt' => $a['createdAt'] ?? null,
@@ -564,6 +566,125 @@ function delete_upload(string $url): void
     unlink($file);
 }
 
+// ── Documents joints aux articles (PDF, Word, Excel, PowerPoint, OpenOffice, texte) ──
+const MAX_DOCUMENT = 20 * 1024 * 1024;
+const DOC_TYPES = [
+    'pdf' => ['application/pdf', 'PDF'],
+    'doc' => ['application/msword', 'Word'],
+    'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Word'],
+    'odt' => ['application/vnd.oasis.opendocument.text', 'Texte'],
+    'xls' => ['application/vnd.ms-excel', 'Excel'],
+    'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Excel'],
+    'ods' => ['application/vnd.oasis.opendocument.spreadsheet', 'Tableur'],
+    'ppt' => ['application/vnd.ms-powerpoint', 'PowerPoint'],
+    'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'PowerPoint'],
+    'odp' => ['application/vnd.oasis.opendocument.presentation', 'Présentation'],
+    'txt' => ['text/plain; charset=utf-8', 'Texte'],
+    'csv' => ['text/csv; charset=utf-8', 'Tableau CSV'],
+];
+const DOC_URL_RE = '~^/fichiers/(\d{4})/(\d{2})/([\w-]{8,40})\.(pdf|docx?|odt|xlsx?|ods|pptx?|odp|txt|csv)$~';
+
+/** Le contenu du fichier correspond-il vraiment à son extension ? (un .pdf doit être un PDF, etc.) */
+function document_matches(string $buf, string $ext): bool
+{
+    return match ($ext) {
+        'pdf' => str_starts_with($buf, '%PDF-'),
+        'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp' => str_starts_with($buf, "PK\x03\x04"),
+        'doc', 'xls', 'ppt' => str_starts_with($buf, "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"),
+        'txt', 'csv' => !str_contains($buf, "\0"),
+        default => false,
+    };
+}
+
+/** Nom de fichier lisible et sans danger (« Compte-rendu AG 2026.pdf »). */
+function clean_file_name(string $name, string $ext): string
+{
+    $base = pathinfo(str_replace('\\', '/', $name), PATHINFO_FILENAME);
+    $base = preg_replace('/[\x00-\x1F\x7F"\/\\\\<>:|?*]+/u', ' ', utf8($base)) ?? '';
+    $base = trim(preg_replace('/\s+/u', ' ', $base) ?? '', " .");
+    return mb_substr($base !== '' ? $base : 'document', 0, 120) . '.' . $ext;
+}
+
+function save_document(string $buf, string $originalName): array
+{
+    if ($buf === '') throw http_error(400, 'Fichier vide.');
+    if (strlen($buf) > MAX_DOCUMENT) throw http_error(413, 'Document trop lourd (20 Mo maximum).');
+    $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    if (!isset(DOC_TYPES[$ext])) throw http_error(415, 'Format non accepté. Formats possibles : PDF, Word, Excel, PowerPoint, OpenOffice, texte.');
+    if (!document_matches($buf, $ext)) throw http_error(415, 'Ce fichier ne correspond pas à son format (' . strtoupper($ext) . ') : il est peut-être abîmé.');
+    ensure_data_dirs();
+    $yyyy = date('Y');
+    $mm = date('m');
+    $dir = DOCS_DIR . "/$yyyy/$mm";
+    if (!is_dir($dir)) mkdir($dir, 0750, true);
+    $id = rtrim(strtr(base64_encode(random_bytes(12)), '+/', '-_'), '=');
+    $file = "$dir/$id.$ext";
+    if (file_put_contents($file, $buf, LOCK_EX) !== strlen($buf)) throw new RuntimeException('Écriture du document impossible');
+    @chmod($file, 0640);
+    $doc = ['url' => "/fichiers/$yyyy/$mm/$id.$ext", 'name' => clean_file_name($originalName, $ext), 'size' => strlen($buf), 'ext' => $ext];
+    db()->prepare('INSERT INTO documents (url, name, size, ext, created_at) VALUES (?, ?, ?, ?, ?)')
+        ->execute([$doc['url'], $doc['name'], $doc['size'], $ext, now_iso()]);
+    return $doc + ['label' => DOC_TYPES[$ext][1]];
+}
+
+function document_path(string $url): ?string
+{
+    return preg_match(DOC_URL_RE, $url, $m) ? DOCS_DIR . "/{$m[1]}/{$m[2]}/{$m[3]}.{$m[4]}" : null;
+}
+
+function get_document(string $url): ?array
+{
+    $st = db()->prepare('SELECT url, name, size, ext, created_at FROM documents WHERE url = ?');
+    $st->execute([$url]);
+    $d = $st->fetch();
+    return $d ? ['url' => $d['url'], 'name' => $d['name'], 'size' => (int) $d['size'], 'ext' => $d['ext'], 'label' => DOC_TYPES[$d['ext']][1] ?? 'Document'] : null;
+}
+
+/** Pièces jointes d'un article : seules les entrées qui correspondent à un document réellement envoyé sont gardées. */
+function clean_attachments(mixed $list): array
+{
+    $out = [];
+    foreach (is_array($list) ? $list : [] as $item) {
+        $url = is_array($item) ? (string) ($item['url'] ?? '') : (string) $item;
+        if (!preg_match(DOC_URL_RE, $url) || isset($out[$url])) continue;
+        $doc = get_document($url);
+        if ($doc) $out[$url] = $doc;
+        if (count($out) >= 20) break;
+    }
+    return array_values($out);
+}
+
+function document_usage(): array
+{
+    $used = [];
+    foreach (all_articles() as $a) {
+        foreach ($a['attachments'] ?? [] as $d) {
+            $used[$d['url']][] = ['id' => $a['id'], 'title' => $a['title'] ?? '', 'deleted' => !empty($a['deletedAt'])];
+        }
+    }
+    return $used;
+}
+
+function list_documents(): array
+{
+    $used = document_usage();
+    $rows = db()->query('SELECT url, name, size, ext, created_at FROM documents ORDER BY created_at DESC')->fetchAll();
+    return array_map(static fn ($d) => [
+        'url' => $d['url'], 'name' => $d['name'], 'size' => (int) $d['size'], 'ext' => $d['ext'],
+        'label' => DOC_TYPES[$d['ext']][1] ?? 'Document', 'date' => $d['created_at'], 'usedBy' => $used[$d['url']] ?? [],
+    ], $rows);
+}
+
+function delete_document(string $url): void
+{
+    $file = document_path($url);
+    if (!$file || !get_document($url)) throw http_error(404, 'Document introuvable.');
+    if (!empty(document_usage()[$url])) throw http_error(409, 'Ce document est joint à un article : retirez-le de l’article d’abord.');
+    if (bulletin_in_use($url)) throw http_error(409, 'Ce document est le bulletin d’adhésion du site : changez-le d’abord dans Réglages.');
+    db()->prepare('DELETE FROM documents WHERE url = ?')->execute([$url]);
+    if (is_file($file)) unlink($file);
+}
+
 // ── Entretien quotidien : corbeille et sauvegarde automatique ────────────────
 function daily_maintenance(): void
 {
@@ -576,6 +697,7 @@ function daily_maintenance(): void
     db()->prepare('DELETE FROM articles WHERE deleted_at IS NOT NULL AND deleted_at < ?')->execute([$limit]);
     db()->prepare('DELETE FROM throttle WHERE at < ?')->execute([time() - 86400]);
     db()->prepare('DELETE FROM sessions WHERE exp < ?')->execute([time()]);
+    purge_firewall();
 
     // Copie complète de la base, une par jour, gardée 30 jours
     ensure_data_dirs();
@@ -625,7 +747,8 @@ function stream_backup(): never
     if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) throw new RuntimeException('Création du fichier ZIP impossible');
     $zip->addFromString('LISEZ-MOI.txt', "Sauvegarde du site ASLF du $day\n\n"
         . "Contenu :\n- articles.json : les articles\n- membres.json : les membres\n- messages.json : les messages reçus\n"
-        . "- aslf.sqlite : la base de données complète du site\n- uploads/ : les photos envoyées depuis l'administration\n\n"
+        . "- aslf.sqlite : la base de données complète du site\n- uploads/ : les photos envoyées depuis l'administration\n"
+        . "- fichiers/ : les documents joints aux articles (leurs noms d'origine sont dans aslf.sqlite et articles.json)\n\n"
         . "Pour restaurer : voir la section « Restaurer une sauvegarde » du guide DEPLOIEMENT-HOSTINGER.md.\n");
     $zip->addFromString('articles.json', $json($articles));
     $zip->addFromString('membres.json', $json(list_members()));
@@ -640,6 +763,10 @@ function stream_backup(): never
     foreach (list_uploads() as $u) {
         $file = upload_path($u['url']);
         if ($file && is_file($file)) $zip->addFile($file, ltrim($u['url'], '/'));
+    }
+    foreach (list_documents() as $d) {
+        $file = document_path($d['url']);
+        if ($file && is_file($file)) $zip->addFile($file, ltrim($d['url'], '/'));
     }
     $zip->close();
     if ($withDb) @unlink($snapshot);

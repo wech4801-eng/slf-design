@@ -5,7 +5,7 @@
  */
 (function () {
   'use strict';
-  const { api, toast, dialog, icon, esc, frDate, uploadPhoto, pickFiles, setBusy, src, $ } = window.ASLF;
+  const { api, toast, dialog, icon, esc, frDate, uploadPhoto, pickFiles, uploadDocument, pickDocuments, formatBytes, setBusy, src, $ } = window.ASLF;
   const CFG = window.SLFConfig;
   const SAN = window.SLFSanitize;
 
@@ -22,7 +22,7 @@
     seoTitle: $('#seo-title'), metaDesc: $('#meta-desc'), slug: $('#slug'),
     primary: $('#btn-primary'), secondary: $('#btn-secondary'), preview: $('#btn-preview'),
   };
-  const state = { coverImage: '', coverThumb: '', gallery: [], videos: [], section: 'news' };
+  const state = { coverImage: '', coverThumb: '', gallery: [], videos: [], attachments: [], section: 'news' };
 
   // ── Outils ────────────────────────────────────────────────────────────────
   const slugify = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
@@ -61,6 +61,7 @@
       author: el.author.value.trim(),
       gallery: state.gallery.slice(),
       videos: state.videos.slice(),
+      attachments: state.attachments.map((d) => ({ ...d })),
       publishAt: fromLocalInput(el.publishAt.value),
       seoTitle: el.seoTitle.value.trim(),
       metaDesc: el.metaDesc.value.trim(),
@@ -85,15 +86,17 @@
     state.coverThumb = a.coverThumb || '';
     state.gallery = (a.gallery || []).slice();
     state.videos = (a.videos || []).map((v) => (typeof v === 'string' ? v : v.url)).filter(Boolean);
+    state.attachments = (a.attachments || []).filter((d) => d && d.url);
     state.section = CFG.section(a.section).key;
     if (el.publishAt.value) $('#more-schedule').open = true;
     if (state.gallery.length) $('#more-gallery').open = true;
     if (state.videos.length) $('#more-video').open = true;
+    if (state.attachments.length) $('#more-docs').open = true;
     renderAll();
   }
 
   function renderAll() {
-    renderCover(); renderGallery(); renderVideos(); renderSections();
+    renderCover(); renderGallery(); renderVideos(); renderDocs(); renderSections();
     autosize(); countChapeau(); countWords(); refreshEmpty(); slugHint(); updateBar();
   }
 
@@ -352,6 +355,41 @@
     toast('Vidéo ajoutée.');
   });
 
+  // Documents joints
+  function renderDocs() {
+    $('#docs').innerHTML = state.attachments.map((d, i) => `<div class="video-row doc-row">
+        <span class="doc-badge" aria-hidden="true">${esc((d.ext || '').toUpperCase())}</span>
+        <span title="${esc(d.name)}">${esc(d.name)} <small class="hint" style="display:inline">· ${esc(formatBytes(d.size))}</small></span>
+        <button class="btn btn-ghost danger" type="button" data-remove-doc="${i}">${icon('x')}Retirer</button></div>`).join('');
+    $('#docs-count').textContent = state.attachments.length ? `(${state.attachments.length})` : '';
+  }
+  $('#docs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-remove-doc]');
+    if (!b) return;
+    state.attachments.splice(+b.dataset.removeDoc, 1);
+    renderDocs(); changed();
+  });
+  $('#docs-add').addEventListener('click', async () => {
+    const files = await pickDocuments();
+    if (!files.length) return;
+    const btn = $('#docs-add');
+    const status = $('#docs-status');
+    setBusy(btn, true, 'Envoi en cours…');
+    uploads++;
+    const errors = [];
+    for (let i = 0; i < files.length; i++) {
+      status.textContent = ` Document ${i + 1} sur ${files.length}…`;
+      try { state.attachments.push(await uploadDocument(files[i])); renderDocs(); }
+      catch (e) { errors.push(e.message); }
+    }
+    uploads--;
+    setBusy(btn, false);
+    status.textContent = '';
+    changed();
+    if (errors.length) toast(errors[0], 'error');
+    else toast(files.length > 1 ? `${files.length} documents ajoutés.` : 'Document ajouté.');
+  });
+
   function slugHint() {
     const s = el.slug.value.trim() || slugify(el.title.value);
     $('#slug-hint').textContent = s ? `L’article sera à l’adresse : ${new URL('../article.html?id=' + s, location.href).href}` : '';
@@ -466,7 +504,7 @@
       }
       status = schedule && !wasPublic ? 'planifié' : 'publié';
       const hasText = SAN.toText(data.content).length > 0 || /<(img|iframe)/.test(data.content);
-      if (!hasText && !data.gallery.length && !data.videos.length) {
+      if (!hasText && !data.gallery.length && !data.videos.length && !data.attachments.length) {
         const ok = await dialog({ title: 'L’article est vide', text: 'Il n’y a pas encore de texte à l’étape 4. Voulez-vous vraiment publier ?', ok: 'Publier quand même', cancel: 'Écrire le texte' });
         if (!ok) { rte.focus(); return; }
       }

@@ -14,7 +14,7 @@
     <div class="page-head">
       <div>
         <h1>Les photos</h1>
-        <p>Toutes les photos envoyées sur le site. Pour ajouter une photo à un article, passez plutôt par l’article lui-même.</p>
+        <p>Toutes les photos et les documents envoyés sur le site. Pour ajouter une photo à un article, passez plutôt par l’article lui-même.</p>
       </div>
       <button class="btn btn-secondary btn-big" type="button" id="add">
         <svg class="i" aria-hidden="true"><use href="icons.svg?v=1#upload"></use></svg>Envoyer des photos
@@ -26,6 +26,12 @@
     </div>
     <p class="hint" id="summary" style="margin:14px 0 22px"></p>
     <div class="photo-grid" id="grid" aria-live="polite"></div>
+
+    <section class="section" aria-labelledby="h-docs" style="margin-top:36px">
+      <h2 id="h-docs">Les documents joints</h2>
+      <p class="lead">PDF, Word, Excel… joints aux articles. Pour en ajouter, ouvrez l’article : étape 6, « Des documents à télécharger ».</p>
+      <div id="docs-list" aria-live="polite"></div>
+    </section>
   </main>
 
 
@@ -93,7 +99,34 @@
         await load();
       });
 
+      // Documents joints
+      async function loadDocs() {
+        let docs = [];
+        try { docs = await api('GET', '/api/admin/documents'); }
+        catch (e) { $('#docs-list').innerHTML = `<div class="notice notice-error">${icon('triangle-alert')}<div>${esc(e.message)}</div></div>`; return; }
+        if (!docs.length) { $('#docs-list').innerHTML = '<p class="hint">Aucun document pour l’instant.</p>'; return; }
+        $('#docs-list').innerHTML = docs.map((d) => {
+          const used = d.usedBy.length
+            ? 'Dans : ' + d.usedBy.map((a) => `<a href="article.html?id=${encodeURIComponent(a.id)}">${esc(a.title)}</a>${a.deleted ? ' (corbeille)' : ''}`).join(', ')
+            : '<strong>Joint à aucun article</strong>';
+          return `<div class="video-row doc-row">
+            <span class="doc-badge" aria-hidden="true">${esc(d.ext.toUpperCase())}</span>
+            <span><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a> <small class="hint" style="display:inline">· ${formatBytes(d.size)} · ${used}</small></span>
+            ${d.usedBy.length ? '' : `<button class="btn btn-ghost danger" type="button" data-del-doc="${esc(d.url)}">${icon('trash')}Supprimer</button>`}
+          </div>`;
+        }).join('');
+      }
+      $('#docs-list').addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-del-doc]');
+        if (!b) return;
+        const ok = await dialog({ title: 'Supprimer ce document ?', text: 'Il n’est joint à aucun article. Il sera effacé définitivement.', ok: 'Oui, supprimer', danger: true });
+        if (!ok) return;
+        try { await api('DELETE', '/api/admin/documents?url=' + encodeURIComponent(b.dataset.delDoc)); toast('Document supprimé.'); await loadDocs(); }
+        catch (ex) { toast(ex.message, 'error'); }
+      });
+
       load();
+      loadDocs();
     })();
   </script>
 </body>

@@ -10,15 +10,11 @@ const SECTIONS = [
     ['key' => 'diplomatie',           'label' => 'Diplomatie',              'page' => 'diplomatie.html'],
     ['key' => 'actions-realisees',    'label' => 'Actions réalisées',       'page' => 'actions-realisees.html'],
     ['key' => 'association',          'label' => 'L’association',           'page' => 'association.html'],
-    ['key' => 'qui-sommes-nous',      'label' => 'Qui sommes-nous ?',       'page' => 'qui-sommes-nous.html'],
-    ['key' => 'notre-but',            'label' => 'Notre but',               'page' => 'notre-but.html'],
     ['key' => 'connaitre-somaliland', 'label' => 'Connaître le Somaliland', 'page' => 'connaitre-somaliland.html'],
     ['key' => 'en-images',            'label' => 'En images',               'page' => 'en-images.html'],
     ['key' => 'videos',               'label' => 'Vidéos',                  'page' => 'videos.html'],
-    ['key' => 'radios',               'label' => 'Radios',                  'page' => 'radios.html'],
     ['key' => 'medias',               'label' => 'Médias',                  'page' => 'medias.html'],
-    ['key' => 'bulletin-adhesion',    'label' => 'Bulletin d’adhésion',     'page' => 'bulletin-adhesion.html'],
-    ['key' => 'appel-cotisation',     'label' => 'Appel à cotisation',      'page' => 'appel-cotisation.html'],
+    ['key' => 'bulletin-adhesion',    'label' => 'Adhérer / Faire un don',     'page' => 'bulletin-adhesion.html'],
     ['key' => 'liens-utiles',         'label' => 'Liens utiles',            'page' => 'liens-utiles.html'],
     ['key' => 'contact',              'label' => 'Contact',                 'page' => 'contact.html'],
 ];
@@ -38,7 +34,7 @@ const CATEGORIES = [
     ['key' => 'radio',       'label' => 'Radio & audio',        'tone' => 'culture'],
 ];
 
-const SECTION_ALIASES = ['accueil' => 'news'];
+const SECTION_ALIASES = ['accueil' => 'news', 'qui-sommes-nous' => 'association', 'notre-but' => 'association', 'appel-cotisation' => 'bulletin-adhesion', 'radios' => 'videos'];
 
 function section_of(mixed $key): array
 {

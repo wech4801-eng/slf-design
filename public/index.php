@@ -15,6 +15,7 @@ require __DIR__ . '/app/api.php';
 require __DIR__ . '/app/render.php';
 
 security_headers();
+firewall();
 
 // Entretien quotidien (corbeille, sauvegarde de la base) après l'envoi de la réponse
 register_shutdown_function(static function (): void {

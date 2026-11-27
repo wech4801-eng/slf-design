@@ -15,15 +15,11 @@
     { key: 'diplomatie',           label: 'Diplomatie',               page: 'diplomatie.html',           help: 'Relations internationales, reconnaissance du Somaliland.' },
     { key: 'actions-realisees',    label: 'Actions réalisées',        page: 'actions-realisees.html',    help: 'Ce que l’association a fait : collectes, aides, rencontres.' },
     { key: 'association',          label: 'L’association',            page: 'association.html',          help: 'Présentation de l’ASLF.' },
-    { key: 'qui-sommes-nous',      label: 'Qui sommes-nous ?',        page: 'qui-sommes-nous.html',      help: 'Le bureau, les membres du comité.' },
-    { key: 'notre-but',            label: 'Notre but',                page: 'notre-but.html',            help: 'Les missions et objectifs de l’association.' },
     { key: 'connaitre-somaliland', label: 'Connaître le Somaliland',  page: 'connaitre-somaliland.html', help: 'Histoire, géographie, culture du pays.' },
     { key: 'en-images',            label: 'En images',                page: 'en-images.html',            help: 'Un reportage surtout composé de photos.' },
     { key: 'videos',               label: 'Vidéos',                   page: 'videos.html',               help: 'Un article construit autour d’une vidéo.' },
-    { key: 'radios',               label: 'Radios',                   page: 'radios.html',               help: 'Émissions, interviews audio.' },
     { key: 'medias',               label: 'Médias',                   page: 'medias.html',               help: 'Revue de presse, passages dans les médias.' },
-    { key: 'bulletin-adhesion',    label: 'Bulletin d’adhésion',      page: 'bulletin-adhesion.html',    help: 'Informations pour devenir membre.' },
-    { key: 'appel-cotisation',     label: 'Appel à cotisation',       page: 'appel-cotisation.html',     help: 'Rappel ou campagne de cotisation.' },
+    { key: 'bulletin-adhesion',    label: 'Adhérer / Faire un don',      page: 'bulletin-adhesion.html',    help: 'Informations pour devenir membre.' },
     { key: 'liens-utiles',         label: 'Liens utiles',             page: 'liens-utiles.html',         help: 'Sites et ressources recommandés.' },
     { key: 'contact',              label: 'Contact',                  page: 'contact.html',              help: 'Informations pratiques, horaires, adresse.' },
   ];
@@ -45,7 +41,7 @@
   ];
 
   // Anciennes rubriques fusionnées dans « Actualités »
-  const SECTION_ALIASES = { accueil: 'news' };
+  const SECTION_ALIASES = { accueil: 'news', 'qui-sommes-nous': 'association', 'notre-but': 'association', 'appel-cotisation': 'bulletin-adhesion', radios: 'videos' };
 
   const sectionByKey = Object.fromEntries(SECTIONS.map((s) => [s.key, s]));
   const categoryByKey = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]));

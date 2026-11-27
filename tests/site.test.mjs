@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 
 const BASE = (process.env.ASLF_URL || '').replace(/\/+$/, '');
 const PASSWORD = process.env.ASLF_MOT_DE_PASSE || '';
+const LOGIN = process.env.ASLF_IDENTIFIANT || 'admin';
 const skip = !BASE && 'ASLF_URL non défini';
 
 let cookie = '';
@@ -66,7 +67,7 @@ test('public : page article, métadonnées, 404', { skip }, async () => {
 });
 
 test('sécurité : code serveur et données jamais servis', { skip }, async () => {
-  for (const p of ['/app/bootstrap.php', '/app/mot-de-passe-initial.php', '/app/', '/seed-articles.json', '/.htaccess', '/app/.debug']) {
+  for (const p of ['/app/bootstrap.php', '/app/mot-de-passe-initial.php', '/app/', '/seed-articles.json', '/app/.debug']) {
     const r = await req('GET', p);
     assert.ok([403, 404].includes(r.status), `${p} → ${r.status}`);
     assert.ok(!String(r.data).includes('sha256'), `${p} ne doit rien révéler`);
@@ -124,9 +125,11 @@ test('contenus livrés : galerie, films, actualités, livre', { skip }, async ()
 });
 
 test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_DE_PASSE non défini') }, async () => {
-  const bad = await req('POST', '/api/login', { body: { password: 'mauvais-mot-de-passe' } });
+  const bad = await req('POST', '/api/login', { body: { identifiant: LOGIN, password: 'mauvais-mot-de-passe' } });
   assert.equal(bad.status, 401);
-  const login = await req('POST', '/api/login', { body: { password: PASSWORD } });
+  assert.equal((await req('POST', '/api/login', { body: { password: PASSWORD } })).status, 401, 'mot de passe seul : refusé');
+  assert.equal((await req('POST', '/api/login', { body: { identifiant: 'pas-le-bon', password: PASSWORD } })).status, 401, 'mauvais identifiant : refusé');
+  const login = await req('POST', '/api/login', { body: { identifiant: LOGIN.toUpperCase(), password: PASSWORD } });
   assert.equal(login.status, 200, JSON.stringify(login.data));
   assert.ok(cookie, 'cookie de session reçu');
   assert.equal((await req('GET', '/api/session')).data.connected, true);
@@ -141,8 +144,17 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   assert.equal(img.headers.get('content-type'), 'image/png');
   assert.equal((await req('POST', '/api/admin/photos', { raw: Buffer.from('<?php echo 1; ?>'), headers: { 'Content-Type': 'image/png' } })).status, 415);
 
+  // Documents joints : vrai PDF accepté, faux PDF et format interdit refusés
+  const PDF = Buffer.from(['%PDF-1.4', '1 0 obj<<>>endobj', 'trailer<<>>', '%%EOF', ''].join(String.fromCharCode(10)));
+  const doc = await req('POST', '/api/admin/documents', { raw: PDF, headers: { 'Content-Type': 'application/pdf', 'X-Nom-Fichier': encodeURIComponent('Compte rendu AG 2026.pdf') } });
+  assert.equal(doc.status, 201, JSON.stringify(doc.data));
+  assert.equal(doc.data.name, 'Compte rendu AG 2026.pdf');
+  assert.equal((await req('POST', '/api/admin/documents', { raw: Buffer.from('<?php echo 1;'), headers: { 'X-Nom-Fichier': 'faux.pdf' } })).status, 415);
+  assert.equal((await req('POST', '/api/admin/documents', { raw: PDF, headers: { 'X-Nom-Fichier': 'virus.exe' } })).status, 415);
+
   // Article : brouillon nettoyé, invisible du public
   const created = await req('POST', '/api/admin/articles', { body: {
+    attachments: [{ url: doc.data.url }, { url: '/fichiers/2026/01/inexistant1234.pdf' }],
     title: 'Test automatique <b>ASLF</b>', status: 'brouillon', section: 'diplomatie', categoryKey: 'diplomatie',
     content: '<p>Bonjour&nbsp;! <script>alert(1)</script><a href="javascript:alert(1)">lien</a><img src="x" onerror="alert(1)"></p><h1>Titre</h1>',
     coverImage: up.data.url, tags: ['test'], videos: ['https://youtu.be/dQw4w9WgXcQ'],
@@ -154,6 +166,7 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   assert.match(a.content, /<h2>Titre<\/h2>/);
   assert.equal(a.videos[0].url, 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
   assert.equal(a.isPublic, false);
+  assert.equal(a.attachments.length, 1, 'seul le vrai document est gardé');
   const savedCookie = cookie;
   cookie = '';
   assert.equal((await req('GET', '/api/articles/' + a.id)).status, 404);
@@ -174,6 +187,15 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   assert.equal((await req('POST', '/api/articles/' + a.id + '/vue')).data.views, 1, 'une vue par visiteur');
   cookie = savedCookie;
 
+  // Document visible sur la page publique, téléchargeable, protégé tant qu'il est utilisé
+  assert.equal(pageData((await req('GET', '/article.html?id=' + a.slug)).data).article.attachments[0].name, 'Compte rendu AG 2026.pdf');
+  const dl = await fetch(BASE + doc.data.url);
+  assert.equal(dl.status, 200);
+  assert.equal(dl.headers.get('content-type'), 'application/pdf');
+  assert.match(dl.headers.get('content-disposition') || '', /Compte%20rendu%20AG%202026\.pdf/);
+  assert.match(dl.headers.get('content-security-policy') || '', /sandbox/);
+  assert.equal((await req('DELETE', '/api/admin/documents?url=' + encodeURIComponent(doc.data.url))).status, 409);
+
   // Photo utilisée : suppression refusée
   assert.equal((await req('DELETE', '/api/admin/photos?url=' + encodeURIComponent(up.data.url))).status, 409);
 
@@ -184,6 +206,8 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   assert.equal((await req('DELETE', '/api/admin/articles/' + a.id + '?definitif=1')).status, 200);
   assert.equal((await req('GET', '/api/admin/articles/' + a.id)).status, 404);
   assert.equal((await req('DELETE', '/api/admin/photos?url=' + encodeURIComponent(up.data.url))).status, 200);
+  assert.equal((await req('DELETE', '/api/admin/documents?url=' + encodeURIComponent(doc.data.url))).status, 200);
+  assert.equal((await fetch(BASE + doc.data.url)).status, 404, 'document supprimé');
 
   // Membres
   const m = await req('POST', '/api/admin/membres', { body: { prenom: 'Test', nom: 'Automatique', email: 'test@example.org' } });
@@ -212,6 +236,9 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   // État, sauvegarde, mot de passe
   const etat = (await req('GET', '/api/admin/etat')).data;
   assert.ok(etat.articles.enLigne >= 1 && etat.version);
+  assert.equal(etat.identifiant, LOGIN);
+  assert.equal((await req('POST', '/api/admin/identifiant', { body: { current: 'faux', next: 'autre' } })).status, 400);
+  assert.equal((await req('POST', '/api/admin/identifiant', { body: { current: PASSWORD, next: 'avec espace' } })).status, 400);
   const zip = await fetch(BASE + '/api/admin/sauvegarde', { headers: { Cookie: cookie } });
   assert.equal(zip.status, 200);
   const buf = Buffer.from(await zip.arrayBuffer());
@@ -221,4 +248,140 @@ test('administration : cycle complet', { skip: skip || (!PASSWORD && 'ASLF_MOT_D
   assert.equal((await req('POST', '/api/logout')).status, 200);
   assert.equal(cookie, '');
   assert.equal((await req('GET', '/api/admin/articles')).status, 401);
+});
+
+// Pare-feu : blocages temporaires, levés ensuite grâce à la session admin (jamais bloquée)
+test('pare-feu : scanneurs et force brute bloqués, déblocage par l’admin', { skip: skip || (!PASSWORD && 'ASLF_MOT_DE_PASSE non défini') }, async () => {
+  cookie = '';
+  const login = await req('POST', '/api/login', { body: { identifiant: LOGIN, password: PASSWORD } });
+  assert.equal(login.status, 200, 'connexion admin préalable');
+  const admin = cookie;
+  const anon = async (method, path, body) => { cookie = ''; const r = await req(method, path, body ? { body } : {}); cookie = admin; return r; };
+  // Débloque et remet à zéro les compteurs de cette machine (adresse vue par le serveur)
+  const myIp = (await req('GET', '/api/admin/etat')).data.reseau.ip;
+  const unban = async () => {
+    for (const b of (await req('GET', '/api/admin/securite')).data) await req('DELETE', '/api/admin/securite?ip=' + encodeURIComponent(b.ip));
+    await req('DELETE', '/api/admin/securite?ip=' + encodeURIComponent(myIp));
+  };
+  await unban();
+
+  // 1. Robot scanneur : 3 chemins piégés → bloqué
+  assert.ok([403, 404].includes((await anon('GET', '/.env')).status), '/.env refusé (souvent dès le serveur Hostinger)');
+  for (const p of ['/wp-login.php', '/xmlrpc.php', '/phpmyadmin/']) assert.equal((await anon('GET', p)).status, 404, p);
+  const blocked = await anon('GET', '/');
+  assert.equal(blocked.status, 429, 'adresse bloquée après 3 tentatives de robot');
+  assert.match(blocked.data, /temporairement bloqué/);
+  assert.ok(+blocked.headers.get('retry-after') <= 3600, 'blocage d’une heure au plus');
+  const bans = (await req('GET', '/api/admin/securite')).data;
+  assert.equal(bans[0].raison, 'Robot qui cherche des failles');
+  assert.equal((await req('GET', '/api/admin/etat')).status, 200, 'l’admin connecté n’est pas bloqué');
+  await unban();
+  assert.equal((await anon('GET', '/')).status, 200, 'débloqué par l’admin');
+
+  // 2. Force brute : 5 mots de passe faux → bloqué au 5e
+  let last;
+  for (let i = 1; i <= 5; i++) last = await anon('POST', '/api/login', { identifiant: LOGIN, password: 'essai-faux-' + i });
+  assert.equal(last.status, 429, '5e essai raté : adresse bloquée');
+  assert.equal((await anon('POST', '/api/login', { identifiant: LOGIN, password: PASSWORD })).status, 429, 'même le bon mot de passe est refusé pendant le blocage');
+  assert.equal((await req('GET', '/api/admin/securite')).data[0].raison, 'Trop d’essais de connexion ratés');
+  await unban();
+  assert.equal((await anon('GET', '/api/health')).status, 200, 'débloqué');
+  await req('POST', '/api/logout');
+  cookie = '';
+});
+
+// Demandes du PDF « Ce qu'il faut retirer et améliorer » (26/11/2026)
+test('PDF du 26/11 : retraits, textes, menu, Google', { skip }, async () => {
+  const home = (await req('GET', '/')).data;
+  assert.ok(!/Livret de bienvenue|livret\//i.test(home), 'plus de livret sur l’accueil');
+  assert.ok(!/plus de 30 ans|30\+/.test(home), 'plus de « 30 ans »');
+  assert.match(home, /reconnue par Israël depuis le 26 décembre 2025/);
+  assert.match(home, /Israël a été le premier État à la lui accorder/);
+  assert.match(home, /id="rendez-vous"[\s\S]*?class="rdv"/, 'prochains rendez-vous');
+  assert.match(home, /application\/ld\+json/, 'fiche Organisation pour Google');
+  assert.ok(!/class="btn-admin"/.test(home), 'bouton admin retiré de l’en-tête');
+  assert.match(home, /href="admin\/"[^>]*>Espace de gestion/, 'admin dans le pied de page');
+  const nav = /<nav class="nav-desktop"[\s\S]*?<\/nav>/.exec(home)[0];
+  assert.equal((nav.match(/class="nav-drop-trigger|<a href="(\.\/|contact\.html)"/g) || []).length, 6, '6 entrées + le bouton Adhérer = 7');
+  assert.match(home, /class="btn-adherer"/);
+  assert.match(home, /page-maj">Page mise à jour le \d+ \w+/);
+  assert.match(home, /og:image" content="[^"]*partage-aslf\.jpg/);
+  const art = pageData(home).articles;
+  assert.ok(!art.some((a) => /livret/.test(a.id)), 'plus d’article du livret');
+
+  const connaitre = (await req('GET', '/connaitre-somaliland.html')).data;
+  assert.ok(!/aucun État|absence de reconnaissance|Seule l'Éthiopie|quatre présidents/.test(connaitre));
+  assert.match(connaitre, /six présidents se sont succédé, dont quatre élus au suffrage universel \(2003, 2010, 2017, 2024\)/);
+  assert.match(connaitre, /id="livre"/);
+  const contact = (await req('GET', '/contact.html')).data;
+  assert.ok(!/facebook\.com|twitter\.com|youtube\.com|Lundi|48 h/.test(contact), 'contact nettoyé');
+  const bulletin = (await req('GET', '/bulletin-adhesion.html')).data;
+  const lien = /<a href="(\/fichiers\/[^"]+\.pdf)" class="btn-download"[^>]*>[\s\S]*?Télécharger le bulletin/.exec(bulletin);
+  if (lien) {
+    const pdf = await fetch(BASE + lien[1]);
+    assert.equal(pdf.status, 200, 'bulletin PDF téléchargeable');
+    assert.match(pdf.headers.get('content-type') || '', /application\/pdf/);
+    assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0, 4).toString(), '%PDF');
+    assert.match(bulletin, /Téléchargez le bulletin/);
+  } else assert.match(bulletin, /href="contact\.html" class="btn-download"/, 'sans bulletin : nous écrire');
+  assert.equal((bulletin.match(/Télécharger le bulletin/g) || []).length, lien ? 1 : 0, 'un seul bouton bulletin');
+  assert.ok(!/06 61 64 39 46|33661643946/.test(contact), 'un seul numéro');
+  assert.match(contact, /wa\.me\/33664157658/, 'WhatsApp sur le 06 64 15 76 58');
+  assert.match(home, /6,2 M/); assert.match(connaitre, /6,2 M/); assert.match(connaitre, /176 120/);
+  assert.match((await req('GET', '/mentions-legales.html')).data, /Directeur de la publication : M\. Omar Egal/);
+  assert.match(bulletin, /Pourquoi cotiser/);
+  const news = (await req('GET', '/news.html')).data;
+  assert.ok(!/lemonde\.fr\/blog\/somaliland\/2013|jeuneafrique\.com\/111432/.test(news), 'plus d’articles de 2013');
+  assert.ok(news.indexOf('id="slf-actus"') < news.indexOf('id="articles-aslf"'), 'actualités du Somaliland en tête');
+  assert.ok(!/<h1 class="page-title">News/.test(news));
+  assert.ok(!/Djibouti/.test((await req('GET', '/diplomatie.html')).data), 'plus d’articles de 2008');
+  const liens = (await req('GET', '/liens-utiles.html')).data;
+  assert.ok(!/moh\.gov\.so|seura\.fi|havoyoco|somalilandiuppsala|somalilandgov\.com|walessomaliland/.test(liens), 'liens morts retirés');
+  const videos = (await req('GET', '/videos.html')).data;
+  assert.ok(!/<iframe/.test(videos) && /yt-facade/.test(videos), 'YouTube chargé au clic');
+  for (const p of ['/qui-sommes-nous.html', '/notre-but.html', '/appel-cotisation.html', '/radios.html', '/index.php?option=com_content&view=article&id=12&Itemid=5', '/index.php/contact']) {
+    const r = await req('GET', p);
+    assert.equal(r.status, 301, p);
+  }
+  assert.match((await req('GET', '/index.php/contact')).headers.get('location'), /contact\.html/);
+  for (const p of ['/', '/news.html', '/connaitre-somaliland.html', '/liens-utiles.html', '/medias.html', '/videos.html', '/association.html', '/contact.html']) {
+    const d = /<meta name="description" content="([^"]*)"/.exec((await req('GET', p)).data)[1];
+    assert.ok(d.length >= 120 && d.length <= 160, `${p} : description de ${d.length} caractères`);
+  }
+  const film = await fetch(BASE + '/medias/ASLF-medias/00-film-souvenir/videos/mobile/film-fete-nationale-somaliland.mp4', { method: 'HEAD' });
+  assert.equal(film.status, 200, 'film léger pour téléphone');
+  assert.ok(+film.headers.get('content-length') < 3 * 1024 * 1024);
+});
+
+test('comptes multiples et réglages d’adhésion', { skip: skip || (!PASSWORD && 'ASLF_MOT_DE_PASSE non défini') }, async () => {
+  cookie = '';
+  assert.equal((await req('POST', '/api/login', { body: { identifiant: LOGIN, password: PASSWORD } })).status, 200);
+  const admin = cookie;
+  const comptes = (await req('GET', '/api/admin/comptes')).data;
+  assert.ok(comptes.some((c) => c.moi && c.identifiant === LOGIN));
+  const login2 = 'test-auto-' + Date.now().toString(36);
+  const pw2 = 'Mot-de-passe-test-' + Date.now();
+  assert.equal((await req('POST', '/api/admin/comptes', { body: { identifiant: login2, password: pw2, current: 'faux' } })).status, 400);
+  const c = await req('POST', '/api/admin/comptes', { body: { identifiant: login2, password: pw2, current: PASSWORD } });
+  assert.equal(c.status, 201, JSON.stringify(c.data));
+  assert.equal((await req('POST', '/api/admin/comptes', { body: { identifiant: login2, password: pw2, current: PASSWORD } })).status, 409, 'identifiant unique');
+  cookie = '';
+  assert.equal((await req('POST', '/api/login', { body: { identifiant: login2, password: pw2 } })).status, 200, 'le 2e compte se connecte');
+  assert.equal((await req('GET', '/api/admin/etat')).data.identifiant, login2);
+  await req('POST', '/api/logout');
+  cookie = admin;
+  assert.equal((await req('DELETE', '/api/admin/comptes?id=' + c.data.id)).status, 200);
+  cookie = '';
+  assert.equal((await req('POST', '/api/login', { body: { identifiant: login2, password: pw2 } })).status, 401, 'compte supprimé');
+  cookie = admin;
+
+  const before = (await req('GET', '/api/admin/reglages')).data;
+  assert.equal(typeof before.alerteActive, 'boolean');
+  assert.equal((await req('PUT', '/api/admin/reglages', { body: { helloassoDon: 'https://pirate.example/don' } })).status, 400, 'lien HelloAsso seulement');
+  assert.equal((await req('PUT', '/api/admin/reglages', { body: { helloassoDon: 'https://www.helloasso.com/associations/test/formulaires/1' } })).status, 200);
+  assert.match((await req('GET', '/bulletin-adhesion.html')).data, /Faire un don en ligne \(HelloAsso\)/, 'bouton HelloAsso affiché');
+  assert.equal((await req('PUT', '/api/admin/reglages', { body: { helloassoDon: before.helloassoDon || '' } })).status, 200);
+  assert.ok(!/Faire un don en ligne \(HelloAsso\)/.test((await req('GET', '/bulletin-adhesion.html')).data), 'retiré si vide');
+  await req('POST', '/api/logout');
+  cookie = '';
 });

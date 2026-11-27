@@ -1,6 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="11" fill="#00843D"/>
-  <rect y="11" width="32" height="10" fill="#fff"/>
-  <rect y="21" width="32" height="11" fill="#CE1126"/>
-  <text x="16" y="20" font-family="Arial,sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#212529">ASLF</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Drapeau du Somaliland</title>
+  <defs>
+    <clipPath id="f"><rect x="1" y="10" width="62" height="44" rx="7"/></clipPath>
+  </defs>
+  <g clip-path="url(#f)">
+    <rect x="0" y="10" width="64" height="15" fill="#006D21"/>
+    <rect x="0" y="25" width="64" height="14" fill="#FFFFFF"/>
+    <rect x="0" y="39" width="64" height="15" fill="#D21034"/>
+    <!-- Chahada, en blanc dans la bande verte -->
+    <text x="32" y="21.2" text-anchor="middle" fill="#FFFFFF" font-size="9" font-weight="700"
+          font-family="'Traditional Arabic','Amiri','Noto Naskh Arabic','Segoe UI',Tahoma,sans-serif"
+          textLength="46" lengthAdjust="spacingAndGlyphs" direction="rtl">لا إله إلا الله محمد رسول الله</text>
+    <!-- Étoile noire à cinq branches, au centre de la bande blanche -->
+    <polygon fill="#000000" points="32.00,26.80 33.26,30.67 37.33,30.67 34.04,33.06 35.29,36.93 32.00,34.54 28.71,36.93 29.96,33.06 26.67,30.67 30.74,30.67"/>
+  </g>
+  <rect x="1" y="10" width="62" height="44" rx="7" fill="none" stroke="#000" stroke-opacity=".12"/>
 </svg>

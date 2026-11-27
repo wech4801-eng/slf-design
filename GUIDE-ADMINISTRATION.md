@@ -6,10 +6,10 @@ navigateur (ordinateur, tablette ou téléphone).
 ## Se connecter
 
 1. Ouvrez l’adresse du site suivie de **/admin**, par exemple `www.aslf-france.org/admin`.
-2. Tapez le mot de passe de l’association, puis **Se connecter**.
+2. Tapez l’**identifiant** (au départ : `admin`) et le **mot de passe** de l’association, puis **Se connecter**.
 3. Vous restez connecté 30 jours sur cet appareil.
 
-Mot de passe oublié : demandez-le à la personne qui s’occupe du site.
+Identifiant ou mot de passe oublié : demandez-les à la personne qui s’occupe du site. L’identifiant et le mot de passe se changent dans **Réglages**.
 
 ## Publier un article
 

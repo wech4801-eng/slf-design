@@ -95,14 +95,49 @@ et pointe vers **o2switch**, qui héberge l’ancien site Joomla **et les e-mail
 3. Déposer à la place la copie voulue (`sauvegardes/aslf-AAAA-MM-JJ.sqlite` ou `aslf.sqlite` du ZIP),
    renommée en `aslf.sqlite`. Pour les photos, recopier le dossier `uploads/` du ZIP.
 
-## Mot de passe de l’administration
+## Comptes, alertes et adhésion en ligne (Réglages)
 
-- Il se change dans l’espace de gestion → **Réglages** (les autres appareils sont alors déconnectés).
-- **Oublié ?** hPanel → Gestionnaire de fichiers → dans `aslf-data/`, créer un fichier vide nommé
-  `REINITIALISER-MOT-DE-PASSE`. À la connexion suivante, le mot de passe initial (celui de
-  `data/ACCES-ADMIN.txt`) redevient valable et le fichier est supprimé automatiquement.
-  Changer ensuite le mot de passe dans Réglages.
-- 10 essais ratés en 15 minutes bloquent temporairement l’adresse IP concernée.
+- **Plusieurs comptes** : Réglages → « Comptes d’accès ». Chaque personne a son identifiant (pseudo ou e-mail) et son
+  mot de passe ; il faut au moins deux comptes pour ne jamais perdre l’accès. Le compte d’origine est `admin`.
+- **Mot de passe oublié par tout le monde** : hPanel → Gestionnaire de fichiers → dans `aslf-data/`, créer un fichier vide
+  `REINITIALISER-MOT-DE-PASSE`. Tous les comptes sont effacés et l’identifiant `admin` avec le mot de passe initial
+  (`data/ACCES-ADMIN.txt`) redevient valable ; recréer ensuite les autres comptes.
+- **Alerte e-mail** à chaque message du formulaire de contact (adresse par défaut : somalilande.france@gmail.com),
+  bouton « Envoyer un e-mail de test ». Les messages des tests automatiques (`@example.org`) n’en déclenchent pas.
+- **HelloAsso et bulletin** : coller les liens des formulaires HelloAsso (adhésion, don) et envoyer le bulletin PDF ;
+  les boutons apparaissent alors seuls sur la page « Adhérer / Faire un don ». Vide = rien d’affiché.
+- 10 essais ratés en 15 minutes bloquent temporairement l’adresse IP concernée (voir Pare-feu).
+
+## Redirections
+
+Pages regroupées le 28/11/2026 : `qui-sommes-nous`, `notre-but` → `association.html` ; `appel-cotisation` →
+`bulletin-adhesion.html` ; `radios` → `medias.html`. Les anciennes adresses du site Joomla (`index.php?option=…`,
+`/index.php/…`, `/component/…`) sont redirigées (301) vers la page la plus proche d’après leurs mots, sinon vers l’accueil.
+
+## Pare-feu (« mini fail2ban »)
+
+Le site bloque **temporairement** (jamais définitivement) les adresses IP qui s’acharnent :
+
+| Comportement | Seuil | Blocage |
+|---|---|---|
+| Mots de passe faux (force brute) | 5 en 15 minutes | 1 heure |
+| Robot qui cherche des failles (`wp-login.php`, `xmlrpc.php`, `phpmyadmin`, `.env`…, piège du formulaire de contact) | 3 en 10 minutes | 1 heure |
+| Bombardement de requêtes | plus de 180 pages/appels en 1 minute | 30 minutes |
+
+- Un administrateur **connecté** n’est jamais bloqué ; Réglages → **Sécurité** liste les adresses bloquées avec un bouton « Débloquer ».
+- **Bloqué soi-même et pas connecté ?** hPanel → Gestionnaire de fichiers → dans `aslf-data/`, créer un fichier nommé
+  `DEBLOQUER-TOUT` : à la requête suivante, tous les blocages sont levés et le fichier disparaît. Sinon, attendre (1 h au plus).
+- Le serveur voit bien l’adresse réelle de chaque visiteur (vérifié derrière le CDN d’Hostinger : Réglages → État du site).
+- Contre une attaque massive venant de milliers d’adresses à la fois, c’est l’infrastructure d’Hostinger (CDN, protection
+  réseau) qui protège : ce pare-feu arrête les robots isolés et la force brute.
+- Chaque blocage est noté dans `aslf-data/erreurs.log`.
+
+## Documents joints aux articles
+
+PDF, Word, Excel, PowerPoint, OpenOffice, texte (20 Mo maximum) : éditeur d’article → étape 6 → « Des documents à télécharger ».
+Rangés dans `aslf-data/fichiers/AAAA/MM/`, listés dans l’admin (page Photos), servis à l’adresse `/fichiers/…` sous leur nom
+d’origine, jamais exécutés (type imposé, `nosniff`, CSP `sandbox`) et jamais gardés par le CDN (un document retiré cesse
+d’être téléchargeable aussitôt). Le contenu est vérifié : un faux PDF ou un `.exe` renommé est refusé.
 
 ## En cas de problème
 
