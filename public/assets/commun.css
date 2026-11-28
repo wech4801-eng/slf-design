@@ -71,3 +71,27 @@
 .btn-gestion:hover, .btn-gestion[aria-current] { color: var(--green-dark, #006830); border-color: #00843D; background: var(--green-light, #e8f5ee); }
 .btn-gestion:focus-visible { outline: 3px solid #00843D; outline-offset: 2px; }
 @media (max-width: 380px) { .btn-gestion { width: 36px; height: 36px; } }
+
+/* Fil d'Ariane sur téléphone : chaque élément reste entier (plus de colonnes de 2 mots).
+   Le titre de la page passe à la ligne s'il ne tient pas, sur une seule ligne terminée par « … »
+   (le titre complet est juste en dessous, dans le grand titre de la page). */
+@media (max-width: 767px) {
+  .breadcrumb { flex-wrap: wrap !important; row-gap: 4px !important; column-gap: 6px !important; line-height: 1.5; }
+  .breadcrumb > * { white-space: nowrap; }
+  .breadcrumb > span:last-of-type { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .breadcrumb > a[href^="/admin/"] { margin-left: 0 !important; }
+}
+
+/* Adhérer : « Pourquoi cotiser ? » en 2 colonnes seulement à partir de 640 px, l'une sous l'autre sur téléphone */
+@media (min-width: 640px) { .why-grid { grid-template-columns: 1fr 1fr !important; } }
+@media (max-width: 639px) {
+  .why-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .why-item { padding: 16px 18px !important; }
+  .content-card { padding: 22px 18px !important; }
+  /* Étapes : le numéro à côté du titre, le texte sur toute la largeur en dessous */
+  .step { display: grid !important; grid-template-columns: 32px 1fr; column-gap: 12px; row-gap: 6px; padding: 16px !important; align-items: center !important; }
+  .step-num { width: 32px !important; height: 32px !important; font-size: 15px !important; }
+  .step-content { display: contents; }
+  .step-content h3 { grid-column: 2; margin: 0 !important; }
+  .step-content p, .step-content > :not(h3) { grid-column: 1 / -1; margin: 0; }
+}
