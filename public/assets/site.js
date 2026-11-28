@@ -227,8 +227,6 @@
     set('art-author-avatar', (a.author || 'A').trim().charAt(0).toUpperCase());
     set('art-date', '📅 ' + fmtDate(a.date));
     set('art-readtime', '⏱ ' + (a.readMinutes || 1) + ' min de lecture');
-    const showViews = (n) => set('art-views', '👁 ' + n.toLocaleString('fr-FR') + (n > 1 ? ' vues' : ' vue'));
-    showViews(a.views || 0);
 
     const hero = document.getElementById('art-hero-img');
     if (hero) {
@@ -368,7 +366,7 @@
       document.body.prepend(bar);
     } else if (a.id && !(data && data.admin)) {
       fetch(`/api/articles/${encodeURIComponent(a.id)}/vue`, { method: 'POST' })
-        .then((r) => r.json()).then((j) => { if (j && j.views) showViews(j.views); }).catch(() => {});
+        .catch(() => {}); // compteur gardé pour le tableau de bord de l'espace de gestion, jamais affiché au public
     }
   }
 

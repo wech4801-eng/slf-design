@@ -324,6 +324,8 @@ test('PDF du 26/11 : retraits, textes, menu, Google', { skip }, async () => {
   assert.match(commun, /max-width:\s*1099px[\s\S]*\.hamburger\s*\{\s*display:\s*flex/, 'menu ☰ sur tablette (en-tête trop large sous 1100 px)');
   assert.ok(commun.includes('.why-grid { grid-template-columns: 1fr !important'), 'cartes « Pourquoi cotiser ? » l’une sous l’autre sur téléphone');
   assert.ok(commun.includes('.breadcrumb > * { white-space: nowrap; }'), 'fil d’Ariane sans colonnes de 2 mots sur téléphone');
+  const artPage = (await req('GET', '/article.html?id=les-mots-du-president-mr-egal-omar')).data;
+  assert.ok(!artPage.includes('art-views') && !/\d+ vues?</.test(artPage), 'pas de nombre de vues sur les articles');
   const contact = (await req('GET', '/contact.html')).data;
   assert.ok(!/facebook\.com|twitter\.com|youtube\.com|Lundi|48 h/.test(contact), 'contact nettoyé');
   const bulletin = (await req('GET', '/bulletin-adhesion.html')).data;
