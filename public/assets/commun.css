@@ -63,3 +63,11 @@
   .mobile-menu { top: 68px; }
   .mobile-menu-inner { max-width: 420px; margin-left: auto; max-height: calc(100vh - 68px); overflow-y: auto; }
 }
+
+/* Bouton discret « Espace de gestion » (cadenas) dans l'en-tête */
+.btn-gestion { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 8px; border: 1px solid var(--gray-200, #e9ecef); color: var(--gray-600, #6c757d); background: #fff;
+  transition: color .15s, border-color .15s, background .15s; }
+.btn-gestion:hover, .btn-gestion[aria-current] { color: var(--green-dark, #006830); border-color: #00843D; background: var(--green-light, #e8f5ee); }
+.btn-gestion:focus-visible { outline: 3px solid #00843D; outline-offset: 2px; }
+@media (max-width: 380px) { .btn-gestion { width: 36px; height: 36px; } }

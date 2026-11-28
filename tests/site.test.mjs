@@ -299,7 +299,7 @@ test('PDF du 26/11 : retraits, textes, menu, Google', { skip }, async () => {
   assert.match(home, /Israël a été le premier État à la lui accorder/);
   assert.match(home, /id="rendez-vous"[\s\S]*?class="rdv"/, 'prochains rendez-vous');
   assert.match(home, /application\/ld\+json/, 'fiche Organisation pour Google');
-  assert.ok(!/class="btn-admin"/.test(home), 'bouton admin retiré de l’en-tête');
+  assert.ok(home.slice(0, home.indexOf('</header>')).includes('href="admin/" class="btn-gestion"'), 'bouton Espace de gestion dans l’en-tête');
   assert.match(home, /href="admin\/"[^>]*>Espace de gestion/, 'admin dans le pied de page');
   const nav = /<nav class="nav-desktop"[\s\S]*?<\/nav>/.exec(home)[0];
   assert.equal((nav.match(/class="nav-drop-trigger|<a href="(\.\/|contact\.html)"/g) || []).length, 6, '6 entrées + le bouton Adhérer = 7');
