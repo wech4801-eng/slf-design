@@ -313,6 +313,15 @@ test('PDF du 26/11 : retraits, textes, menu, Google', { skip }, async () => {
   assert.ok(!/aucun État|absence de reconnaissance|Seule l'Éthiopie|quatre présidents/.test(connaitre));
   assert.match(connaitre, /six présidents se sont succédé, dont quatre élus au suffrage universel \(2003, 2010, 2017, 2024\)/);
   assert.match(connaitre, /id="livre"/);
+  // Chaque page qui a un menu mobile et un pied de page en a aussi les styles (sinon menu ouvert en permanence sur ordinateur)
+  for (const p of ['/', '/news.html', '/article.html?id=les-mots-du-president-mr-egal-omar', '/actions-realisees.html', '/mentions-legales.html']) {
+    const page = (await req('GET', p)).data;
+    if (/id="mobileMenu"/.test(page)) assert.match(page, /\.mobile-menu\s*\{[^}]*display:\s*none/, p + ' : menu mobile fermé par défaut');
+    if (/class="footer-top"/.test(page)) assert.match(page, /\.footer-top\s*\{[^}]*display:\s*grid/, p + ' : pied de page en colonnes');
+    if (/class="nav-drop-trigger"/.test(page)) assert.match(page, /\.nav-drop-trigger svg\s*\{[^}]*width/, p + ' : flèches du menu');
+  }
+  const commun = (await req('GET', '/assets/commun.css')).data;
+  assert.match(commun, /max-width:\s*1099px[\s\S]*\.hamburger\s*\{\s*display:\s*flex/, 'menu ☰ sur tablette (en-tête trop large sous 1100 px)');
   const contact = (await req('GET', '/contact.html')).data;
   assert.ok(!/facebook\.com|twitter\.com|youtube\.com|Lundi|48 h/.test(contact), 'contact nettoyé');
   const bulletin = (await req('GET', '/bulletin-adhesion.html')).data;

@@ -54,3 +54,12 @@
 .rdv p { margin: 4px 0 0; font-size: 14px; color: #5c636a; }
 
 @media (prefers-reduced-motion: reduce) { .btn-adherer { transition: none; } }
+
+/* Tablette et petit ordinateur (768-1099 px) : l'en-tête complet (logo + 6 entrées + Adhérer) demande ~1030 px.
+   En dessous de 1100 px, on garde donc le bouton menu ☰ au lieu de faire déborder la page. */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .nav-desktop { display: none !important; }
+  .hamburger { display: flex !important; }
+  .mobile-menu { top: 68px; }
+  .mobile-menu-inner { max-width: 420px; margin-left: auto; max-height: calc(100vh - 68px); overflow-y: auto; }
+}
